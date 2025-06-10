@@ -78,6 +78,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
               checkDistance(schedules);
             });
             return ListView.builder(
+
                 itemCount: schedules.length,
                 itemBuilder: (context, index) {
                   final schedule = schedules[index];
