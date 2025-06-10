@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "682731614891",
+    "project_id": "flutterproject-team4",
+    "storage_bucket": "flutterproject-team4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682731614891:android:fba8c970bdc530757abdee",
+        "android_client_info": {
+          "package_name": "com.example.flutterteam4"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByN1PPv9VrwqYk3UYykKi0mVpIRbLc6Kk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
