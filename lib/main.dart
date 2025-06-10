@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
+// git 테스트 주석
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
