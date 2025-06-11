@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Schedule {
   final String id;
   final String title;
@@ -5,6 +7,7 @@ class Schedule {
   final double lat;
   final double lng;
   final String placeName;
+  final Timestamp start;
   bool isDone;
   bool canStamp;
   bool canStampAlreadyNoti = false;
@@ -17,6 +20,7 @@ class Schedule {
     required this.lng,
     required this.placeName,
     required this.isDone,
+    required this.start,
     this.canStamp = false,
 });
 
@@ -29,6 +33,7 @@ class Schedule {
         lng: map['lng']?? 0.0,
         placeName: map['place_name']?? '',
         isDone: map['is_done']?? false,
+        start : map['start']?? '',
     );
   }
 
