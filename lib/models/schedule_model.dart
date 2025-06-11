@@ -5,7 +5,9 @@ class Schedule {
   final double lat;
   final double lng;
   final String placeName;
-  final bool isDone;
+  bool isDone;
+  bool canStamp;
+  bool canStampAlreadyNoti = false;
 
   Schedule({
     required this.id,
@@ -15,6 +17,7 @@ class Schedule {
     required this.lng,
     required this.placeName,
     required this.isDone,
+    this.canStamp = false,
 });
 
   factory Schedule.fromMap(Map<String,dynamic> map, String id){
