@@ -305,7 +305,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
       "is_owner": true,
       "nickname": "test1111",
       "avatar_id": null,
-      "titles": "칭호",  // 또는 유저가 가진 타이틀
+      "titles": "칭호",  // 또는 유저가 가진 타이
     });
 
     // 초대한 친구들 저장
