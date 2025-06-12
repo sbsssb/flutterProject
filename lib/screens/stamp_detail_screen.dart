@@ -6,20 +6,22 @@ import '../models/schedule_model.dart';
 import '../models/stamp_log_model.dart';
 import '../services/firestore_service.dart';
 import 'package:geolocator/geolocator.dart';
-import '../widgets/schedule_card.dart';
+import '../widgets/stamp_card.dart';
 import 'package:confetti/confetti.dart';
 import 'dart:async';
+import '../widgets/stamp_header.dart';
+import '../widgets/stamp_end_button.dart';
 
-class TravelDetailScreen extends StatefulWidget {
+class StampDetailScreen extends StatefulWidget {
   final String roomId = 'gpsTest';
 
-  const TravelDetailScreen({super.key});
+  const StampDetailScreen({super.key});
 
   @override
-  State<TravelDetailScreen> createState() => _TravelDetailScreenState();
+  State<StampDetailScreen> createState() => _StampDetailScreenState();
 }
 
-class _TravelDetailScreenState extends State<TravelDetailScreen> {
+class _StampDetailScreenState extends State<StampDetailScreen> {
   late Future<List<Schedule>> _futureSchedules;
   late ConfettiController _confettiController;
 
@@ -55,7 +57,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     );
 
     for (var schedule in schedules) {
-
       if (schedule.isDone) continue;
 
       double distance = Geolocator.distanceBetween(
@@ -173,7 +174,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('여행 상세')),
       body: FutureBuilder<List<Schedule>>(
         future: _futureSchedules,
         builder: (context, snapshot) {
@@ -196,150 +196,71 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
           }
 
           return Stack(
+            clipBehavior: Clip.none,
             children: [
-              Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+              Positioned.fill(
+                top: 180,
+                child: Container(
+                  //노란색 박스
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFACC15),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: Column(
                     children: [
-                      Image.asset('assets/images/stamp-icon.png', width: 24),
-                      const SizedBox(width: 8),
-                      Text(
-                        '$done / $total개',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: schedules.length,
+                          itemBuilder: (context, index) {
+                            final schedule = schedules[index];
+                            return StampCard(
+                              schedule: schedule,
+                              onStampPressed: () async {
+                                await showStampDialog(context);
+
+                                final log = StampLog(
+                                  stampId: '${userId}_${schedule.id}',
+                                  userId: userId,
+                                  scheduleId: schedule.id,
+                                  cdatetime: DateTime.now(),
+                                );
+
+                                await FirestoreService.addStampLog(
+                                  roomId: widget.roomId,
+                                  log: log,
+                                );
+                                await FirestoreService.markScheduleDone(
+                                  roomId: widget.roomId,
+                                  scheduleId: schedule.id,
+                                );
+
+                                Fluttertoast.showToast(msg: '스탬프가 적립되었습니다!');
+
+                                setState(() {
+                                  schedule.isDone = true;
+                                });
+                              },
+                            );
+                          },
                         ),
                       ),
+                      const SizedBox(height: 10),
+                      //종료 버튼
+                      buildStampEndButton(
+                        context: context,
+                        done: done,
+                        total: total,
+                        confettiController: _confettiController,
+                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      '나의 일정',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Padding(
-                  //   padding: EdgeInsets.all(16),
-                  //   child: Text(
-                  //     '$done / $total 완료됨',
-                  //     style: TextStyle(
-                  //       fontWeight: FontWeight.bold,
-                  //       fontSize: 16,
-                  //     ),
-                  //   ),
-                  // ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: schedules.length,
-                      itemBuilder: (context, index) {
-                        final schedule = schedules[index];
-                        return ScheduleCard(
-                          schedule: schedule,
-                          onStampPressed: () async {
-                            await showStampDialog(context);
-
-                            final log = StampLog(
-                              stampId: '${userId}_${schedule.id}',
-                              userId: userId,
-                              scheduleId: schedule.id,
-                              cdatetime: DateTime.now(),
-                            );
-
-                            await FirestoreService.addStampLog(
-                              roomId: widget.roomId,
-                              log: log,
-                            );
-                            await FirestoreService.markScheduleDone(
-                              roomId: widget.roomId,
-                              scheduleId: schedule.id,
-                            );
-
-                            Fluttertoast.showToast(msg: '스탬프가 적립되었습니다!');
-
-                            setState(() {
-                              schedule.isDone = true;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      //일정 전체 완료 => 컨페티+축하메시지
-                      if (done == total) {
-                        _confettiController.play();
-                        showDialog(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: Text("축하합니다!"),
-                                content: Text("모든 스탬프를 적립했어요!"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text("여행 일정이 종료되었습니다."),
-                                        ),
-                                      );
-                                    },
-                                    child: Text("확인"),
-                                  ),
-                                ],
-                              ),
-                        );
-                        //일정 일부 완료 => 확인 메시지
-                      } else {
-                        showDialog(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: Text("일정 종료"),
-                                content: Text(
-                                  "현재 스탬프를 $done / $total개 정립했습니다. \n 정말 종료할까요? ",
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text("여행 일정이 종료되었습니다."),
-                                        ),
-                                      );
-                                    },
-                                    child: Text("네, 종료할게요."),
-                                  ),
-                                ],
-                              ),
-                        );
-                      }
-                    },
-                    child: Text("일정 종료하기"),
-                  ),
-                ],
-              ),
+              //컨페티 효과
               Align(
                 alignment: Alignment.topCenter,
                 child: ConfettiWidget(
@@ -347,6 +268,12 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                   blastDirectionality: BlastDirectionality.explosive,
                   shouldLoop: false,
                 ),
+              ),
+              Positioned(
+                top: 60,
+                left: 0,
+                right: 0,
+                child: buildStampHeader(done, total),
               ),
             ],
           );
