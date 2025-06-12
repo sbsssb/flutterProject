@@ -44,14 +44,22 @@ class _ThemeSelectPageState extends State<ThemeSelectPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('테마 선택')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ 상단 선택 뱃지
+          Padding(
+            padding: const EdgeInsets.only(top: 60),
+            child: Center(
+              child: Image.asset(
+                'assets/logo-main-ver1.png',
+                height: 80,
+              ),
+            ),
+          ),
+          // 상단 선택 뱃지
           if (selectedThemes.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
               child: Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -69,15 +77,15 @@ class _ThemeSelectPageState extends State<ThemeSelectPage> {
               ),
             ),
 
-          // ✅ 중간 Grid 박스
+          // 중간 Grid 박스
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.only(left: 19, right: 19, top: 0),
               child: GridView.count(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.1,
+                childAspectRatio: 1.2,
                 children: themes.map((theme) {
                   final isSelected = selectedThemes.contains(theme);
                   final icon = themeIcons[theme] ?? Icons.category;

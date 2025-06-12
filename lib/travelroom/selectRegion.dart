@@ -27,42 +27,58 @@ class RegionSelectPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('지역 선택')),
-      body: Center(
-        child: Stack(
+      body: SafeArea(
+        child: Column(
           children: [
-            Image.asset(
-              'assets/map2.png', // 지역 지도 이미지 경로
-              width: 400,
-              height: 600,
-              fit: BoxFit.cover,
+            // ⬆️ 로고
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Image.asset(
+                'assets/logo-main-ver1.png',
+                height: 80,
+              ),
             ),
-            ...regions.map((region) {
-              return Positioned(
-                left: region['left'],
-                top: region['top'],
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context, region['value']);
-                  },
-                  child: Container(
-                    width: 50,
-                    height: 30,
-                    alignment: Alignment.center,
-                    color: Colors.transparent,
-                    child: Text(
-                      region['label'],
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
 
-                      ),
+            // ⬇️ 지도 + 버튼 영역
+            Expanded(
+              child: Center(
+                child: Stack(
+                  children: [
+                    Image.asset(
+                      'assets/map2.png',
+                      width: 400,
+                      height: 600,
+                      fit: BoxFit.cover,
                     ),
-                  ),
+                    ...regions.map((region) {
+                      return Positioned(
+                        left: region['left'],
+                        top: region['top'],
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context, region['value']);
+                          },
+                          child: Container(
+                            width: 50,
+                            height: 30,
+                            alignment: Alignment.center,
+                            color: Colors.transparent,
+                            child: Text(
+                              region['label'],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
                 ),
-              );
-            }).toList(),
+              ),
+            ),
           ],
         ),
       ),

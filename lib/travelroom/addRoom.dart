@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutterteam4/travelroom/selectRegion.dart';
 import 'package:flutterteam4/travelroom/selectTheme.dart';
 import '../firebase_options.dart';
+import '../travellist/ScheduleRequestPage.dart';
 
 void main() async {
   // Flutter 프레임워크와의 초기화
@@ -291,6 +292,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
             //"owner_id": user.uid,
             "owner_id": "yBGkS5yQ7Hc8tzbEEQYUSd3n8O23",
             "region": selectedRegion,
+            "sub_region": null,
             "theme": selectedThemes,
             "transport": selectedTransport,
             "cdatetime": FieldValue.serverTimestamp(),
@@ -330,45 +332,87 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
       SnackBar(content: Text("여행방이 생성되었습니다!")),
     );
 
-    //Navigator.pop(context);
+    //초기화
+    setState(() {
+      _nameController.clear();
+      selectedRegion = '';
+      selectedTransport = '';
+      selectedThemes = [];
+      invitedFriends = [];
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScheduleRequestPage(
+
+        ),
+      ),
+    );
   }
+
+  final ButtonStyle commonButtonStyle = ElevatedButton.styleFrom(
+    backgroundColor: Colors.yellow,
+    foregroundColor: Colors.black,
+    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+    textStyle: const TextStyle(fontSize: 16),
+  );
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("여행방 만들기")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: "여행방 이름"),
-            ),
-            SizedBox(height: 16),
-            _buildFriendInviteRow(),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _selectRegion,
-              child: Text(selectedRegion.isEmpty ? "지역 선택" : selectedRegion),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _selectTransport,
-              child: Text(selectedTransport.isEmpty ? "교통수단 선택" : selectedTransport),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _selectThemes,
-              child: Text(selectedThemes.isEmpty ? "테마 선택" : selectedThemes.join(", ")),
-            ),
-            SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _createRoom,
-              child: Text("방 만들기"),
-            ),
-          ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/logo-main-ver1.png',
+                  height: 80,
+                ),
+              ),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: "여행방 이름"),
+              ),
+              SizedBox(height: 40),
+              _buildFriendInviteRow(),
+              SizedBox(height: 50),
+              ElevatedButton(
+                onPressed: _selectRegion,
+                style: commonButtonStyle,
+                child: Text(selectedRegion.isEmpty ? "지역 선택" : selectedRegion),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _selectTransport,
+                style: commonButtonStyle,
+                child: Text(selectedTransport.isEmpty ? "교통수단 선택" : selectedTransport),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _selectThemes,
+                style: commonButtonStyle,
+                child: Text(selectedThemes.isEmpty ? "테마 선택" : selectedThemes.join(", ")),
+              ),
+              SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: _createRoom,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,         // 배경색
+                    foregroundColor: Colors.white, // 글자색
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                  textStyle: TextStyle(fontSize: 16)
+                ),
+                child: Text("방 만들기"),
+              ),
+            ],
+          ),
         ),
       ),
     );
