@@ -287,6 +287,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
         .doc(roomId)
         .set({
             "room_id": roomId,
+            "room_name" : _nameController.text,
             //"owner_id": user.uid,
             "owner_id": "yBGkS5yQ7Hc8tzbEEQYUSd3n8O23",
             "region": selectedRegion,
@@ -318,7 +319,8 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
         "user_id": friend['user_id'],
         "is_owner": false,
         "nickname": friend['nickname'],
-        "avatar_id": friend['avatar_id'],
+        //"avatar_id": friend['avatar_id'],
+        "avatar_id": null,
         "titles": friend['titles'] ?? '',
       });
     }
@@ -328,7 +330,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
       SnackBar(content: Text("여행방이 생성되었습니다!")),
     );
 
-    Navigator.pop(context);
+    //Navigator.pop(context);
   }
 
 
