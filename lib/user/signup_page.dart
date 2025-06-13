@@ -1,0 +1,163 @@
+// lib/user/signup_page.dart
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'login_page.dart';
+
+
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({Key? key}) : super(key: key);
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nicknameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nicknameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _signUp() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final nickname = _nicknameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (email.isEmpty || password.isEmpty || nickname.isEmpty || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('모든 항목을 입력해주세요')),
+      );
+      return;
+    }
+
+    try {
+      // 1️⃣ Firebase Auth로 회원가입
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // 2️⃣ Firestore에 사용자 정보 저장
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'user_id': userCredential.user!.uid,
+        'email': email,
+        'nickname': nickname,
+        'phone': phone,
+        'provider': 'local',
+        'cdatetime': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('회원가입이 완료되었습니다!')),
+      );
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+            (route) => false,
+      );
+
+    } on FirebaseAuthException catch (e) {
+      print('Firebase Auth 오류 코드: ${e.code}');
+      print('Firebase Auth 오류 메시지: ${e.message}');
+
+
+      String message = '회원가입 오류';
+      if (e.code == 'email-already-in-use') {
+        message = '이미 가입된 이메일입니다.';
+      } else if (e.code == 'weak-password') {
+        message = '비밀번호를 더 강력하게 만들어주세요.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(message),
+          duration: Duration(seconds: 10),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('회원가입 실패: ${e.toString()}')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  '회원가입',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: '이메일',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: '비밀번호',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _nicknameController,
+                  decoration: const InputDecoration(
+                    labelText: '닉네임',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _phoneController,
+                  decoration: const InputDecoration(
+                    labelText: '전화번호',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _signUp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                  ),
+                  child: const Text('가입하기'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
