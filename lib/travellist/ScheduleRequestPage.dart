@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../gemini/gemini_service.dart';
-import 'ScheduleListPage.dart'; // ⬅️ 방금 만든 페이지 import
+import 'ScheduleListPage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ScheduleRequestPage extends StatelessWidget {
