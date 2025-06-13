@@ -1,26 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
-import 'screens/stamp_detail_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutterteam4/travelroom/addRoom.dart';
+import 'package:flutterteam4/travellist/ScheduleRequestPage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
+final GoRouter router = GoRouter(
+  routes: [
+    // case1 : 기본 페이지
+    // GoRoute(path: '/', builder: (context, state) => RoomCreate()),
+    GoRoute(path: '/', builder: (context, state) => RoomCreate()),
+
+  ],
+);
+
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
-
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '랜덤어때',
-      home: StampDetailScreen(),
+    return MaterialApp.router(
+      routerConfig: router,
     );
   }
 }
+
+

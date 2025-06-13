@@ -1,0 +1,193 @@
+// lib/user/login_page.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'signup_page.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  void _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('이메일과 비밀번호를 입력하세요')),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('로그인 성공!')),
+      );
+
+      // TODO: 로그인 성공 후 이동할 페이지로 Navigator.push()
+
+    } on FirebaseAuthException catch (e) {
+      String message = '로그인 오류';
+      if (e.code == 'user-not-found') {
+        message = '등록되지 않은 이메일입니다.';
+      } else if (e.code == 'wrong-password') {
+        message = '비밀번호가 틀렸습니다.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('로그인 실패: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _loginWithKakao() async {
+    try {
+      kakao.OAuthToken token;
+
+      // 카카오톡 앱 설치 여부 확인
+      if (await kakao.isKakaoTalkInstalled()) {
+        try {
+          // 카카오톡 앱으로 로그인 시도
+          token = await kakao.UserApi.instance.loginWithKakaoTalk();
+        } catch (e) {
+          // 카카오톡 앱 로그인 실패하면 카카오 계정 로그인으로 우회
+          token = await kakao.UserApi.instance.loginWithKakaoAccount();
+        }
+      } else {
+        // 카카오톡 앱 없으면 바로 카카오 계정으로 로그인
+        token = await kakao.UserApi.instance.loginWithKakaoAccount();
+      }
+
+      // 사용자 정보 가져오기
+      kakao.User user = await kakao.UserApi.instance.me();
+      String email = user.kakaoAccount?.email ?? '';
+      String nickname = user.kakaoAccount?.profile?.nickname ?? '';
+
+      // Firestore에 사용자 정보 저장 (가입 or 업데이트)
+      await FirebaseFirestore.instance.collection('users').doc(user.id.toString()).set({
+        'user_id': user.id.toString(),
+        'email': email,
+        'nickname': nickname,
+        'provider': 'kakao',
+        'cdatetime': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('카카오 로그인 성공!')),
+      );
+
+      // TODO: 로그인 성공 후 홈 화면으로 이동
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('카카오 로그인 실패: $e')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  '로그인',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: '이메일',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: '비밀번호',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                  ),
+                  child: const Text('로그인'),
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loginWithKakao,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow,
+                  ),
+                  child: const Text(
+                    '카카오로 로그인하기',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SignUpPage()),
+                      );
+                    },
+                    child: const Text(
+                      '아직 회원이 아니신가요? [회원가입하기]',
+                      style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

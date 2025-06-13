@@ -40,7 +40,9 @@ dependencies:
   confetti: ^0.8.0
   intl: ^0.18.1
   go_router:
-
+  firebase_auth:
+  kakao_flutter_sdk_user:
+  http:
 
 
   # The following adds the Cupertino Icons font to your application.
