@@ -218,7 +218,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
   }
 }
 
-// 주사위 클래스는 이전 코드 그대로 유지
+// 주사위 클래스는 이전 코드 그대로 유
 class DiceCube extends StatefulWidget {
   const DiceCube({super.key});
 
