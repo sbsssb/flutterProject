@@ -296,6 +296,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
             "theme": selectedThemes,
             "transport": selectedTransport,
             "cdatetime": FieldValue.serverTimestamp(),
+            "is_done" : false
           });
 
     // members 서브컬렉션에 방장 추가
@@ -344,9 +345,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ScheduleRequestPage(
-
-        ),
+        builder: (context) => ScheduleRequestPage(roomId:roomId),
       ),
     );
   }
