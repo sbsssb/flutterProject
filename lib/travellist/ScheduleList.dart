@@ -96,7 +96,7 @@ class ScheduleList extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () {
-                    // 삭제 로직 여기에 작성
+                    // 삭제 로직
                   },
                 ),
               ],
