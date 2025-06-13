@@ -1,30 +1,109 @@
 import 'package:flutter/material.dart';
 import 'appbar.dart';
-
-void main() {
-  runApp(const MaterialApp(
-    home: FriendsPage(),
-    debugShowCheckedModeBanner: false,
-  ));
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FriendsPage extends StatefulWidget {
-  const FriendsPage({super.key});
+  final Map<String, dynamic> userData;
+  const FriendsPage({super.key, required this.userData});
 
   @override
   State<FriendsPage> createState() => _FriendsPageState();
 }
 
 class _FriendsPageState extends State<FriendsPage> {
+
   bool isRequestMode = false; // ✅ 친구 요청 모드 여부
   final int _unreadCount = 2; // 알림 카운트 예시
 
-  // ✅ 예시 친구 리스트
-  final List<String> friends = ['친구 1', '친구 2', '친구 3'];
-  final List<String> usersToRequest = ['친구 1', '친구 2'];
 
+//✅ 2. Firestore에서 친구 목록 불러오기
+  List<Map<String, dynamic>> friendList = [];
+
+  Future<void> loadFriends() async {
+    final userId = widget.userData['user_id']; // 또는 uid
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('friends')
+        .where('status', isEqualTo: 'accepted')
+        .get();
+
+    setState(() {
+      friendList = snapshot.docs.map((doc) => doc.data()).toList();
+    });
+  }
+
+
+  //✅ 3. 친구 요청 모드: 사용자 리스트 + 요청 상태
+  List<Map<String, dynamic>> allUsers = [];
+  Set<String> pendingRequestIds = {};
+
+  Future<void> loadAllUsers() async {
+    final currentId = widget.userData['user_id'];
+
+    final snapshot = await FirebaseFirestore.instance.collection('users').get();
+
+    setState(() {
+      allUsers = snapshot.docs
+          .where((doc) => doc.id != currentId)
+          .map((doc) => {
+        'id': doc.id,
+        'nickname': doc['nickname'],
+      })
+          .toList();
+    });
+
+    // 친구 요청 중인 ID 가져오기
+    final pendingSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentId)
+        .collection('friends')
+        .where('status', isEqualTo: 'pending')
+        .get();
+
+    setState(() {
+      pendingRequestIds =
+          pendingSnapshot.docs.map((doc) => doc.id).toSet();
+    });
+  }
+
+  //✅ 4. 친구 요청 버튼 처리
+  Future<void> sendFriendRequest(String toUserId) async {
+    final fromUserId = widget.userData['user_id'];
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(fromUserId)
+        .collection('friends')
+        .doc(toUserId)
+        .set({
+      'status': 'pending',
+      'createdAt': Timestamp.now(),
+    });
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(toUserId)
+        .collection('friend_requests')
+        .doc(fromUserId)
+        .set({
+      'status': 'pending',
+      'sentAt': Timestamp.now(),
+    });
+
+    // UI 갱신
+    await loadAllUsers();
+  }
+
+  String _getProfileImage({required Map<String, dynamic> friend}) {
+    int count = friend['travel_success_count'] ?? 0;
+    if (count >= 11) return 'assets/profile_gold.png';
+    if (count >= 6) return 'assets/profile_silver.png';
+    return 'assets/profile_bronze.png';
+  }
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: buildAppBar(
         unreadCount: _unreadCount,
@@ -54,34 +133,49 @@ class _FriendsPageState extends State<FriendsPage> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: isRequestMode ? usersToRequest.length : friends.length,
+              child: (isRequestMode ? allUsers.isEmpty : friendList.isEmpty)
+                  ? Center(
+                child: Text(
+                  isRequestMode ? '조회되는 유저가 없습니다.' : '등록된 친구가 없습니다.',
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              )
+                  : ListView.builder(
+                itemCount: isRequestMode ? allUsers.length : friendList.length,
                 itemBuilder: (context, index) {
-                  final name = isRequestMode ? usersToRequest[index] : friends[index];
+                  final userId = isRequestMode
+                      ? allUsers[index]['user_id']
+                      : friendList[index]['user_id'];
+                  final name = isRequestMode
+                      ? allUsers[index]['nickname']
+                      : friendList[index]['nickname'];
+                  final isPending = pendingRequestIds.contains(userId);
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
                       children: [
-                        Image.asset('assets/profile_icon.png', height: 80),
+                        Image.asset('assets/profile_gold.png', height: 80),
                         const SizedBox(width: 16),
-                        Expanded(child: Text(name, style: const TextStyle(fontSize: 22))),
+                        Expanded(
+                          child: Text(name, style: const TextStyle(fontSize: 22)),
+                        ),
                         if (isRequestMode)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: index == 1 ? Colors.amber : Colors.transparent,
-                              border: index != 1
-                                  ? Border.all(color: const Color(0xFF1E6FD9))
-                                  : null,
+                              color: isPending ? Colors.amber : Colors.transparent,
+                              border: isPending
+                                  ? null
+                                  : Border.all(color: const Color(0xFF1E6FD9)),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              index == 1 ? '요청 대기' : '친구 요청',
+                              isPending ? '요청 대기' : '친구 요청',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: index == 1 ? const Color(0xFF1E6FD9) : const Color(0xFF1E6FD9),
+                                color: const Color(0xFF1E6FD9),
                               ),
                             ),
                           )
@@ -91,10 +185,14 @@ class _FriendsPageState extends State<FriendsPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1E6FD9),
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            child: const Text('취소',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                            child: const Text(
+                              '취소',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
                           ),
                       ],
                     ),
