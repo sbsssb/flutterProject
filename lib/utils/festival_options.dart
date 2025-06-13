@@ -8,19 +8,6 @@ List<String> generateDateOptions({int months = 6}) {
   });
 }
 
-List<Festival> filterFestivalsByTheme(List<Festival> festivals, String selectedTheme) {
-  if (selectedTheme.isEmpty || selectedTheme == '전체') return festivals;
-
-  final keywords = themeKeywordMap[selectedTheme];
-  if (keywords == null) return festivals;
-
-  return festivals.where((festival) {
-    final combinedText =
-        '${festival.title} ${festival.description} ${festival.tags?.join(' ') ?? ''}';
-    return keywords.any((keyword) => combinedText.contains(keyword));
-  }).toList();
-}
-
 Map<String, String> regionOptions = {
   '전체': '',
   '서울': '1',
@@ -42,13 +29,21 @@ Map<String, String> regionOptions = {
   '제주특별자치도': '39',
 };
 
-Map<String, List<String>> themeKeywordMap = {
-  '여름': ['여름', '시원', '바다', '피서', '물놀이'],
-  '야경': ['야경', '밤', '라이트', '빛', '불빛'],
-  '야행': ['야행'],
-  '전통문화': ['전통', '민속', '풍물', '문화재'],
-  '문화예술': ['예술', '공연', '전시', '페스티벌', '뮤지컬'],
-  '힐링': ['힐링', '자연', '쉼', '휴식', '산책'],
+Map<String, String> categoryOptions = {
+  '전체': '',
+  '문화관광축제': 'A02070100',
+  '일반축제': 'A02070200',
+  '전통공연': 'A02080100',
+  '전시회': 'A02080500',
+  '박람회': 'A02080600',
+  '대중콘서트': 'A02081000',
+  '스포츠행사': 'A02081200',
+  '기타행사': 'A02081300',
 };
 
-List<String> themeOptions = ['전체', ...themeKeywordMap.keys];
+List<String> themeOptions = ['전체'];
+
+List<Festival> filterFestivalsByCat3(List<Festival> festivals, String selectedCat3) {
+  if (selectedCat3.isEmpty || selectedCat3 == '전체') return festivals;
+  return festivals.where((festival) => festival.cat3 == selectedCat3).toList();
+}

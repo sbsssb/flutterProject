@@ -7,7 +7,7 @@ Future<List<Festival>> fetchFestivals({
   int numOfRows = 10,
   String areaCode = '',
   String eventStartDate = '',
-  String cat1 = '',
+  String cat3 = '',
 }) async {
   const String serviceKey = 'loeUwCSiTrlZ4bpQbXtMWINqF8HpYF7hacafFPZr3tI7mjjoMKCIlpooX4QRBEu+a8Ras0d+1zKF/N4NA2xiDA==';
 
@@ -22,7 +22,7 @@ Future<List<Festival>> fetchFestivals({
     'pageNo': '$page',
     if (areaCode.isNotEmpty) 'areaCode': areaCode,
     if (eventStartDate.isNotEmpty) 'eventStartDate': eventStartDate,
-    if (cat1.isNotEmpty) 'cat1': cat1,
+    if (cat3.isNotEmpty) 'cat3': cat3,
   };
 
   final uri = Uri.parse(baseUrl).replace(queryParameters: queryParameters);
@@ -36,16 +36,18 @@ Future<List<Festival>> fetchFestivals({
     final data = jsonDecode(response.body);
     final body = data['response']['body'];
 
-    if (body == null || body['items'] == null) {
+    final items = body['items'];
+
+    if (items == null || items is String) {
       return [];
     }
 
-    final items = body['items']['item'];
+    final item = items['item'];
 
-    if (items is List) {
-      return items.map((item) => Festival.fromJson(item)).toList();
-    } else if (items is Map) {
-      return [Festival.fromJson(Map<String, dynamic>.from(items))];
+    if (item is List) {
+      return item.map((e) => Festival.fromJson(e)).toList();
+    } else if (item is Map) {
+      return [Festival.fromJson(Map<String, dynamic>.from(item))];
     } else {
       return [];
     }

@@ -11,8 +11,8 @@ class Festival {
   final String cat1;
   final String cat2;
   final String cat3;
-  final String description; // ✅ 설명 (필터에 사용)
-  final List<String>? tags;  // ✅ 태그 배열 (필터에 사용)
+  final String description;
+  final List<String>? tags;
 
   Festival({
     required this.contentId,
@@ -45,7 +45,7 @@ class Festival {
       cat1: json['cat1'] ?? '',
       cat2: json['cat2'] ?? '',
       cat3: json['cat3'] ?? '',
-      description: json['overview'] ?? '', // ✅ TourAPI 일부 API에 존재
+      description: json['overview'] ?? '',
       tags: (json['tag'] is String)
           ? (json['tag'] as String).split(',').map((e) => e.trim()).toList()
           : null,

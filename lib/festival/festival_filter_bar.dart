@@ -34,34 +34,28 @@ class FestivalFilterBar extends StatelessWidget {
           DropdownButton<String>(
             value: selectedDate,
             onChanged: (value) => onDateChanged(value!),
-            items: dateOptions.map((date) {
-              return DropdownMenuItem(
-                value: date,
-                child: Text('${date.substring(0, 4)}.${date.substring(4, 6)}'),
-              );
-            }).toList(),
+            items: dateOptions.map((date) => DropdownMenuItem(
+              value: date,
+              child: Text('${date.substring(0, 4)}.${date.substring(4, 6)}'),
+            )).toList(),
           ),
           DropdownButton<String>(
-            value: selectedRegion,
+            value: regionOptions.containsValue(selectedRegion)
+                ? selectedRegion
+                : '',
             onChanged: (value) => onRegionChanged(value!),
-            items: regionOptions.entries.map((e) {
-              return DropdownMenuItem(
-                value: e.value,
-                child: Text(e.key),
-              );
-            }).toList(),
+            items: regionOptions.entries.map((e) => DropdownMenuItem(
+              value: e.value,
+              child: Text(e.key),
+            )).toList(),
           ),
           DropdownButton<String>(
-            value: themeOptions.contains(selectedCategory)
-                ? selectedCategory
-                : themeOptions.first,
+            value: selectedCategory.isNotEmpty ? selectedCategory : categoryOptions.values.first,
             onChanged: (value) => onCategoryChanged(value!),
-            items: themeOptions.map((theme) {
-              return DropdownMenuItem(
-                value: theme,
-                child: Text(theme),
-              );
-            }).toList(),
+            items: categoryOptions.entries.map((entry) => DropdownMenuItem(
+              value: entry.value,
+              child: Text(entry.key),
+            )).toList(),
           ),
           const SizedBox(height: 8),
           Row(
