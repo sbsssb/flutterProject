@@ -33,9 +33,12 @@ dependencies:
   firebase_core:
   cloud_firestore:
   firebase_auth:
-  http: ^0.13.6
+  http: ^1.4.0
   go_router:
   intl:
+  google_generative_ai: ^0.4.7
+  flutter_dotenv:
+  flutter_markdown:
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -60,6 +63,7 @@ dev_dependencies:
 flutter:
   assets:
     - assets/
+    - .env
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

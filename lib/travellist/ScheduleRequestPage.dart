@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../gpt/gpt_service.dart';
+import '../gemini/gemini_service.dart';
 import 'ScheduleListPage.dart'; // ⬅️ 방금 만든 페이지 import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ScheduleRequestPage extends StatelessWidget {
-  const ScheduleRequestPage({super.key});
+  final String roomId;
+  const ScheduleRequestPage({super.key, required this.roomId});
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +16,13 @@ class ScheduleRequestPage extends StatelessWidget {
           onPressed: () async {
             try {
               final scheduleList = await fetchGeminiSchedule(
+                roomId: roomId,
                 region: '강원도',
                 subRegion: '강릉',
                 themes: ['맛집', '바다'],
                 transport: '자차',
                 date: '2025-06-13',
-                apiKey: 'AIzaSyBCV3ZupC2uVhVwT4iiKu44Gr6-HYbFYsI',
+                apiKey: dotenv.env['GEMINI_API_KEY']!,
               );
 
               if (context.mounted) {
