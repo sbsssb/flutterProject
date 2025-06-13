@@ -8,7 +8,7 @@ class ScheduleList extends StatelessWidget {
 
   String formatTime(String dateTime) {
     final dt = DateTime.parse(dateTime);
-    return DateFormat.Hm().format(dt); // 예: 09:00
+    return DateFormat.Hm().format(dt);
   }
 
   @override
