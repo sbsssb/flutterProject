@@ -33,7 +33,7 @@ class StampCard extends StatelessWidget {
           schedule.isDone
               ? Column(
                 children: [
-                  Image.asset('assets/images/stamp-icon.png', width: 70),
+                  Image.asset('assets/stamp_images/stamp-icon.png', width: 70),
                   const Text(
                     '완료',
                     style: TextStyle(

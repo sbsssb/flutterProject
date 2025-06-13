@@ -136,7 +136,7 @@ class _StampDetailScreenState extends State<StampDetailScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/images/stamp-animation.gif',
+                  'assets/stamp_images/stamp-animation.gif',
                   width: 150,
                   height: 150,
                 ),

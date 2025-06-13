@@ -6,7 +6,7 @@ Widget buildStampHeader(int done, int total) {
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/images/stamp-icon.png', width: 80),
+          Image.asset('assets/stamp_images/stamp-icon.png', width: 80),
           const SizedBox(width: 8),
           Text(
             '$done / $total개',
