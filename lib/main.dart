@@ -5,7 +5,7 @@ import 'firebase_options.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutterteam4/travelroom/addRoom.dart';
 import 'package:flutterteam4/travellist/ScheduleRequestPage.dart';
-
+import 'package:flutterteam4/stamp/screens/stamp_detail_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -19,7 +19,7 @@ final GoRouter router = GoRouter(
   routes: [
     // case1 : 기본 페이지
     // GoRoute(path: '/', builder: (context, state) => RoomCreate()),
-    GoRoute(path: '/', builder: (context, state) => RoomCreate()),
+    GoRoute(path: '/', builder: (context, state) => StampDetailScreen()),
 
   ],
 );

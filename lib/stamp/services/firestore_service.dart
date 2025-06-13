@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/schedule_model.dart';
-import '../models/stamp_log_model.dart';
+import '../../models/schedule_model.dart';
+import '../../models/stamp_log_model.dart';
 
 class FirestoreService {
   //스케줄 받아오기
