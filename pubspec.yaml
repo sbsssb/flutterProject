@@ -42,7 +42,7 @@ dependencies:
   go_router:
   firebase_auth:
   kakao_flutter_sdk_user:
-  http:
+  http: ^0.13.6
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -66,7 +66,8 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/stamp_images/
+    - assets/
+
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

@@ -1,0 +1,422 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutterteam4/travelroom/selectRegion.dart';
+import 'package:flutterteam4/travelroom/selectTheme.dart';
+import '../firebase_options.dart';
+import '../travellist/ScheduleRequestPage.dart';
+
+void main() async {
+  // Flutter 프레임워크와의 초기화
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // Firebase 초기화 설정
+  );
+  runApp(const RoomCreate());
+}
+
+class RoomCreate extends StatelessWidget {
+  const RoomCreate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData(
+        primaryColor: Colors.white,
+        scaffoldBackgroundColor: Colors.white,
+      ),
+
+      home: RoomCreatePage(),
+    );
+  }
+}
+
+class RoomCreatePage extends StatefulWidget {
+  @override
+  _RoomCreatePageState createState() => _RoomCreatePageState();
+}
+
+class _RoomCreatePageState extends State<RoomCreatePage> {
+  final TextEditingController _nameController = TextEditingController();
+  String selectedRegion = '';
+  String selectedTransport = '';
+  List<String> selectedThemes = [];
+  List<Map<String, dynamic>> invitedFriends = [];
+
+  FirebaseFirestore fs = FirebaseFirestore.instance;
+
+  //친구 초대
+  Widget _buildFriendInviteRow() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          ...invitedFriends.map((friend) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundImage: AssetImage('assets/avatars/${friend['avatar_id']}.png'),  // 경로는 프로젝트에 맞게
+                  backgroundColor: Colors.grey[300],
+                ),
+                SizedBox(height: 4),
+                Text(
+                  friend['nickname'],
+                  style: TextStyle(fontSize: 12),
+                )
+              ],
+            ),
+          )),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              children: [
+                ElevatedButton(
+                  onPressed: _selectFriends,
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(16),
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Icon(Icons.add, size: 20),
+                ),
+                SizedBox(height: 4),
+                Text("추가", style: TextStyle(fontSize: 12)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _selectFriends() async {
+    // final user = FirebaseAuth.instance.currentUser;
+    // if (user == null) return;
+    // final currentUserId = user.uid;
+
+    final friendSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        // .doc(currentUserId)
+        .doc('yBGkS5yQ7Hc8tzbEEQYUSd3n8O23')
+        .collection('friends')
+        .where('status', isEqualTo: 'accepted')
+        .get();
+
+    final allFriends = friendSnapshot.docs;
+
+    // 임시 선택된 친구 (Map 형태)
+    List<Map<String, dynamic>> tempSelected = [...invitedFriends];
+
+    // 이미 선택된 user_id만 뽑기
+    final selectedIds = tempSelected.map((f) => f['user_id']).toList();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('친구 초대하기'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return SizedBox(
+                width: double.maxFinite,
+                child: ListView(
+                  shrinkWrap: true,
+                  children: allFriends.map((doc) {
+                    final data = doc.data();
+                    final userId = doc.id;
+                    final nickname = data['nickname'] ?? '이름없음';
+                    final avatarId = data['avatar_id'] ?? '';
+                    final titles = data['titles'] ?? '';
+
+                    final isChecked = tempSelected.any((f) => f['user_id'] == userId);
+
+                    return CheckboxListTile(
+                      title: Text(nickname),
+                      value: isChecked,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true && !isChecked) {
+                            tempSelected.add({
+                              'user_id': userId,
+                              'nickname': nickname,
+                              'avatar_id': avatarId,
+                              'titles': titles,
+                            });
+                          } else if (value == false) {
+                            tempSelected.removeWhere((f) => f['user_id'] == userId);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  invitedFriends = tempSelected;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('초대'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  //지역 선택 페이지
+  Future<void> _selectRegion() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => RegionSelectPage()),
+    );
+
+    if (result != null && result is String) {
+      setState(() {
+        selectedRegion = result;
+      });
+    }
+  }
+
+  // 교통수단 선택 다이얼로그
+  void _selectTransport() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('교통수단 선택'),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedTransport = '대중교통';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(8),
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 대중교통 그림 (예: 아이콘이나 이미지)
+                        Icon(Icons.directions_transit, size: 48, color: Colors.blue),
+                        SizedBox(height: 8),
+                        Text('대중교통', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedTransport = '자차';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(8),
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 자동차 그림
+                        Icon(Icons.directions_car, size: 48, color: Colors.green),
+                        SizedBox(height: 8),
+                        Text('자차', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 테마 페이지
+  Future<void> _selectThemes() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ThemeSelectPage()),
+    );
+
+    if (result != null && result is List<String>) {
+      setState(() {
+        selectedThemes = result;
+      });
+    }
+  }
+
+  void _createRoom() async {
+    //final user = FirebaseAuth.instance.currentUser;
+    //if (user == null) return;
+
+    final roomId = fs.collection('travel_rooms').doc().id;
+
+    await fs.collection('travel_rooms')
+        .doc(roomId)
+        .set({
+            "room_id": roomId,
+            "room_name" : _nameController.text,
+            //"owner_id": user.uid,
+            "owner_id": "yBGkS5yQ7Hc8tzbEEQYUSd3n8O23",
+            "region": selectedRegion,
+            "sub_region": null,
+            "theme": selectedThemes,
+            "transport": selectedTransport,
+            "cdatetime": FieldValue.serverTimestamp(),
+          });
+
+    // members 서브컬렉션에 방장 추가
+    await fs.collection('travel_rooms')
+        .doc(roomId)
+        .collection('members')
+        .doc("yBGkS5yQ7Hc8tzbEEQYUSd3n8O23")  // 또는 유저 uid
+        .set({
+      "user_id": "yBGkS5yQ7Hc8tzbEEQYUSd3n8O23",
+      "is_owner": true,
+      "nickname": "test1111",
+      "avatar_id": null,
+      "titles": "칭호",  // 또는 유저가 가진 타이
+    });
+
+    // 초대한 친구들 저장
+    for (final friend in invitedFriends) {
+      await fs.collection('travel_rooms')
+          .doc(roomId)
+          .collection('members')
+          .doc(friend['user_id'])
+          .set({
+        "user_id": friend['user_id'],
+        "is_owner": false,
+        "nickname": friend['nickname'],
+        //"avatar_id": friend['avatar_id'],
+        "avatar_id": null,
+        "titles": friend['titles'] ?? '',
+      });
+    }
+
+    // 성공적으로 저장 후 알림 또는 페이지 이동
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("여행방이 생성되었습니다!")),
+    );
+
+    //초기화
+    setState(() {
+      _nameController.clear();
+      selectedRegion = '';
+      selectedTransport = '';
+      selectedThemes = [];
+      invitedFriends = [];
+    });
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScheduleRequestPage(
+
+        ),
+      ),
+    );
+  }
+
+  final ButtonStyle commonButtonStyle = ElevatedButton.styleFrom(
+    backgroundColor: Colors.yellow,
+    foregroundColor: Colors.black,
+    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+    textStyle: const TextStyle(fontSize: 16),
+  );
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/logo-main-ver1.png',
+                  height: 80,
+                ),
+              ),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: "여행방 이름"),
+              ),
+              SizedBox(height: 40),
+              _buildFriendInviteRow(),
+              SizedBox(height: 50),
+              ElevatedButton(
+                onPressed: _selectRegion,
+                style: commonButtonStyle,
+                child: Text(selectedRegion.isEmpty ? "지역 선택" : selectedRegion),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _selectTransport,
+                style: commonButtonStyle,
+                child: Text(selectedTransport.isEmpty ? "교통수단 선택" : selectedTransport),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _selectThemes,
+                style: commonButtonStyle,
+                child: Text(selectedThemes.isEmpty ? "테마 선택" : selectedThemes.join(", ")),
+              ),
+              SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: _createRoom,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,         // 배경색
+                    foregroundColor: Colors.white, // 글자색
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                  textStyle: TextStyle(fontSize: 16)
+                ),
+                child: Text("방 만들기"),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+}
+
