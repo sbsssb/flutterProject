@@ -84,12 +84,21 @@ flutter:
     - assets/mypage_images/
     - assets/common_images/
     - .env
-    - assets/dice-images/
 
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
+
+
+  # To add assets to your application, add an assets section, like this:
+
+
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+
 
 
   # To add assets to your application, add an assets section, like this:

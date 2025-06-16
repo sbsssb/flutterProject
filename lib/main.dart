@@ -10,6 +10,8 @@ import 'user/login_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutterteam4/travelroom/addRoom.dart';
 import 'package:flutterteam4/travellist/ScheduleRequestPage.dart';
+import 'package:flutterteam4/mypage/myPage.dart';
+import 'package:flutterteam4/user/login_page.dart';
 import 'package:flutterteam4/stamp/screens/stamp_detail_screen.dart';
 
 void main() async {
@@ -28,7 +30,7 @@ final GoRouter router = GoRouter(
     // GoRoute(path: '/', builder: (context, state) => RoomCreate()),
     GoRoute(path: '/', builder: (context, state) => LoginPage()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
-   
+
 
   ],
 );
