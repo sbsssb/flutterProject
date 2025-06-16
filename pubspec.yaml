@@ -81,6 +81,7 @@ flutter:
     - assets/mypage_images/
     - assets/common_images/
     - .env
+    - assets/dice-images/
 
 
   # The following line ensures that the Material Icons font is
