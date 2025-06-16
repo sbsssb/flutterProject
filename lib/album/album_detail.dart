@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
-// import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'album_service.dart';
 
@@ -18,17 +18,22 @@ class AlbumDetail extends StatelessWidget {
   const AlbumDetail({super.key, required this.imageUrl, required this.uploaderId, this.timestamp, this.photoId, required this.roomId});
 
   Future<void> saveImage(String imageUrl, BuildContext context) async {
-    final status = await Permission.storage.request();
+    final status = await Permission.photos.request(); // Android 33+ 대응
     if(status.isGranted) {
       try {
         final response = await Dio().get(imageUrl,options: Options(responseType: ResponseType.bytes));
-        // final result = await ImageGallerySaver.saveImage(
-        //   Uint8List.fromList(response.data),
-        //   quality: 100,
-        // );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('사진이 저장되었습니다.')),
+        final result = await ImageGallerySaverPlus.saveImage(
+          Uint8List.fromList(response.data),
+          quality: 100,
+          name: "photo_${DateTime.now().millisecondsSinceEpoch}",
         );
+        if (result['isSuccess'] == true || result['filePath'] != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('사진이 저장되었습니다.')),
+          );
+        } else {
+          throw Exception("저장 실패");
+        }
       }catch(e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('저장 중 오류 발생')),
