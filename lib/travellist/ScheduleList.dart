@@ -1,37 +1,132 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../gemini/gemini_service.dart';
 
-class ScheduleList extends StatelessWidget {
+class ScheduleList extends StatefulWidget {
   final List<Map<String, dynamic>> scheduleList;
+  final String roomId;
 
-  const ScheduleList({super.key, required this.scheduleList});
+  final String region;
+  final String subRegion;
+  final List<String> themes;
+  final String transport;
+  final String date;
+
+  const ScheduleList({
+    super.key,
+    required this.scheduleList,
+    required this.roomId,
+    required this.region,
+    required this.subRegion,
+    required this.themes,
+    required this.transport,
+    required this.date,
+  });
+
+  @override
+  State<ScheduleList> createState() => _ScheduleListState();
+}
+
+class _ScheduleListState extends State<ScheduleList> {
+  late List<Map<String, dynamic>> schedules;
+  final List<Map<String, String>> deletedTimeRanges = [];
+
+  final DateTime baseStartTime = DateTime.parse("2025-06-20T09:00:00");
+  final Duration unitDuration = const Duration(hours: 2);
+
+  @override
+  void initState() {
+    super.initState();
+    schedules = List<Map<String, dynamic>>.from(widget.scheduleList);
+    updateScheduleTimes();
+  }
 
   String formatTime(String dateTime) {
     final dt = DateTime.parse(dateTime);
     return DateFormat.Hm().format(dt);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (scheduleList.isEmpty) {
-      return const Center(child: Text("생성된 일정이 없습니다."));
+  void updateScheduleTimes() {
+    for (int i = 0; i < schedules.length; i++) {
+      final start = baseStartTime.add(unitDuration * i);
+      final end = start.add(unitDuration);
+      schedules[i]['start'] = start.toIso8601String();
+      schedules[i]['end'] = end.toIso8601String();
+    }
+  }
+
+  Future<void> saveToFirestore() async {
+    final ref = FirebaseFirestore.instance
+        .collection('travel_rooms')
+        .doc(widget.roomId)
+        .collection('schedules');
+
+    final batch = FirebaseFirestore.instance.batch();
+
+    // 기존 일정 삭제
+    final snapshot = await ref.get();
+    for (final doc in snapshot.docs) {
+      batch.delete(doc.reference);
     }
 
-    return ListView.separated(
-      itemCount: scheduleList.length + 1,
+    // 새 일정 저장
+    for (final schedule in schedules) {
+      batch.set(ref.doc(), {
+        ...schedule,
+        'created_at': Timestamp.now(),
+      });
+    }
+
+    await batch.commit();
+    print('✅ 일정 확정 및 저장 완료');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ReorderableListView.builder(
+      itemCount: schedules.length + 1,
       padding: const EdgeInsets.all(16),
-      separatorBuilder: (_, __) => const Divider(height: 24),
+      onReorder: (oldIndex, newIndex) {
+        setState(() {
+          if (newIndex > oldIndex) newIndex--;
+          final item = schedules.removeAt(oldIndex);
+          schedules.insert(newIndex, item);
+          updateScheduleTimes();
+        });
+      },
       itemBuilder: (context, index) {
-        // 마지막 index에 버튼 추가
-        if (index == scheduleList.length) {
+        if (index == schedules.length) {
           return Padding(
+            key: const ValueKey("button_row"),
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      // 일정 추가 로직
+                    onPressed: () async {
+                      if (deletedTimeRanges.isEmpty) return;
+
+                      final prompt = buildAddSchedulePrompt(
+                        region: widget.region,
+                        subRegion: widget.subRegion,
+                        themes: widget.themes,
+                        transport: widget.transport,
+                        date: widget.date,
+                        timeRanges: deletedTimeRanges,
+                      );
+
+                      final newSchedules = await fetchScheduleFromPrompt(
+                        prompt: prompt,
+                        apiKey: dotenv.env['GEMINI_API_KEY']!,
+                      );
+
+                      setState(() {
+                        schedules.addAll(newSchedules);
+                        deletedTimeRanges.clear();
+                        updateScheduleTimes();
+                      });
                     },
                     icon: const Icon(Icons.add),
                     label: const Text("일정 추가"),
@@ -46,8 +141,13 @@ class ScheduleList extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      // 일정 확정 로직
+                    onPressed: () async {
+                      await saveToFirestore();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("일정이 확정되어 저장되었습니다!")),
+                        );
+                      }
                     },
                     icon: const Icon(Icons.check),
                     label: const Text("일정 확정"),
@@ -64,14 +164,25 @@ class ScheduleList extends StatelessWidget {
           );
         }
 
-        final item = scheduleList[index];
+        final item = schedules[index];
         return Card(
+          key: ValueKey(item), // ReorderableListView에 필수
           elevation: 3,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 🔹 드래그 핸들 추가
+                ReorderableDragStartListener(
+                  index: index,
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 12.0, top: 4),
+                    child: Icon(Icons.drag_handle, color: Colors.grey),
+                  ),
+                ),
+                // 🔹 일정 정보
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,16 +204,25 @@ class ScheduleList extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
+                // 🔹 삭제 버튼
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () {
-                    // 삭제 로직
+                    setState(() {
+                      deletedTimeRanges.add({
+                        'start': item['start'],
+                        'end': item['end'],
+                      });
+                      schedules.removeAt(index);
+                      updateScheduleTimes();
+                    });
                   },
                 ),
               ],
             ),
           ),
         );
+
       },
     );
   }
