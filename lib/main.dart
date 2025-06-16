@@ -5,6 +5,8 @@ import 'firebase_options.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutterteam4/travelroom/addRoom.dart';
 import 'package:flutterteam4/travellist/ScheduleRequestPage.dart';
+import 'package:flutterteam4/mypage/myPage.dart';
+import 'package:flutterteam4/user/login_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +21,7 @@ final GoRouter router = GoRouter(
   routes: [
     // case1 : 기본 페이지
     // GoRoute(path: '/', builder: (context, state) => RoomCreate()),
-    GoRoute(path: '/', builder: (context, state) => RoomCreate()),
+    GoRoute(path: '/', builder: (context, state) => myPageMainApp()),
 
   ],
 );
