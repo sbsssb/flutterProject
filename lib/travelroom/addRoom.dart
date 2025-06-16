@@ -114,67 +114,168 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
     // 이미 선택된 user_id만 뽑기
     final selectedIds = tempSelected.map((f) => f['user_id']).toList();
 
-    await showDialog(
+    final result = await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('친구 초대하기'),
-          content: StatefulBuilder(
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: StatefulBuilder(
             builder: (context, setState) {
+              String searchQuery = '';
+              List<QueryDocumentSnapshot<Map<String, dynamic>>> filteredFriends = allFriends;
+
+              // 필터링
+              if (searchQuery.isNotEmpty) {
+                filteredFriends = allFriends.where((doc) {
+                  final nickname = doc.data()['nickname'] ?? '';
+                  return nickname.contains(searchQuery);
+                }).toList();
+              }
+
               return SizedBox(
-                width: double.maxFinite,
-                child: ListView(
-                  shrinkWrap: true,
-                  children: allFriends.map((doc) {
-                    final data = doc.data();
-                    final userId = doc.id;
-                    final nickname = data['nickname'] ?? '이름없음';
-                    final avatarId = data['avatar_id'] ?? '';
-                    final titles = data['titles'] ?? '';
+                width: 320,
+                height: 520,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const Text('친구 초대하기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
 
-                    final isChecked = tempSelected.any((f) => f['user_id'] == userId);
+                      const SizedBox(height: 12),
 
-                    return CheckboxListTile(
-                      title: Text(nickname),
-                      value: isChecked,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true && !isChecked) {
-                            tempSelected.add({
-                              'user_id': userId,
-                              'nickname': nickname,
-                              'avatar_id': avatarId,
-                              'titles': titles,
-                            });
-                          } else if (value == false) {
-                            tempSelected.removeWhere((f) => f['user_id'] == userId);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
+                      // 🔍 검색창
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: "닉네임 검색",
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onChanged: (value) {
+                          setState(() => searchQuery = value);
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // 🙋 초대한 친구들
+                      if (tempSelected.isNotEmpty)
+                        SizedBox(
+                          height: 80,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: tempSelected.map((friend) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Column(
+                                  children: [
+                                    Stack(
+                                      alignment: Alignment.topRight,
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 24,
+                                          backgroundImage: AssetImage('assets/avatars/${friend['avatar_id']}.png'),
+                                          backgroundColor: Colors.grey[300],
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              tempSelected.removeWhere((f) => f['user_id'] == friend['user_id']);
+                                            });
+                                          },
+                                          child: CircleAvatar(
+                                            radius: 10,
+                                            backgroundColor: Colors.red,
+                                            child: Icon(Icons.close, size: 12, color: Colors.white),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(friend['nickname'], style: const TextStyle(fontSize: 12)),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                      const SizedBox(height: 12),
+
+                      // 📋 친구 목록
+                      Expanded(
+                        child: ListView(
+                          children: filteredFriends.map((doc) {
+                            final data = doc.data();
+                            final userId = doc.id;
+                            final nickname = data['nickname'] ?? '이름없음';
+                            final avatarId = data['avatar_id'] ?? '';
+                            final titles = data['titles'] ?? '';
+                            final isInvited = tempSelected.any((f) => f['user_id'] == userId);
+
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: AssetImage('assets/avatars/$avatarId.png'),
+                                backgroundColor: Colors.grey[300],
+                              ),
+                              title: Text(nickname),
+                              trailing: ElevatedButton(
+                                onPressed: isInvited
+                                    ? null
+                                    : () {
+                                  setState(() {
+                                    tempSelected.add({
+                                      'user_id': userId,
+                                      'nickname': nickname,
+                                      'avatar_id': avatarId,
+                                      'titles': titles,
+                                    });
+                                  });
+                                },
+                                child: Text(isInvited ? '초대됨' : '초대'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isInvited ? Colors.grey : Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+
+                      // ✅ 확인/닫기 버튼
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('닫기')),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                invitedFriends = tempSelected;
+                              });
+                              Navigator.pop(context, tempSelected);
+                            },
+                            child: const Text('확인'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  invitedFriends = tempSelected;
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('초대'),
-            ),
-          ],
         );
+
       },
     );
+
+    if (result != null) {
+      setState(() {
+        invitedFriends = result;
+      });
+    }
+
   }
 
   //지역 선택 페이지
