@@ -74,36 +74,17 @@ flutter:
   assets:
     - assets/
     - .env
+    - assets/dice-images/
 
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-  assets:
-    - assets/dice-images/dice5.PNG
-    - assets/dice-images/dice1.PNG
-    - assets/dice-images/dice2.PNG
-    - assets/dice-images/dice4.PNG
-    - assets/dice-images/dice6.PNG
-    - assets/dice-images/dice3.PNG
-    - assets/dice-images/logo-main-ver1.png
-    - assets/dice-images/dice_board.png
-    - assets/dice-images/1.PNG
+
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - assets/license_character.png
-    - assets/logo.png
-    - assets/profile_gold.png
-    - assets/profile_silver.png
-    - assets/profile_bronze.png
-    - assets/stamp_icon.png
-    - assets/prev_travel.png
-    - assets/friends.png
-    - assets/current_travel.png
-    - assets/tier_SSR.png
-    - assets/noti_message.png
+
 
   # assets:
   #   - stamp_images/a_dot_burr.jpeg
