@@ -50,7 +50,9 @@ class FestivalFilterBar extends StatelessWidget {
             )).toList(),
           ),
           DropdownButton<String>(
-            value: selectedCategory.isNotEmpty ? selectedCategory : categoryOptions.values.first,
+            value: categoryOptions.values.contains(selectedCategory)
+                ? selectedCategory
+                : categoryOptions.values.first,
             onChanged: (value) => onCategoryChanged(value!),
             items: categoryOptions.entries.map((entry) => DropdownMenuItem(
               value: entry.value,
