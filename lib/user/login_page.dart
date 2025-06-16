@@ -2,8 +2,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'signup_page.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
+import 'package:kakao_flutter_sdk_auth/kakao_flutter_sdk_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -33,11 +35,19 @@ class _LoginPageState extends State<LoginPage> {
         password: password,
       );
 
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('로그인 성공!')),
       );
 
-      // TODO: 로그인 성공 후 이동할 페이지로 Navigator.push()
+      GoRouter.of(context).go('/festival');
+
+      // Future.delayed(const Duration(milliseconds: 200), () {
+      //   if (mounted) {
+      //     GoRouter.of(context).go('/festival');
+      //   }
+      // });
 
     } on FirebaseAuthException catch (e) {
       String message = '로그인 오류';
@@ -50,7 +60,11 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // 예상 못한 에러 대응
+      print('로그인 실패: $e');
+      print('스택트레이스: $stackTrace');
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('로그인 실패: ${e.toString()}')),
       );
@@ -93,7 +107,11 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text('카카오 로그인 성공!')),
       );
 
-      // TODO: 로그인 성공 후 홈 화면으로 이동
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          GoRouter.of(context).go('/festival');
+        }
+      });
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

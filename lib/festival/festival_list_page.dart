@@ -5,6 +5,12 @@ import 'festival_card.dart';
 import 'festival_filter_bar.dart';
 import 'package:flutterteam4/utils/festival_options.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutterteam4/user/user_provider.dart';
+
 class FestivalListPage extends StatefulWidget {
   const FestivalListPage({super.key});
 
@@ -76,7 +82,21 @@ class _FestivalListPageState extends State<FestivalListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('축제 리스트')),
+      appBar: AppBar(
+          title: const Text('축제 리스트'),
+          // 임시 로그아웃 테스트용 버트
+          actions: [
+            IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              if (context.mounted) {
+                GoRouter.of(context).go('/');
+              }
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
