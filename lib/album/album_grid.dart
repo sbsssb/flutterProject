@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'album_service.dart';
 import 'album_detail.dart';
+import '../models/photo_model.dart';
 
 class AlbumGrid extends StatefulWidget {
   final String roomId;
@@ -39,6 +40,13 @@ class AlbumGridState extends State<AlbumGrid> {
       _selectionMode = false;
     });
   }
+
+  List<Photo> get photoList => _photos.map((map) => Photo(
+      photoId: map['id'],
+      imageUrl: map['image_url'],
+      uploaderId: map['uploader_id'],
+      timestamp: map['timestamp']
+  )).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -115,16 +123,16 @@ class AlbumGridState extends State<AlbumGrid> {
                   }
                 });
               } else {
+                final tappedIndex = index;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder:
                         (context) =>
                         AlbumDetail(
+                          photos: photoList,
                           roomId: widget.roomId,
-                          imageUrl: photo['image_url'],
-                          uploaderId: photo['uploader_id'],
-                          timestamp: photo['cdatetime'],
+                          initialIndex: tappedIndex,
                         ),
                   ),
                 );
