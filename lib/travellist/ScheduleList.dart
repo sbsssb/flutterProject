@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../gemini/gemini_service.dart';
+import '../stamp/screens/stamp_detail_screen.dart';
 
 class ScheduleList extends StatefulWidget {
   final List<Map<String, dynamic>> scheduleList;
@@ -143,11 +144,9 @@ class _ScheduleListState extends State<ScheduleList> {
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       await saveToFirestore();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("일정이 확정되어 저장되었습니다!")),
-                        );
-                      }
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => StampDetailScreen(roomId: widget.roomId),)
+                      );
                     },
                     icon: const Icon(Icons.check),
                     label: const Text("일정 확정"),

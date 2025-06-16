@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutterteam4/album/album_page.dart';
+import 'common/mainPage.dart';
 import 'firebase_options.dart';
 import 'festival/festival_list_page.dart';
 import 'user/login_page.dart';
@@ -27,9 +28,11 @@ void main() async {
 final GoRouter router = GoRouter(
   routes: [
     // case1 : 기본 페이지
-    GoRoute(path: '/', builder: (context, state) => RoomCreate()),
-    // GoRoute(path: '/', builder: (context, state) => LoginPage()),
+    GoRoute(path: '/', builder: (context, state) => LoginPage()),
+    GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
+    GoRoute(path: '/mainPage', builder: (context, state) => const MainPage()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
+
 
 
   ],

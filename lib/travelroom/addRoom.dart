@@ -470,7 +470,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
             children: [
               Center(
                 child: Image.asset(
-                  'assets/logo-main-ver1.png',
+                  'assets/common_images/logo-main-ver1.png',
                   height: 80,
                 ),
               ),
