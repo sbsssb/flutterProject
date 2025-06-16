@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterteam4/travelroom/selectRegion.dart';
 import 'package:flutterteam4/travelroom/selectTheme.dart';
+import '../dice/dice.dart';
 import '../firebase_options.dart';
 import '../travellist/ScheduleRequestPage.dart';
 
@@ -446,7 +447,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ScheduleRequestPage(roomId:roomId),
+        builder: (context) => DoubleDiceOnBoard(roomId:roomId),
       ),
     );
   }

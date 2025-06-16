@@ -3,23 +3,28 @@ import 'dart:math';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutterteam4/dice/test.dart';
 
+import '../gemini/gemini_service.dart';
+import '../travellist/ScheduleListPage.dart';
+
 final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const MaterialApp(home: DoubleDiceOnBoard()));
-}
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await Firebase.initializeApp(
+//     options: DefaultFirebaseOptions.currentPlatform,
+//   );
+//   runApp(const MaterialApp(home: DoubleDiceOnBoard(roomId: '',)));
+// }
 
 class DoubleDiceOnBoard extends StatefulWidget {
-  const DoubleDiceOnBoard({super.key});
+  final String roomId;
+  const DoubleDiceOnBoard({super.key, required this.roomId});
 
   @override
   State<DoubleDiceOnBoard> createState() => _DoubleDiceOnBoardState();
@@ -112,7 +117,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
           _landedArea = landed;
         });
 
-        final roomDocRef = FirebaseFirestore.instance.collection('travel_rooms').doc("EjG545x9ujgu4z1aFMNm");
+        final roomDocRef = FirebaseFirestore.instance.collection('travel_rooms').doc(widget.roomId);
 
         if (landed.isNotEmpty) {
           await roomDocRef.update({"sub_region": landed}).then((_) {
@@ -171,14 +176,14 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     print("🛠 initState 시작");
 
     // 1. 지역 정보 + 하위 지역 불러오기
-    print("🌍 지역 로딩 시작: $roomId");
-    fetchRegionAndLoadAreas(roomId);
-    fetchParticipants(roomId);
+    print("🌍 지역 로딩 시작: $widget.roomId");
+    fetchRegionAndLoadAreas(widget.roomId);
+    fetchParticipants(widget.roomId);
 
     // 2. 닉네임 하드코딩으로 불러오기
     const hardcodedUserId = "yBGkS5yQ7Hc8tzbEEQYUSd3n8O23"; // ← Firestore에 있는 UID
 
-    fetchNickname(roomId, hardcodedUserId).then((value) {
+    fetchNickname(widget.roomId, hardcodedUserId).then((value) {
       print("🎯 받아온 닉네임: $value");
       setState(() {
         _nickname = value ?? "익명";
@@ -252,49 +257,65 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
   }
 
 
+  String? _region;
+  String? _subRegion;
+  List<String> _themes = [];
+  String? _transport;
+  String? _date;
 
-  final String roomId = "EjG545x9ujgu4z1aFMNm";
+  // final String roomId = "AdCVU05nRH1p7cX50vdv";
   Future<void> fetchRegionAndLoadAreas(String roomId) async {
     final doc = await FirebaseFirestore.instance.collection("travel_rooms").doc(roomId).get();
 
     if (doc.exists) {
-      final region = doc.data()?['region'] as String?;
+      final data = doc.data()!;
+      final region = data['region'] as String?;
+      final subRegion = data['sub_region'] as String?;
+      final themesRaw = data['themes'];
+      final transport = data['transport'] as String?;
+      final date = data['date'] as String?;
+
+      setState(() {
+        _region = region;
+        _subRegion = subRegion;
+        _themes = (themesRaw is List) ? themesRaw.map((e) => e.toString()).toList() : [];
+        _transport = transport;
+        _date = date;
+      });
+
       if (region != null) {
-        setState(() {
-          _selectedRegion = region;
-        });
         final regionId = convertRegionNameToId(region);
         await loadRandomSubAreas(regionId);
-        await loadRandomSubAreas(region);
+        await loadRandomSubAreas(region); // fallback 용도?
         print("🌍 불러온 지역: $region");
       } else {
         print("❗ region 필드 없음");
       }
     } else {
-      print("❌ 문서가 존재하지 않음");
+      print("❌ travel_rooms 문서 없음");
     }
   }
 
 
   String convertRegionNameToId(String name) {
     switch (name) {
-      case "부산": return "busan";
+      case "부산광역시": return "busan";
       case "충청북도": return "chungcheongbuk-do";
       case "충청남도": return "chungcheongnam-do";
-      case "대구": return "daegu";
-      case "대전": return "daejeon";
+      case "대구광역시": return "daegu";
+      case "대전광역시": return "daejeon";
       case "강원도": return "gangwon-do";
-      case "광주": return "gwangju";
+      case "광주광역시": return "gwangju";
       case "경기도": return "gyeonggi-do";
       case "경상북도": return "gyeongsangbuk-do";
       case "경상남도": return "gyeongsangnam-do";
-      case "인천": return "incheon";
-      case "제주": return "jeju";
+      case "인천광역시": return "incheon";
+      case "제주도": return "jeju";
       case "전라북도": return "jeollabuk-do";
       case "전라남도": return "jeollanam-do";
-      case "세종": return "sejong";
-      case "서울": return "seoul";
-      case "울산": return "ulsan";
+      case "세종특별자치시": return "sejong";
+      case "서울특별시": return "seoul";
+      case "울산광역시": return "ulsan";
       default:
         return name; // fallback - 혹시 매핑 안된 이름이면 그대로 전달
     }
@@ -334,7 +355,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: Image.asset(
-                'assets/dice-images/logo-main-ver1.png', // 너가 쓰는 로고 경로로 바꿔!
+                'assets/dice_images/logo-main-ver1.png', // 너가 쓰는 로고 경로로 바꿔!
                 height: 70,
               ),
             ),
@@ -342,12 +363,12 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             Stack(
               alignment: Alignment.center,
               children: [
-                Image.asset('assets/dice-images/dice-board.png', width: 400, height: 400, fit: BoxFit.contain),
+                Image.asset('assets/dice_images/dice-board.png', width: 400, height: 400, fit: BoxFit.contain),
 
                 Positioned(
                   left: _getTilePosition(_currentPosition).dx + 10,
                   top: _getTilePosition(_currentPosition).dy + 5,
-                  child: Image.asset('assets/dice-images/1.PNG', width: 40),
+                  child: Image.asset('assets/dice_images/1.PNG', width: 40),
                 ),
 
                 ...[0, 4, 8, 12].map((i) => Positioned(
@@ -366,7 +387,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
                       ),
                     ),
                   )
-                      : Image.asset('assets/dice-images/logo-main-ver1.png', width: 60),
+                      : Image.asset('assets/dice_images/logo-main-ver1.png', width: 60),
                 )),
 
                 ...List.generate(boardTileOrder.length, (index) {
@@ -438,43 +459,75 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
                   ),
               ],
             ),
-        Align(
-          alignment: Alignment.centerLeft, // 리스트는 왼쪽 정렬 유지
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 30), // ✅ "참여자" 텍스트만 오른쪽으로 밀기
-                child: const Text(
-                  '참여자',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+            Align(
+              alignment: Alignment.centerLeft, // 리스트는 왼쪽 정렬 유지
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 30), // ✅ "참여자" 텍스트만 오른쪽으로 밀기
+                    child: const Text(
+                      '참여자',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._participants.map((p) {
+                    final nickname = p['nickname'] ?? '익명';
+                    final title = p['title'] ?? '';
+                    final isOwner = p['is_owner'] == true;
+                    final displayName = isOwner ? '$nickname 👑' : nickname;
+
+                    return _buildParticipantRow(displayName, title);
+                  }),
+                ],
               ),
-              const SizedBox(height: 8),
-              ..._participants.map((p) {
-                final nickname = p['nickname'] ?? '익명';
-                final title = p['title'] ?? '';
-                final isOwner = p['is_owner'] == true;
-                final displayName = isOwner ? '$nickname 👑' : nickname;
-
-                return _buildParticipantRow(displayName, title);
-              }),
-            ],
-          ),
-        ),
+            ),
 
 
-            Text('지역: ${_selectedRegion ?? '로딩 중...'}',
+            Text('지역: ${_region ?? '로딩 중...'}',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             // ✅ 일정 생성 페이지로 이동하는 버튼
             // 버튼 부분
             ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const DiceDotPage()),
-                );
+              onPressed: () async {
+                try {
+                  final prompt = buildTravelPrompt(
+                    region: _region ?? '',
+                    subRegion: _subRegion ?? '',
+                    themes: _themes,
+                    transport: _transport ?? '',
+                    date: _date ?? '',
+                  );
+
+                  final scheduleList = await fetchScheduleFromPrompt(
+                    prompt: prompt,
+                    apiKey: dotenv.env['GEMINI_API_KEY']!,
+                  );
+
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ScheduleListPage(
+                          roomId: widget.roomId,
+                          initialSchedules: scheduleList,
+                          region: _region ?? '',
+                          subRegion: _subRegion ?? '',
+                          themes: _themes,
+                          transport: _transport ?? '',
+                          date: _date ?? '',
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  print("에러 발생: $e");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("일정 생성 중 오류가 발생했어요 🥲")),
+                  );
+                }
               },
               icon: const Icon(Icons.arrow_forward),
               label: const Text('다음으로 이동'),
