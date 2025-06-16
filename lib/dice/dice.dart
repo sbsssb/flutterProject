@@ -587,12 +587,12 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
             height: _size * 2,
             child: Stack(
               children: [
-                _buildFace(image: 'assets/dice-images/dice1.PNG', y: _size / 2 + _thickness, xRot: -pi / 2),
-                _buildFace(image: 'assets/dice-images/dice2.PNG', y: -_size / 2 - _thickness, xRot: pi / 2),
-                _buildFace(image: 'assets/dice-images/dice3.PNG', z: _size / 2 + _thickness),
-                _buildFace(image: 'assets/dice-images/dice4.PNG', z: -_size / 2 - _thickness, yRot: pi),
-                _buildFace(image: 'assets/dice-images/dice5.PNG', x: -_size / 2 - _thickness, yRot: pi / 2),
-                _buildFace(image: 'assets/dice-images/dice6.PNG', x: _size / 2 + _thickness, yRot: -pi / 2),
+                _buildFace(image: 'assets/dice_images/dice1.PNG', y: _size / 2 + _thickness, xRot: -pi / 2),
+                _buildFace(image: 'assets/dice_images/dice2.PNG', y: -_size / 2 - _thickness, xRot: pi / 2),
+                _buildFace(image: 'assets/dice_images/dice3.PNG', z: _size / 2 + _thickness),
+                _buildFace(image: 'assets/dice_images/dice4.PNG', z: -_size / 2 - _thickness, yRot: pi),
+                _buildFace(image: 'assets/dice_images/dice5.PNG', x: -_size / 2 - _thickness, yRot: pi / 2),
+                _buildFace(image: 'assets/dice_images/dice6.PNG', x: _size / 2 + _thickness, yRot: -pi / 2),
               ],
 
             ),

@@ -45,7 +45,7 @@ class RegionSelectPage extends StatelessWidget {
                 child: Stack(
                   children: [
                     Image.asset(
-                      'assets/map2.png',
+                      'assets/travel_images/map2.png',
                       width: 400,
                       height: 600,
                       fit: BoxFit.cover,
