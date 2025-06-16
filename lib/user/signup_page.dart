@@ -2,6 +2,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'login_page.dart';
 
 
@@ -62,11 +63,7 @@ class _SignUpPageState extends State<SignUpPage> {
         const SnackBar(content: Text('회원가입이 완료되었습니다!')),
       );
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-            (route) => false,
-      );
+      GoRouter.of(context).go('/festival');
 
     } on FirebaseAuthException catch (e) {
       print('Firebase Auth 오류 코드: ${e.code}');
@@ -82,7 +79,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(message),
+          content: Text(message),
           duration: Duration(seconds: 10),
         ),
       );

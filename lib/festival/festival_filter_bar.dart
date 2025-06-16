@@ -82,4 +82,3 @@ class FestivalFilterBar extends StatelessWidget {
     );
   }
 }
-
