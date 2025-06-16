@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ 추가
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
-
+import 'package:flutterteam4/album/album_page.dart';
 import 'firebase_options.dart';
 import 'festival/festival_list_page.dart';
 import 'user/login_page.dart';
@@ -28,9 +28,11 @@ final GoRouter router = GoRouter(
     // GoRoute(path: '/', builder: (context, state) => RoomCreate()),
     GoRoute(path: '/', builder: (context, state) => LoginPage()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
+   
 
   ],
 );
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
