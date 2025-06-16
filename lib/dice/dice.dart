@@ -128,18 +128,18 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             Stack(
               alignment: Alignment.center,
               children: [
-                Image.asset('assets/dice-images/dice_board.png', width: 400, height: 400, fit: BoxFit.contain),
+                Image.asset('assets/dice_images/dice_board.png', width: 400, height: 400, fit: BoxFit.contain),
 
                 Positioned(
                   left: _getTilePosition(_currentPosition).dx + 10,
                   top: _getTilePosition(_currentPosition).dy + 10,
-                  child: Image.asset('assets/dice-images/1.PNG', width: 30),
+                  child: Image.asset('assets/dice_images/1.PNG', width: 30),
                 ),
 
                 ...[0, 4, 8, 12].map((i) => Positioned(
                   left: _getTilePosition(i).dx,
                   top: _getTilePosition(i).dy,
-                  child: Image.asset('assets/dice-images/logo-main-ver1.png', width: 60),
+                  child: Image.asset('assets/dice_images/logo-main-ver1.png', width: 60),
                 )),
 
                 ...List.generate(boardTileOrder.length, (index) {
@@ -293,12 +293,12 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
             height: _size * 2,
             child: Stack(
               children: [
-                _buildFace(image: 'assets/dice-images/dice1.PNG', y: _size / 2 + _thickness, xRot: -pi / 2),
-                _buildFace(image: 'assets/dice-images/dice2.PNG', y: -_size / 2 - _thickness, xRot: pi / 2),
-                _buildFace(image: 'assets/dice-images/dice3.PNG', z: _size / 2 + _thickness),
-                _buildFace(image: 'assets/dice-images/dice4.PNG', z: -_size / 2 - _thickness, yRot: pi),
-                _buildFace(image: 'assets/dice-images/dice5.PNG', x: -_size / 2 - _thickness, yRot: pi / 2),
-                _buildFace(image: 'assets/dice-images/dice6.PNG', x: _size / 2 + _thickness, yRot: -pi / 2),
+                _buildFace(image: 'assets/dice_images/dice1.PNG', y: _size / 2 + _thickness, xRot: -pi / 2),
+                _buildFace(image: 'assets/dice_images/dice2.PNG', y: -_size / 2 - _thickness, xRot: pi / 2),
+                _buildFace(image: 'assets/dice_images/dice3.PNG', z: _size / 2 + _thickness),
+                _buildFace(image: 'assets/dice_images/dice4.PNG', z: -_size / 2 - _thickness, yRot: pi),
+                _buildFace(image: 'assets/dice_images/dice5.PNG', x: -_size / 2 - _thickness, yRot: pi / 2),
+                _buildFace(image: 'assets/dice_images/dice6.PNG', x: _size / 2 + _thickness, yRot: -pi / 2),
               ],
 
             ),
