@@ -13,9 +13,9 @@ import '../widgets/stamp_header.dart';
 import '../widgets/stamp_end_button.dart';
 
 class StampDetailScreen extends StatefulWidget {
-  final String roomId = 'gpsTest';
+  final String roomId;
 
-  const StampDetailScreen({super.key});
+  const StampDetailScreen({super.key, required this.roomId});
 
   @override
   State<StampDetailScreen> createState() => _StampDetailScreenState();
