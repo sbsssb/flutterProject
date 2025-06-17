@@ -1,16 +1,40 @@
 import 'package:flutter/material.dart';
-import 'ScheduleList.dart'; // 너의 ScheduleList 위젯 import
+import 'ScheduleList.dart';
 
 class ScheduleListPage extends StatelessWidget {
-  final List<Map<String, dynamic>> scheduleList;
+  final String roomId;
+  final List<Map<String, dynamic>> initialSchedules;
 
-  const ScheduleListPage({super.key, required this.scheduleList});
+  final String region;
+  final String subRegion;
+  final List<String> themes;
+  final String transport;
+  final String date;
+
+  const ScheduleListPage({
+    super.key,
+    required this.roomId,
+    required this.initialSchedules,
+    required this.region,
+    required this.subRegion,
+    required this.themes,
+    required this.transport,
+    required this.date,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('📅 생성된 일정')),
-      body: ScheduleList(scheduleList: scheduleList),
+      body: ScheduleList(
+        scheduleList: initialSchedules,
+        roomId: roomId,
+        region: region,
+        subRegion: subRegion,
+        themes: themes,
+        transport: transport,
+        date: date,
+      ),
     );
   }
 }

@@ -33,22 +33,26 @@ dependencies:
   firebase_storage:
   image_picker: ^1.1.0
   model_viewer_plus: ^1.6.0
-  firebase_core: ^2.0.0
+  firebase_core: 2.24.2
   cloud_firestore: ^4.9.0
   geolocator: ^10.1.0
   flutter_local_notifications: ^19.2.1
   vibration: ^3.1.3
-  fluttertoast: ^8.2.2
+  fluttertoast: ^8.2.12
   confetti: ^0.8.0
   intl: ^0.18.1
   go_router:
-  firebase_auth:
+  firebase_auth: 4.15.3
   http: ^1.4.0
   google_generative_ai: ^0.4.7
   flutter_dotenv:
   flutter_markdown:
+  kakao_flutter_sdk: ^1.2.2
+  kakao_flutter_sdk_auth: ^1.2.2
+  flutter_riverpod: ^2.5.1
   kakao_flutter_sdk_user:
-
+  dio: ^5.4.0
+  permission_handler: ^11.3.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -71,6 +75,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  uses-material-design: true
   assets:
     - assets/
     - assets/stamp_images/
@@ -84,7 +89,16 @@ flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
-  uses-material-design: true
+
+
+  # To add assets to your application, add an assets section, like this:
+
+
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+
 
 
   # To add assets to your application, add an assets section, like this:

@@ -34,7 +34,7 @@ class RegionSelectPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Image.asset(
-                'assets/logo-main-ver1.png',
+                'assets/common_images/logo-main-ver1.png',
                 height: 80,
               ),
             ),
@@ -45,7 +45,7 @@ class RegionSelectPage extends StatelessWidget {
                 child: Stack(
                   children: [
                     Image.asset(
-                      'assets/map2.png',
+                      'assets/travel_images/map2.png',
                       width: 400,
                       height: 600,
                       fit: BoxFit.cover,

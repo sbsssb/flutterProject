@@ -51,7 +51,7 @@ class _ThemeSelectPageState extends State<ThemeSelectPage> {
             padding: const EdgeInsets.only(top: 60),
             child: Center(
               child: Image.asset(
-                'assets/logo-main-ver1.png',
+                'assets/common_images/logo-main-ver1.png',
                 height: 80,
               ),
             ),
