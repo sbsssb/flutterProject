@@ -109,13 +109,21 @@ class _AlbumDetailState extends State<AlbumDetail> {
                 PageView.builder(
                   controller: _pageController,
                   itemCount: widget.photos.length,
-                  onPageChanged: (index) => setState(() => _currentIndex = index),
+                  onPageChanged:
+                      (index) => setState(() => _currentIndex = index),
                   itemBuilder: (context, index) {
                     final photo = widget.photos[index];
                     return Hero(
                       tag: photo.imageUrl,
                       child: InteractiveViewer(
-                        child: Image.network(photo.imageUrl, fit: BoxFit.contain),
+                        child: Center(
+                          child: Image.network(
+                            photo.imageUrl,
+                            fit: BoxFit.contain,
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height * 0.6,
+                          ),
+                        ),
                       ),
                     );
                   },
@@ -124,14 +132,39 @@ class _AlbumDetailState extends State<AlbumDetail> {
                 if (_currentIndex > 0)
                   Positioned(
                     left: 12,
-                    child: Icon(Icons.arrow_back_ios, color: Colors.white70, size: 32),
+                    child: Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.white70,
+                      size: 32,
+                    ),
                   ),
                 // 오른쪽 화살표
                 if (_currentIndex < widget.photos.length - 1)
                   Positioned(
                     right: 12,
-                    child: Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 32),
+                    child: Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white70,
+                      size: 32,
+                    ),
                   ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '업로더: ${currentPhoto.uploaderNickname ?? '알 수 없음'}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '업로드 시간: $formattedDate',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
               ],
             ),
           ),

@@ -28,8 +28,12 @@ final GoRouter router = GoRouter(
   routes: [
     // case1 : 기본 페이지
     // GoRoute(path: '/', builder: (context, state) => RoomCreate()),
-    GoRoute(path: '/', builder: (context, state) => AlbumPage()),
+    GoRoute(path: '/', builder: (context, state) => LoginPage()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
+    GoRoute(path: '/stamp', builder: (context, state) => const StampDetailScreen()),
+    GoRoute(path: '/album', builder: (context, state) => const AlbumPage()),
+
+
 
 
   ],
