@@ -43,12 +43,6 @@ class _LoginPageState extends State<LoginPage> {
 
       GoRouter.of(context).go('/mainPage');
 
-      // Future.delayed(const Duration(milliseconds: 200), () {
-      //   if (mounted) {
-      //     GoRouter.of(context).go('/festival');
-      //   }
-      // });
-
     } on FirebaseAuthException catch (e) {
       String message = '로그인 오류';
       if (e.code == 'user-not-found') {

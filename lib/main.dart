@@ -14,6 +14,7 @@ import 'package:flutterteam4/travellist/ScheduleRequestPage.dart';
 import 'package:flutterteam4/mypage/myPage.dart';
 import 'package:flutterteam4/user/login_page.dart';
 import 'package:flutterteam4/stamp/screens/stamp_detail_screen.dart';
+import 'main/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,8 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
     GoRoute(path: '/mainPage', builder: (context, state) => const MainPage()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
+    GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
+
 
 
 
