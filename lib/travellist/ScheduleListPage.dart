@@ -25,15 +25,31 @@ class ScheduleListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('📅 생성된 일정')),
-      body: ScheduleList(
-        scheduleList: initialSchedules,
-        roomId: roomId,
-        region: region,
-        subRegion: subRegion,
-        themes: themes,
-        transport: transport,
-        date: date,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Center(
+              child: Image.asset(
+                'assets/common_images/logo-main-ver1.png',
+                height: 80,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // 리스트는 아래 공간 전체를 차지하게
+            Expanded(
+              child: ScheduleList(
+                scheduleList: initialSchedules,
+                roomId: roomId,
+                region: region,
+                subRegion: subRegion,
+                themes: themes,
+                transport: transport,
+                date: date,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
