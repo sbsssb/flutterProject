@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/festival_top_bar.dart';
 import 'festival_api.dart';
 import 'festival_model.dart';
 import 'festival_card.dart';
@@ -90,12 +91,13 @@ class _FestivalListPageState extends State<FestivalListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('축제 리스트')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
+              const FestivalTopBar(currentTab: 'list'),
+              const SizedBox(height: 12),
               FestivalFilterBar(
                 selectedDate: selectedDate,
                 selectedRegion: selectedRegion,
@@ -125,6 +127,10 @@ class _FestivalListPageState extends State<FestivalListPage> {
                   }
 
                   final festivals = snapshot.data ?? [];
+
+                  for (var f in festivals) {
+                    print('🧪 ${f.title} - contentId: ${f.contentId} - type: ${f.contentTypeId}');
+                  }
 
                   if (festivals.isEmpty) {
                     return const Center(child: Text('축제가 없습니다.'));

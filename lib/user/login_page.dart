@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text('로그인 성공!')),
       );
 
-      GoRouter.of(context).go('/festival');
+      GoRouter.of(context).go('/festivalList');
 
       // Future.delayed(const Duration(milliseconds: 200), () {
       //   if (mounted) {
@@ -109,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Future.delayed(const Duration(milliseconds: 200), () {
         if (mounted) {
-          GoRouter.of(context).go('/festival');
+          GoRouter.of(context).go('/festivalList');
         }
       });
 
