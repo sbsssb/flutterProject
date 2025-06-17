@@ -6,16 +6,8 @@ import 'package:flutterteam4/travelroom/selectRegion.dart';
 import 'package:flutterteam4/travelroom/selectTheme.dart';
 import '../dice/dice.dart';
 import '../firebase_options.dart';
-import '../travellist/ScheduleRequestPage.dart';
-
-void main() async {
-  // Flutter 프레임워크와의 초기화
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // Firebase 초기화 설정
-  );
-  runApp(const RoomCreate());
-}
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutterteam4/user/user_provider.dart';
 
 class RoomCreate extends StatelessWidget {
   const RoomCreate({super.key});
@@ -33,12 +25,12 @@ class RoomCreate extends StatelessWidget {
   }
 }
 
-class RoomCreatePage extends StatefulWidget {
+class RoomCreatePage extends ConsumerStatefulWidget {
   @override
   _RoomCreatePageState createState() => _RoomCreatePageState();
 }
 
-class _RoomCreatePageState extends State<RoomCreatePage> {
+class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
   final TextEditingController _nameController = TextEditingController();
   String selectedRegion = '';
   String selectedTransport = '';
@@ -98,11 +90,12 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
     // final user = FirebaseAuth.instance.currentUser;
     // if (user == null) return;
     // final currentUserId = user.uid;
+    final user = ref.watch(authStateProvider).value;
 
     final friendSnapshot = await FirebaseFirestore.instance
         .collection('users')
         // .doc(currentUserId)
-        .doc('yBGkS5yQ7Hc8tzbEEQYUSd3n8O23')
+        .doc(user?.uid)
         .collection('friends')
         .where('status', isEqualTo: 'accepted')
         .get();
@@ -381,8 +374,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
   }
 
   void _createRoom() async {
-    //final user = FirebaseAuth.instance.currentUser;
-    //if (user == null) return;
+    final user = ref.watch(authStateProvider).value;
 
     final roomId = fs.collection('travel_rooms').doc().id;
 
@@ -392,7 +384,7 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
             "room_id": roomId,
             "room_name" : _nameController.text,
             //"owner_id": user.uid,
-            "owner_id": "yBGkS5yQ7Hc8tzbEEQYUSd3n8O23",
+            "owner_id": user?.uid,
             "region": selectedRegion,
             "sub_region": null,
             "theme": selectedThemes,
@@ -405,9 +397,9 @@ class _RoomCreatePageState extends State<RoomCreatePage> {
     await fs.collection('travel_rooms')
         .doc(roomId)
         .collection('members')
-        .doc("yBGkS5yQ7Hc8tzbEEQYUSd3n8O23")  // 또는 유저 uid
+        .doc(user?.uid)  // 또는 유저 uid
         .set({
-      "user_id": "yBGkS5yQ7Hc8tzbEEQYUSd3n8O23",
+      "user_id": user?.uid,
       "is_owner": true,
       "nickname": "test1111",
       "avatar_id": null,
