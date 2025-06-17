@@ -5,6 +5,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../gemini/gemini_service.dart';
 import '../stamp/screens/stamp_detail_screen.dart';
 
+import 'package:go_router/go_router.dart';//새별1
+
+
 class ScheduleList extends StatefulWidget {
   final List<Map<String, dynamic>> scheduleList;
   final String roomId;
@@ -144,9 +147,7 @@ class _ScheduleListState extends State<ScheduleList> {
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       await saveToFirestore();
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => StampDetailScreen(roomId: widget.roomId),)
-                      );
+                      context.go('/stamp?roomId=${widget.roomId}');
                     },
                     icon: const Icon(Icons.check),
                     label: const Text("일정 확정"),
