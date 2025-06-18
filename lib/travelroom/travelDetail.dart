@@ -118,12 +118,12 @@ class TravelRoomDetailPage extends StatelessWidget {
                                 foregroundColor: Colors.black,
                                 minimumSize: const Size.fromHeight(60),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                textStyle: const TextStyle(fontSize: 20),
+                                textStyle: const TextStyle(fontSize: 22),
                               ),
                               child: const Text('앨범 보기'),
                             ),
 
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 30),
 
                             // 📅 일정 버튼
                             ElevatedButton(
@@ -135,7 +135,7 @@ class TravelRoomDetailPage extends StatelessWidget {
                                 foregroundColor: Colors.black,
                                 minimumSize: const Size.fromHeight(60),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                textStyle: const TextStyle(fontSize: 20),
+                                textStyle: const TextStyle(fontSize: 22),
                               ),
                               child: const Text('일정 보기'),
                             ),
