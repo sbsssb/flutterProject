@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../common/logo_header.dart';
 import 'login_page.dart';
 
 
@@ -100,6 +101,7 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const LogoHeader(topPadding: 12, bottomPadding: 50),
                 const Text(
                   '회원가입',
                   style: TextStyle(

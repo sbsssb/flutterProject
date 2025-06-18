@@ -9,7 +9,7 @@ List<String> generateDateOptions({int months = 6}) {
 }
 
 Map<String, String> regionOptions = {
-  '전체': '',
+  '지역': '',
   '서울': '1',
   '인천': '2',
   '대전': '3',
@@ -30,7 +30,7 @@ Map<String, String> regionOptions = {
 };
 
 Map<String, String> categoryOptions = {
-  '전체': '',
+  '카테고리': '',
   '문화관광축제': 'A02070100',
   '일반축제': 'A02070200',
   '전통공연': 'A02080100',
@@ -41,9 +41,9 @@ Map<String, String> categoryOptions = {
   '기타행사': 'A02081300',
 };
 
-List<String> themeOptions = ['전체'];
+List<String> themeOptions = ['카테고리'];
 
 List<Festival> filterFestivalsByCat3(List<Festival> festivals, String selectedCat3) {
-  if (selectedCat3.isEmpty || selectedCat3 == '전체') return festivals;
+  if (selectedCat3.isEmpty || selectedCat3 == '카테고리') return festivals;
   return festivals.where((festival) => festival.cat3 == selectedCat3).toList();
 }

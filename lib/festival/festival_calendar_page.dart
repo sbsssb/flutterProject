@@ -112,61 +112,120 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
         child: Column(
           children: [
             const FestivalTopBar(currentTab: 'calendar'),
-            const SizedBox(height: 12),
-            TableCalendar(
-              firstDay: firstAvailableDay,
-              lastDay: lastAvailableDay,
-              focusedDay: _focusedDay,
-              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-              eventLoader: (day) {
-                final key = DateTime(day.year, day.month, day.day);
-                final count = dailyFestivalCount[key] ?? 0;
-                return List.filled(count, '축제');
-              },
-              calendarBuilders: CalendarBuilders(
-                markerBuilder: (context, date, events) {
-                  if (events.isNotEmpty) {
-                    return Positioned(
-                      bottom: 1,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.redAccent,
-                          shape: BoxShape.circle,
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              child: SizedBox(
+                height: 520,
+                child: TableCalendar(
+                  availableGestures: AvailableGestures.none,
+                  locale: 'ko_KR',
+                  firstDay: firstAvailableDay,
+                  lastDay: lastAvailableDay,
+                  focusedDay: _focusedDay,
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  rowHeight: 70,
+                  daysOfWeekHeight: 35,
+                  daysOfWeekVisible: true,
+                  calendarBuilders: CalendarBuilders(
+                    dowBuilder: (context, day) {
+                      final text = DateFormat.E('ko_KR').format(day);
+                      final isSunday = day.weekday == DateTime.sunday;
+                      final isSaturday = day.weekday == DateTime.saturday;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10.0),
+                        child: Center(
+                          child: Text(
+                            text,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: isSunday
+                                  ? Colors.redAccent
+                                  : isSaturday
+                                  ? Colors.blueAccent
+                                  : Colors.black,
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          '${events.length}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                      );
+                    },
+                    defaultBuilder: (context, date, _) {
+                      final count = dailyFestivalCount[DateTime(date.year, date.month, date.day)] ?? 0;
+                      final isToday = isSameDay(date, DateTime.now());
+                      final isSelected = isSameDay(date, _selectedDay);
+
+                      Color? bgColor;
+                      Color textColor = Colors.black;
+
+                      if (isSelected) {
+                        bgColor = Colors.blue;
+                        textColor = Colors.white;
+                      } else if (isToday) {
+                        bgColor = Colors.black;
+                        textColor = Colors.white;
+                      }
+
+                      return Container(
+                        alignment: Alignment.topCenter,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: bgColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${date.day}',
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            if (count > 0) ...[
+                              Text('$count개', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              const Icon(Icons.arrow_drop_down, size: 12, color: Colors.grey),
+                            ],
+                          ],
                         ),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-              onDaySelected: (selected, focused) {
-                setState(() {
-                  _selectedDay = selected;
-                  _focusedDay = focused;
-                });
-                _updateSelectedDayFestivals(selected);
-              },
-              onPageChanged: (focusedDay) {
-                setState(() {
-                  _focusedDay = focusedDay;
-                });
-                _loadFestivalDataIfNeeded(focusedDay);
-              },
-              calendarFormat: CalendarFormat.month,
-              startingDayOfWeek: StartingDayOfWeek.sunday,
-              headerStyle: const HeaderStyle(
-                formatButtonVisible: false,
-                titleCentered: true,
+                      );
+                    },
+                  ),
+                  calendarStyle: const CalendarStyle(
+                    selectedDecoration: BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
+                    ),
+                    selectedTextStyle: TextStyle(color: Colors.white, fontSize: 18),
+                    todayTextStyle: TextStyle(color: Colors.white, fontSize: 18),
+                    defaultTextStyle: TextStyle(fontSize: 14),
+                    weekendTextStyle: TextStyle(fontSize: 14, color: Colors.redAccent),
+                    cellMargin: EdgeInsets.symmetric(vertical: 4),
+                  ),
+                  onDaySelected: (selected, _) {
+                    setState(() {
+                      _selectedDay = selected;
+                    });
+                    _updateSelectedDayFestivals(selected);
+                  },
+                  onPageChanged: (focusedDay) {
+                    setState(() {
+                      _focusedDay = focusedDay;
+                    });
+                    _loadFestivalDataIfNeeded(focusedDay);
+                  },
+                  calendarFormat: CalendarFormat.month,
+                  startingDayOfWeek: StartingDayOfWeek.sunday,
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                  ),
+                ),
               ),
             ),
-
             const SizedBox(height: 12),
-
             if (selectedDayFestivals.isEmpty)
               const Center(child: Text('해당 날짜에 축제가 없습니다.'))
             else ...[
@@ -190,7 +249,6 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                   ),
                 );
               }),
-
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

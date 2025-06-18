@@ -26,7 +26,7 @@ class FestivalCard extends StatelessWidget {
       },
       child: Card(
         elevation: 4,
-        margin: const EdgeInsets.all(8),
+        margin: const EdgeInsets.all(5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -63,7 +63,7 @@ class FestivalCard extends StatelessWidget {
                       Text(
                         festival.title,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 2,
@@ -73,7 +73,7 @@ class FestivalCard extends StatelessWidget {
                       Text(
                         '${formatDate(festival.eventStartDate)} ~ ${formatDate(festival.eventEndDate)}',
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                         ),
                       ),
                       const SizedBox(height: 4),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../common/logo_header.dart';
+
 class FestivalTopBar extends StatelessWidget {
-  final String currentTab; // 'list' 또는 'calendar'
+  final String currentTab;
 
   const FestivalTopBar({super.key, required this.currentTab});
 
@@ -10,9 +12,7 @@ class FestivalTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 30),
-        Image.asset('assets/common_images/logo-main-ver1.png', height: 100), // 로고 이미지
-        const SizedBox(height: 20),
+        const LogoHeader(),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -22,7 +22,7 @@ class FestivalTopBar extends StatelessWidget {
                 '축제 목록',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 25,
+                  fontSize: 22,
                   color: currentTab == 'list' ? Colors.blue : Colors.black,
                 ),
               ),
@@ -34,7 +34,7 @@ class FestivalTopBar extends StatelessWidget {
                 '축제 달력',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 25,
+                  fontSize: 22,
                   color: currentTab == 'calendar' ? Colors.blue : Colors.black,
                 ),
               ),
