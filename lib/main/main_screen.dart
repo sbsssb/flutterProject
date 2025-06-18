@@ -5,6 +5,7 @@ import '../common/bottom_nav_bar.dart'; // 하단바 위젯
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
