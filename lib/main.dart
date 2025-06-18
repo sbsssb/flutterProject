@@ -34,6 +34,8 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/mainPage', builder: (context, state) => const MainPage()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
     GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
+    GoRoute(path: '/album', builder: (context, state) => const AlbumPage()),
+
 
 
 
