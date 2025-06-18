@@ -147,7 +147,7 @@ class TravelRoomDetailPage extends StatelessWidget {
                     // 🔵 방 이름 박스 (노란 박스 위에 겹치게 위치)
                     Positioned(
                       top: 0,
-                      left: 30,
+                      left: 35,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12), // ⬅️ padding 키움
                         decoration: BoxDecoration(
