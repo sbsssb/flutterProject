@@ -406,6 +406,13 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
       "titles": "칭호",  // 또는 유저가 가진 타이
     });
 
+    // users 컬렉션에 참여한 room_id 추가
+    await fs.collection('users')
+        .doc(user?.uid)
+        .set({
+      'joined_rooms': FieldValue.arrayUnion([roomId])
+    }, SetOptions(merge: true));
+
     // 초대한 친구들 저장
     for (final friend in invitedFriends) {
       await fs.collection('travel_rooms')
@@ -420,6 +427,13 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
         "avatar_id": null,
         "titles": friend['titles'] ?? '',
       });
+
+      // 친구들의 users 문서에도 joined_rooms 추가
+      await fs.collection('users')
+          .doc(friend['user_id'])
+          .set({
+        'joined_rooms': FieldValue.arrayUnion([roomId])
+      }, SetOptions(merge: true));
     }
 
     // 성공적으로 저장 후 알림 또는 페이지 이동

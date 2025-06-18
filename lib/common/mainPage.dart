@@ -28,6 +28,12 @@ class MainPage extends StatelessWidget {
               },
               child: const Text("축제 페이지"),
             ),
+            ElevatedButton(
+              onPressed: () {
+                GoRouter.of(context).go('/detail');
+              },
+              child: const Text("여행 상세"),
+            ),
 
           ],
         ),
