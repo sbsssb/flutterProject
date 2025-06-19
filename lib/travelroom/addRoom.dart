@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterteam4/travelroom/selectRegion.dart';
 import 'package:flutterteam4/travelroom/selectTheme.dart';
+import 'package:go_router/go_router.dart';
 import '../dice/dice.dart';
 import '../firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -473,7 +474,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              Navigator.pop(context); // 이전 페이지로 이동
+              GoRouter.of(context).go('/mainPage');
             },
           ),
           elevation: 0,
