@@ -1,5 +1,6 @@
 class Festival {
   final String contentId;
+  final int contentTypeId;
   final String title;
   final String imageUrl;
   final String address;
@@ -11,11 +12,12 @@ class Festival {
   final String cat1;
   final String cat2;
   final String cat3;
-  final String description;
-  final List<String>? tags;
+  final String eventStartDate;
+  final String eventEndDate;
 
   Festival({
     required this.contentId,
+    required this.contentTypeId,
     required this.title,
     required this.imageUrl,
     required this.address,
@@ -27,13 +29,14 @@ class Festival {
     required this.cat1,
     required this.cat2,
     required this.cat3,
-    required this.description,
-    this.tags,
+    required this.eventStartDate,
+    required this.eventEndDate,
   });
 
   factory Festival.fromJson(Map<String, dynamic> json) {
     return Festival(
       contentId: json['contentid'].toString(),
+      contentTypeId: int.tryParse(json['contenttypeid'] ?? '') ?? 0,
       title: json['title'] ?? '',
       imageUrl: json['firstimage'] ?? '',
       address: '${json['addr1'] ?? ''} ${json['addr2'] ?? ''}'.trim(),
@@ -45,10 +48,8 @@ class Festival {
       cat1: json['cat1'] ?? '',
       cat2: json['cat2'] ?? '',
       cat3: json['cat3'] ?? '',
-      description: json['overview'] ?? '',
-      tags: (json['tag'] is String)
-          ? (json['tag'] as String).split(',').map((e) => e.trim()).toList()
-          : null,
+      eventStartDate: json['eventstartdate'] ?? '',
+      eventEndDate: json['eventenddate'] ?? '',
     );
   }
 }

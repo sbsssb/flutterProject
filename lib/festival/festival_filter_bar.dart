@@ -27,54 +27,151 @@ class FestivalFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateOptions = generateDateOptions();
 
+    Widget buildDropdown({
+      required String iconPath,
+      required String value,
+      required List<DropdownMenuItem<String>> items,
+      required void Function(String?) onChanged,
+    }) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+        ),
+        child: Row(
+          children: [
+            Image.asset(
+                iconPath,
+                width: 40,
+                fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 30),
+            Expanded(
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: value,
+                  isExpanded: true,
+                  items: items,
+                  onChanged: onChanged,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(10.0),
       child: Column(
         children: [
-          DropdownButton<String>(
+          buildDropdown(
+            iconPath: 'assets/festival_images/icons_calendar.png',
             value: selectedDate,
-            onChanged: (value) => onDateChanged(value!),
             items: dateOptions.map((date) => DropdownMenuItem(
               value: date,
-              child: Text('${date.substring(0, 4)}.${date.substring(4, 6)}'),
+              child: Text(
+                '${date.substring(0, 4)}.${date.substring(4, 6)}',
+                style: const TextStyle(fontSize: 22),
+              ),
             )).toList(),
+            onChanged: (value) => onDateChanged(value!),
           ),
-          DropdownButton<String>(
-            value: regionOptions.containsValue(selectedRegion)
-                ? selectedRegion
-                : '',
-            onChanged: (value) => onRegionChanged(value!),
+          buildDropdown(
+            iconPath: 'assets/festival_images/icons_address.png',
+            value: selectedRegion,
             items: regionOptions.entries.map((e) => DropdownMenuItem(
               value: e.value,
-              child: Text(e.key),
+              child: Text(
+                  e.key,
+                  style: const TextStyle(fontSize: 22),
+              ),
             )).toList(),
+            onChanged: (value) => onRegionChanged(value!),
           ),
-          DropdownButton<String>(
-            value: selectedCategory.isNotEmpty ? selectedCategory : categoryOptions.values.first,
-            onChanged: (value) => onCategoryChanged(value!),
+          buildDropdown(
+            iconPath: 'assets/festival_images/icons_category.png',
+            value: selectedCategory,
             items: categoryOptions.entries.map((entry) => DropdownMenuItem(
               value: entry.value,
-              child: Text(entry.key),
+              child: Text(
+                  entry.key,
+                  style: const TextStyle(fontSize: 22),
+              ),
             )).toList(),
+            onChanged: (value) => onCategoryChanged(value!),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              OutlinedButton.icon(
-                onPressed: onResetPressed,
-                icon: const Icon(Icons.refresh),
-                label: const Text('초기화'),
+              SizedBox(
+                width: 180,
+                height: 60,
+                child: OutlinedButton(
+                  onPressed: onResetPressed,
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    side: const BorderSide(color: Colors.grey),
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/festival_images/icons_reset.png',
+                        width: 40,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(width: 25),
+                      const Text(
+                        '초기화',
+                        style: TextStyle(fontSize: 22),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(width: 16),
-              ElevatedButton.icon(
-                onPressed: onSearchPressed,
-                icon: const Icon(Icons.search),
-                label: const Text('검색'),
+              const SizedBox(width: 15),
+              SizedBox(
+                width: 180,
+                height: 60,
+                child: ElevatedButton(
+                  onPressed: onSearchPressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/festival_images/icons_search.png',
+                        width: 40,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(width: 25),
+                      const Text(
+                        '검색',
+                        style: TextStyle(fontSize: 22),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(width: 16),
             ],
-          ),
+          )
         ],
       ),
     );
