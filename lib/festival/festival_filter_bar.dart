@@ -74,7 +74,10 @@ class FestivalFilterBar extends StatelessWidget {
               value: date,
               child: Text(
                 '${date.substring(0, 4)}.${date.substring(4, 6)}',
-                style: const TextStyle(fontSize: 22),
+                style: const TextStyle(
+                  fontFamily: 'AstaSans',
+                  fontSize: 22,
+                ),
               ),
             )).toList(),
             onChanged: (value) => onDateChanged(value!),
@@ -86,7 +89,10 @@ class FestivalFilterBar extends StatelessWidget {
               value: e.value,
               child: Text(
                   e.key,
-                  style: const TextStyle(fontSize: 22),
+                  style: const TextStyle(
+                    fontFamily: 'AstaSans',
+                    fontSize: 22,
+                  ),
               ),
             )).toList(),
             onChanged: (value) => onRegionChanged(value!),
@@ -98,7 +104,10 @@ class FestivalFilterBar extends StatelessWidget {
               value: entry.value,
               child: Text(
                   entry.key,
-                  style: const TextStyle(fontSize: 22),
+                  style: const TextStyle(
+                    fontFamily: 'AstaSans',
+                    fontSize: 22,
+                  ),
               ),
             )).toList(),
             onChanged: (value) => onCategoryChanged(value!),
@@ -132,7 +141,10 @@ class FestivalFilterBar extends StatelessWidget {
                       const SizedBox(width: 25),
                       const Text(
                         '초기화',
-                        style: TextStyle(fontSize: 22),
+                        style: TextStyle(
+                          fontFamily: 'AstaSans',
+                          fontSize: 22,
+                        ),
                       ),
                     ],
                   ),
@@ -145,7 +157,7 @@ class FestivalFilterBar extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onSearchPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -164,7 +176,10 @@ class FestivalFilterBar extends StatelessWidget {
                       const SizedBox(width: 25),
                       const Text(
                         '검색',
-                        style: TextStyle(fontSize: 22),
+                        style: TextStyle(
+                          fontFamily: 'AstaSans',
+                          fontSize: 22,
+                        ),
                       ),
                     ],
                   ),

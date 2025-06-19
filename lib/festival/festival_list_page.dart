@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/bottom_nav_bar.dart';
 import '../utils/festival_top_bar.dart';
 import 'festival_api.dart';
 import 'festival_model.dart';
@@ -91,6 +92,7 @@ class _FestivalListPageState extends State<FestivalListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const BottomNavBar(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -123,7 +125,12 @@ class _FestivalListPageState extends State<FestivalListPage> {
                   }
 
                   if (snapshot.hasError) {
-                    return Center(child: Text('에러: ${snapshot.error}'));
+                    return Center(
+                        child: Text(
+                            '에러: ${snapshot.error}',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                    );
                   }
 
                   final festivals = snapshot.data ?? [];
@@ -133,7 +140,12 @@ class _FestivalListPageState extends State<FestivalListPage> {
                   }
 
                   if (festivals.isEmpty) {
-                    return const Center(child: Text('축제가 없습니다.'));
+                    return const Center(
+                        child: Text(
+                          '축제가 없습니다.',
+                          style: TextStyle(fontFamily: 'AstaSans'),
+                        ),
+                    );
                   }
 
                   return Column(
@@ -165,15 +177,33 @@ class _FestivalListPageState extends State<FestivalListPage> {
                           if (currentPage > 1)
                             TextButton(
                               onPressed: () => _goToPage(currentPage - 1),
-                              child: const Text('이전'),
+                              child: Text(
+                                  '이전',
+                                  style: TextStyle(
+                                    fontFamily: 'AstaSans',
+                                    fontSize: 14,
+                                  ),
+                              ),
                             ),
                           const SizedBox(width: 16),
-                          Text('페이지 $currentPage'),
+                          Text(
+                              '페이지 $currentPage',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontFamily: 'AstaSans',
+                                fontSize: 14,
+                              ),
+                          ),
                           const SizedBox(width: 16),
                           if (festivals.length == numOfRows)
                             TextButton(
                               onPressed: () => _goToPage(currentPage + 1),
-                              child: const Text('다음'),
+                              child: Text(
+                                  '다음',
+                                  style: TextStyle(
+                                    fontFamily: 'AstaSans',
+                                    fontSize: 14,
+                                  ),
+                              ),
                             ),
                         ],
                       ),

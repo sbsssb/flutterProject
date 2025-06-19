@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../common/bottom_nav_bar.dart';
 import '../common/logo_header.dart';
 import 'login_page.dart';
 
@@ -94,6 +95,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const BottomNavBar(),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -102,15 +104,15 @@ class _SignUpPageState extends State<SignUpPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const LogoHeader(topPadding: 12, bottomPadding: 50),
-                const Text(
+
+                Text(
                   '회원가입',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
+
                 const SizedBox(height: 24),
+
                 TextField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -119,6 +121,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
@@ -128,6 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 TextField(
                   controller: _nicknameController,
                   decoration: const InputDecoration(
@@ -136,6 +140,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 TextField(
                   controller: _phoneController,
                   decoration: const InputDecoration(
@@ -145,11 +150,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 24),
+
                 ElevatedButton(
                   onPressed: _signUp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                  ),
                   child: const Text('가입하기'),
                 ),
               ],

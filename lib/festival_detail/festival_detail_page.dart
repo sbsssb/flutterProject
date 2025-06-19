@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/bottom_nav_bar.dart';
 import 'festival_detail_api.dart';
 import 'festival_detail_model.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -62,6 +63,7 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
         final detail = snapshot.data!;
 
         return Scaffold(
+          bottomNavigationBar: const BottomNavBar(),
           body: Stack(
             children: [
               Positioned.fill(
@@ -86,10 +88,16 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
                       children: [
                         Text(
                           detail.title,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontFamily: 'Jalnan',
+                              fontSize: 24,
+                          ),
                         ),
                         const SizedBox(height: 8),
-                        Text('${formatDate(detail.eventStartDate)} ~ ${formatDate(detail.eventEndDate)}'),
+                        Text(
+                            '${formatDate(detail.eventStartDate)} ~ ${formatDate(detail.eventEndDate)}',
+                            style: const TextStyle(fontFamily: 'AstaSans'),
+                        ),
                         const SizedBox(height: 16),
                         if (detail.imageUrls.isNotEmpty)
                           SizedBox(
@@ -128,7 +136,13 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('🌐 홈페이지: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                const Text(
+                                    '🌐 홈페이지: ',
+                                    style: TextStyle(
+                                      fontFamily: 'AstaSans',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                ),
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () {
@@ -137,7 +151,11 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
                                     },
                                     child: Text(
                                       extractUrl(detail.homepage),
-                                      style: const TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                                      style: TextStyle(
+                                          fontFamily: 'AstaSans',
+                                          color: Theme.of(context).colorScheme.primary,
+                                          decoration: TextDecoration.underline
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -145,7 +163,12 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
                             ),
                           ),
                         const SizedBox(height: 12),
-                        Text(detail.overview),
+                        Text(
+                            detail.overview,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontFamily: 'AstaSans',
+                            ),
+                        ),
                       ],
                     ),
                   );
@@ -165,8 +188,19 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$title: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(content)),
+          Text(
+              '$title: ',
+              style: const TextStyle(
+                fontFamily: 'AstaSans',
+                fontWeight: FontWeight.w600,
+              ),
+          ),
+          Expanded(
+              child: Text(
+                  content,
+                  style: const TextStyle(fontFamily: 'AstaSans'),
+              )
+          ),
         ],
       ),
     );

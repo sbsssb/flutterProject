@@ -21,9 +21,11 @@ class FestivalTopBar extends StatelessWidget {
               child: Text(
                 '축제 목록',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Jalnan',
                   fontSize: 22,
-                  color: currentTab == 'list' ? Colors.blue : Colors.black,
+                  color: currentTab == 'list'
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.black,
                 ),
               ),
             ),
@@ -33,9 +35,11 @@ class FestivalTopBar extends StatelessWidget {
               child: Text(
                 '축제 달력',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Jalnan',
                   fontSize: 22,
-                  color: currentTab == 'calendar' ? Colors.blue : Colors.black,
+                  color: currentTab == 'calendar'
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.black,
                 ),
               ),
             ),
