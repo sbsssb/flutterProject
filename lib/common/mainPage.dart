@@ -35,6 +35,7 @@ class MainPage extends StatelessWidget {
               },
               child: const Text("진짜 메인이 될 페이지"),
             ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 GoRouter.of(context).go('/detail');
