@@ -33,6 +33,8 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
     GoRoute(path: '/mainPage', builder: (context, state) => const MainPage()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
+    GoRoute(path: '/stamp', builder: (context, state) => const StampDetailScreen()),
+    GoRoute(path: '/album', builder: (context, state) => const AlbumPage()),
     GoRoute(path: '/detail', builder: (context, state) => const TravelRoomDetailPage(roomId: 'Uutz9iJoJJgoa93dHoDi')),
 
 
