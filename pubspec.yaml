@@ -54,6 +54,7 @@ dependencies:
   kakao_flutter_sdk_user:
   dio: ^5.4.0
   permission_handler: ^11.3.0
+  shake: ^3.0.0
   table_calendar: ^3.0.9
   url_launcher: ^6.1.10
   flutter_localizations:
