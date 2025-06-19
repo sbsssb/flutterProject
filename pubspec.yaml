@@ -84,6 +84,7 @@ flutter:
     - assets/travel_images/
     - assets/mypage_images/
     - assets/common_images/
+    - assets/main_images/
     - .env
 
 
