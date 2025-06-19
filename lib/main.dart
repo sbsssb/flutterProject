@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ 추가
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutterteam4/travelroom/travelDetail.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutterteam4/album/album_page.dart';
 import 'common/mainPage.dart';
@@ -32,7 +33,7 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
     GoRoute(path: '/mainPage', builder: (context, state) => const MainPage()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
-
+    GoRoute(path: '/detail', builder: (context, state) => const TravelRoomDetailPage(roomId: 'Uutz9iJoJJgoa93dHoDi')),
 
 
   ],
