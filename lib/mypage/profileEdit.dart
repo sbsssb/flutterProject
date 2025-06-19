@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'profile_avatar.dart';
 
 class ProfileEditPage extends StatefulWidget {
   final Map<String, dynamic> userData;
-  const ProfileEditPage({super.key, required this.userData});
+  final int stampCount;
+  const ProfileEditPage({super.key, required this.userData, required this.stampCount});
 
   @override
   State<ProfileEditPage> createState() => _ProfileEditPageState();
@@ -32,10 +33,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Widget build(BuildContext context) {
     print('✅ 프로필 수정 페이지 userData: ${widget.userData}');
     return Scaffold(
-      appBar: buildAppBar(
-        unreadCount: 1,
-        onNotificationTap: () {},
-      ),
+      // appBar: CustomAppBar(userId: userId),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -47,16 +45,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               style: const TextStyle(color: Colors.blue),
             ),
             const SizedBox(height: 12),
-            Image.asset('assets/profile_gold.png', height: 240), // 추후 수정 예정
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E6FD9),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('뱃지 교체', style: TextStyle(color: Colors.white, fontSize: 22)),
-            ),
+            Image.asset(getProfileImagePath(widget.stampCount), height: 240), // 추후 수정 예정
             const SizedBox(height: 20),
             Row(
               children: [
@@ -66,8 +55,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     decoration: BoxDecoration(
                       color: Colors.amber,
                       borderRadius: BorderRadius.circular(12),
-                      image: const DecorationImage(
-                        image: AssetImage('assets/tier_SSR.png'),
+                      image: DecorationImage(
+                        image: AssetImage(
+                          getTitleBackground(widget.stampCount),
+                        ),
                         alignment: Alignment.centerRight,
                         opacity: 0.25,
                         fit: BoxFit.contain,
@@ -75,7 +66,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           '칭호',
                           style: TextStyle(
@@ -86,28 +77,17 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          '모험심 강한 상급 낭만 고양이!',
-                          style: TextStyle(
+                          getTitleWithNickname(widget.stampCount, widget.userData['nickname']),
+                          style: TextStyle( // ✅ const 제거
                             fontSize: 14,
                             color: Color(0xFF1E6FD9),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
                         ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E6FD9),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('칭호 변경', style: TextStyle(color: Colors.white)),
-                ),
               ],
             ),
             const SizedBox(height: 20),

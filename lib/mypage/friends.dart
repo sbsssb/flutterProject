@@ -1,34 +1,42 @@
-// 🔁 친구 목록 페이지 - 전체 파일 (수정 반영 완료)
 import 'package:flutter/material.dart';
 import 'appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'send_notification.dart';
+import 'profile_avatar.dart';
+
+
 
 class FriendsPage extends StatefulWidget {
   final Map<String, dynamic> userData;
-  const FriendsPage({super.key, required this.userData});
+  final int initialTabIndex; // ✅ 이 줄 추가
+  const FriendsPage({
+    super.key,
+    required this.userData,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<FriendsPage> createState() => _FriendsPageState();
 }
 
 class _FriendsPageState extends State<FriendsPage> {
-  int selectedTab = 0; // 0: 친구 목록, 1: 친구 추가, 2: 요청 수락
+  int selectedTab = 0;
   final int _unreadCount = 2;
   List<Map<String, dynamic>> friendList = [];
   List<Map<String, dynamic>> allUsers = [];
   List<Map<String, dynamic>> pendingRequests = [];
-  List<String> pendingRequestIds = [];
 
   @override
   void initState() {
     super.initState();
+    selectedTab = widget.initialTabIndex; // ✅ 여기에 반영
     initFriendData();
   }
 
   Future<void> initFriendData() async {
     await fetchFriends();
     await fetchAllUsers();
-    fetchPendingRequests();
+    await fetchPendingRequests();
   }
 
   Future<void> fetchFriends() async {
@@ -77,13 +85,18 @@ class _FriendsPageState extends State<FriendsPage> {
 
     for (var doc in snapshot.docs) {
       final userId = doc.id;
+
       if (userId == widget.userData['user_id'] || friendIds.contains(userId)) continue;
 
       final data = doc.data();
+      final nickname = data['nickname'] ?? '';
+      if (nickname.trim().isEmpty) continue;
+
       fetchedAllUsers.add({
         'user_id': userId,
-        'nickname': data['nickname'] ?? '',
+        'nickname': nickname,
         'avatar_id': data['avatar_id'] ?? '',
+        'stampCount': data['stampCount'] ?? 0, // ✅ 이 줄 추가!
       });
     }
 
@@ -98,63 +111,75 @@ class _FriendsPageState extends State<FriendsPage> {
         .collection('users')
         .doc(currentUserId)
         .collection('friends')
-        .where('status', isEqualTo: 'pending')
+        .where('status', whereIn: ['incoming', 'sending'])
         .get();
 
     setState(() {
       pendingRequests = snapshot.docs.map((doc) {
         final data = doc.data();
         data['friend_user_id'] = doc.id;
-
-        // ✅ 받은 요청인지 확인
-        // data['is_incoming'] = data['user_id'] == doc.id;
-        data['is_incoming'] = data['user_id'] != widget.userData['user_id'];
-
+        data['is_incoming'] = data['status'] == 'incoming';
         return data;
       }).toList();
-
-      pendingRequestIds =
-          pendingRequests.map<String>((f) => f['user_id'] as String).toList();
     });
   }
 
   Future<void> sendFriendRequest(String targetUserId, String targetNickname) async {
     final currentUserId = widget.userData['user_id'];
-    final currentNickname = widget.userData['nickname'] ?? '';
-    final avatarId = widget.userData['avatar_id'] ?? 'default_avatar';
     final timestamp = Timestamp.now();
 
     try {
-      // 🔹 1. 상대방 friends 컬렉션에 "내 정보" 저장 (요청을 받은 사람이 수락할 수 있도록)
+      // 🔹 Firestore에서 내 정보 가져오기 (닉네임, 아바타)
+      final currentUserDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .get();
+
+      final data = currentUserDoc.data() ?? {};
+      final currentNickname = data['nickname'] ?? '알수없음';
+      final avatarId = data.containsKey('avatar_id') ? data['avatar_id'] : 'default_avatar';
+
+      // 🔹 상대방에게 친구 요청 정보 저장 (incoming)
       await FirebaseFirestore.instance
           .collection('users')
           .doc(targetUserId)
           .collection('friends')
           .doc(currentUserId)
           .set({
-        'user_id': currentUserId,              // ✅ 내가 요청한 사람
+        'user_id': currentUserId,
         'nickname': currentNickname,
         'avatar_id': avatarId,
-        'status': 'pending',
+        'status': 'incoming',
         'request_message': '같이 여행 가자!',
         'cdatetime': timestamp,
       });
 
-      // 🔹 2. 내 friends 컬렉션에 "상대방 정보" 저장
+      // 🔹 내 쪽에도 보낸 요청 정보 저장 (sending)
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUserId)
           .collection('friends')
           .doc(targetUserId)
           .set({
-        'user_id': targetUserId,              // ✅ 내가 요청한 대상
+        'user_id': targetUserId,
         'nickname': targetNickname,
         'avatar_id': 'default_avatar',
-        'status': 'pending',
+        'status': 'sending',
         'request_message': '',
         'cdatetime': timestamp,
       });
 
+      // 🔹 알림 전송
+      await sendNotification(
+        targetUserId: targetUserId,
+        type: 'friend_request',
+        content: ' 님이 친구 요청을 보냈습니다.',
+        senderId: currentUserId,
+        senderNickname: currentNickname,
+        senderAvatarId: avatarId,
+      );
+
+      // 🔄 상태 새로고침
       await fetchPendingRequests();
       await fetchAllUsers();
       setState(() {});
@@ -165,18 +190,31 @@ class _FriendsPageState extends State<FriendsPage> {
 
   Future<void> acceptFriendRequest(String fromUserId) async {
     final myUserId = widget.userData['user_id'];
-    final nickname = widget.userData['nickname'] ?? '';
-    final avatarId = widget.userData['avatar_id'] ?? 'default_avatar';
     final now = Timestamp.now();
 
     try {
+      // 🔹 상태 업데이트 (내 친구 목록)
       await FirebaseFirestore.instance
           .collection('users')
           .doc(myUserId)
           .collection('friends')
           .doc(fromUserId)
-          .update({'status': 'accepted', 'accepted_at': now});
+          .update({
+        'status': 'accepted',
+        'accepted_at': now,
+      });
 
+      // 🔹 내 정보 Firestore에서 다시 가져오기 (nickname, avatar)
+      final myUserDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(myUserId)
+          .get();
+
+      final data = myUserDoc.data() ?? {};
+      final myNickname = data['nickname'] ?? '알수없음';
+      final myAvatarId = data.containsKey('avatar_id') ? data['avatar_id'] : 'default_avatar';
+
+      // 🔹 상대방 친구 목록에도 accepted 추가
       await FirebaseFirestore.instance
           .collection('users')
           .doc(fromUserId)
@@ -184,16 +222,28 @@ class _FriendsPageState extends State<FriendsPage> {
           .doc(myUserId)
           .set({
         'user_id': myUserId,
-        'nickname': nickname,
-        'avatar_id': avatarId,
+        'nickname': myNickname,
+        'avatar_id': myAvatarId,
         'status': 'accepted',
         'request_message': '',
         'cdatetime': now,
         'accepted_at': now,
       });
 
+      // 🔹 알림 전송
+      await sendNotification(
+        targetUserId: fromUserId,
+        type: 'friend_accept',
+        content: ' 님이 친구 요청을 수락했습니다.',
+        senderId: myUserId,
+        senderNickname: myNickname,
+        senderAvatarId: myAvatarId,
+      );
+
+      // 🔹 친구 목록/요청 목록 새로고침
       await fetchFriends();
       await fetchPendingRequests();
+      await fetchAllUsers();
       setState(() {});
     } catch (e) {
       print('친구 수락 오류: $e');
@@ -204,7 +254,6 @@ class _FriendsPageState extends State<FriendsPage> {
     final myUserId = widget.userData['user_id'];
 
     try {
-      // 🔄 상태만 'rejected'로 바꾼다 (삭제 ❌)
       await FirebaseFirestore.instance
           .collection('users')
           .doc(myUserId)
@@ -229,6 +278,13 @@ class _FriendsPageState extends State<FriendsPage> {
           .doc(currentUserId)
           .delete();
 
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .collection('friends')
+          .doc(targetUserId)
+          .delete();
+
       await fetchPendingRequests();
       await fetchAllUsers();
       setState(() {});
@@ -241,7 +297,6 @@ class _FriendsPageState extends State<FriendsPage> {
     final currentUserId = widget.userData['user_id'];
 
     try {
-      // 1. 내 friends 컬렉션에서 제거
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUserId)
@@ -249,7 +304,6 @@ class _FriendsPageState extends State<FriendsPage> {
           .doc(targetUserId)
           .delete();
 
-      // 2. 상대방 friends 컬렉션에서도 제거
       await FirebaseFirestore.instance
           .collection('users')
           .doc(targetUserId)
@@ -257,7 +311,6 @@ class _FriendsPageState extends State<FriendsPage> {
           .doc(currentUserId)
           .delete();
 
-      // 3. 상태 갱신
       await fetchFriends();
       await fetchAllUsers();
       setState(() {});
@@ -288,10 +341,10 @@ class _FriendsPageState extends State<FriendsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ 선택된 탭에 따라 보여줄 목록 정리 (요청 수락 탭만 받은 요청 필터링)
+    final String userId = widget.userData['user_id']; // ✅ 추가
     List<Map<String, dynamic>> displayList;
     if (selectedTab == 2) {
-      displayList = pendingRequests.where((r) => r['is_incoming'] == true).toList(); // 🔥 핵심 수정
+      displayList = pendingRequests.where((r) => r['is_incoming'] == true).toList();
     } else if (selectedTab == 1) {
       displayList = allUsers;
     } else {
@@ -299,10 +352,8 @@ class _FriendsPageState extends State<FriendsPage> {
     }
 
     return Scaffold(
-      appBar: buildAppBar(
-        unreadCount: _unreadCount,
-        onNotificationTap: () {},
-      ),
+      appBar: CustomAppBar(userId: userId),
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
@@ -343,20 +394,28 @@ class _FriendsPageState extends State<FriendsPage> {
                   final user = displayList[index];
                   final userId = user['user_id'];
                   final name = user['nickname'];
-                  final isMyRequest = pendingRequests.any((f) => f['user_id'] == userId && f['is_incoming'] == false);
-                  final isReceivedRequest = pendingRequests.any((f) => f['user_id'] == userId && f['is_incoming'] == true);
+                  final stampCount = user['stampCount'] ?? 0; // ✅ 이 줄 추가
+                  print('✅ 유저 $name 의 스탬프 수: $stampCount');
+                  final isMyRequest = pendingRequests.any(
+                        (f) => f['user_id'] == userId && f['status'] == 'sending',
+                  );
+                  final isReceivedRequest = pendingRequests.any(
+                        (f) => f['user_id'] == userId && f['status'] == 'incoming',
+                  );
+
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
                       children: [
-                        Image.asset('assets/profile_gold.png', height: 80),
+                        Image.asset(getProfileImagePath(stampCount), height: 80),
                         const SizedBox(width: 16),
                         Expanded(child: Text(name, style: const TextStyle(fontSize: 22))),
                         if (selectedTab == 0)
                           ElevatedButton(
                             onPressed: () async {
                               await removeFriend(userId);
+                              setState(() {});
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1E6FD9),
@@ -407,6 +466,7 @@ class _FriendsPageState extends State<FriendsPage> {
                               ElevatedButton(
                                 onPressed: () async {
                                   await acceptFriendRequest(userId);
+                                  setState(() {});
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
