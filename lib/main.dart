@@ -20,6 +20,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutterteam4/dice/dice.dart'; // ✅ 주사위판 페이지 import
 import 'main/main_screen.dart';
+import 'mypage/prevRoom.dart';
+import 'mypage/myPage.dart';
+import 'mypage/notification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +56,23 @@ final GoRouter router = GoRouter(
         return StampDetailScreen(roomId: roomId);
       },
     ),
-    GoRoute(path: '/detail', builder: (context, state) => const TravelRoomDetailPage(roomId: 'Uutz9iJoJJgoa93dHoDi')),
+    GoRoute(
+      path: '/detail/:roomId',
+      builder: (context, state) {
+        final roomId = state.pathParameters['roomId']!;
+        return TravelRoomDetailPage(roomId: roomId);
+      },
+    ),
+    GoRoute(path: '/mypage', builder: (context, state) => const myPageApp()),
+    GoRoute(path: '/prevRoom', builder: (context, state) => const PrevRoomApp()),
+    GoRoute(
+      path: '/notification/:userId',
+      builder: (context, state) {
+        final userId = state.pathParameters['userId']!;
+        return NotificationPage(userId: userId);
+      },
+    )
+
   ],
 );
 

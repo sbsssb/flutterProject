@@ -70,8 +70,8 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
 
       print('[${schedule.title}]와의 거리 : ${distance.toStringAsFixed(2)}m');
 
-      //1km 이내일 경우 알림 + 진동
-      if (distance <= 2000) {
+      //3km 이내일 경우 알림 + 진동
+      if (distance <= 3000) {
         //이미 알림 안 울렸을 경우에만
         if (!schedule.canStampAlreadyNoti) {
           print('알림 조건 만족 => ${schedule.title}');
@@ -263,7 +263,7 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
                         done: done,
                         total: total,
                         confettiController: _confettiController,
-                        roomId: widget.roomId,
+                        roomId: widget.roomId, userId: userId!,
                       ),
                       const SizedBox(height: 20),
                     ],
