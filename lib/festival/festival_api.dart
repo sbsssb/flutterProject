@@ -7,6 +7,7 @@ Future<List<Festival>> fetchFestivals({
   int numOfRows = 10,
   String areaCode = '',
   String eventStartDate = '',
+  String eventEndDate = '',
   String cat3 = '',
 }) async {
   const String serviceKey = 'loeUwCSiTrlZ4bpQbXtMWINqF8HpYF7hacafFPZr3tI7mjjoMKCIlpooX4QRBEu+a8Ras0d+1zKF/N4NA2xiDA==';
@@ -22,6 +23,7 @@ Future<List<Festival>> fetchFestivals({
     'pageNo': '$page',
     if (areaCode.isNotEmpty) 'areaCode': areaCode,
     if (eventStartDate.isNotEmpty) 'eventStartDate': eventStartDate,
+    if (eventEndDate.isNotEmpty) 'eventEndDate': eventEndDate,
     if (cat3.isNotEmpty) 'cat3': cat3,
   };
 

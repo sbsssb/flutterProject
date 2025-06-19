@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import '../common/logo_header.dart';
 import 'signup_page.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import 'package:kakao_flutter_sdk_auth/kakao_flutter_sdk_auth.dart';
@@ -43,12 +44,6 @@ class _LoginPageState extends State<LoginPage> {
 
       GoRouter.of(context).go('/mainPage');
 
-      // Future.delayed(const Duration(milliseconds: 200), () {
-      //   if (mounted) {
-      //     GoRouter.of(context).go('/festival');
-      //   }
-      // });
-
     } on FirebaseAuthException catch (e) {
       String message = '로그인 오류';
       if (e.code == 'user-not-found') {
@@ -61,7 +56,6 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(content: Text(message)),
       );
     } catch (e, stackTrace) {
-      // 예상 못한 에러 대응
       print('로그인 실패: $e');
       print('스택트레이스: $stackTrace');
 
@@ -75,26 +69,20 @@ class _LoginPageState extends State<LoginPage> {
     try {
       kakao.OAuthToken token;
 
-      // 카카오톡 앱 설치 여부 확인
       if (await kakao.isKakaoTalkInstalled()) {
         try {
-          // 카카오톡 앱으로 로그인 시도
           token = await kakao.UserApi.instance.loginWithKakaoTalk();
         } catch (e) {
-          // 카카오톡 앱 로그인 실패하면 카카오 계정 로그인으로 우회
           token = await kakao.UserApi.instance.loginWithKakaoAccount();
         }
       } else {
-        // 카카오톡 앱 없으면 바로 카카오 계정으로 로그인
         token = await kakao.UserApi.instance.loginWithKakaoAccount();
       }
 
-      // 사용자 정보 가져오기
       kakao.User user = await kakao.UserApi.instance.me();
       String email = user.kakaoAccount?.email ?? '';
       String nickname = user.kakaoAccount?.profile?.nickname ?? '';
 
-      // Firestore에 사용자 정보 저장 (가입 or 업데이트)
       await FirebaseFirestore.instance.collection('users').doc(user.id.toString()).set({
         'user_id': user.id.toString(),
         'email': email,
@@ -137,6 +125,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const LogoHeader(topPadding: 0, bottomPadding: 50),
                 const Text(
                   '로그인',
                   style: TextStyle(
@@ -201,25 +190,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                // 임시 unlink 버튼
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      await kakao.UserApi.instance.unlink();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('카카오 연결 해제 완료')),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('연결 해제 실패: $e')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                  ),
-                  child: const Text('카카오 연결 해제'),
-                ),
+  
+
               ],
             ),
           ),

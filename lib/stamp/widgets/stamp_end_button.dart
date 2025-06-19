@@ -1,11 +1,15 @@
 // lib/widgets/travel_end_button.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
+import 'package:go_router/go_router.dart';
+
 
 Widget buildStampEndButton({
   required BuildContext context,
   required int done,
   required int total,
+  required String roomId,
   required ConfettiController confettiController,
 }) {
   return ElevatedButton(
@@ -27,8 +31,12 @@ Widget buildStampEndButton({
             content: const Text("모든 스탬프를 적립했어요!"),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
+                onPressed: () async {
+                  await FirebaseFirestore.instance
+                      .collection('travel_rooms')
+                      .doc(roomId)
+                      .update({'is_done': true});
+                  context.go('/mainPage');
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("여행 일정이 종료되었습니다.")),
                   );
@@ -46,8 +54,12 @@ Widget buildStampEndButton({
             content: Text("현재 스탬프를 $done / $total개 적립했습니다. \n정말 종료할까요?"),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
+                onPressed: () async {
+                  await FirebaseFirestore.instance
+                      .collection('travel_rooms')
+                      .doc(roomId)
+                      .update({'is_done': true});
+                  context.go('/mainPage');
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("여행 일정이 종료되었습니다.")),
                   );

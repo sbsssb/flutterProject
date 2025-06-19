@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ 추가
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutterteam4/travelroom/travelDetail.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutterteam4/album/album_page.dart';
 import 'firebase_options.dart';
@@ -18,6 +19,7 @@ import 'package:flutterteam4/stamp/screens/stamp_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutterteam4/dice/dice.dart'; // ✅ 주사위판 페이지 import
+import 'main/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,9 +37,6 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
     GoRoute(path: '/mainPage', builder: (context, state) => const MainPageWrapper()),
     GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
-    // GoRoute(path: '/album', builder: (context, state) => const AlbumPage()),
-    // GoRoute(path: '/myPage', builder: (context, state) => const MyPage()),
-    // GoRoute(path: '/stampDetail', builder: (context, state) => const StampDetailScreen()),
     GoRoute(
       path: '/dice/:roomId',
       builder: (context, state) {
@@ -45,6 +44,16 @@ final GoRouter router = GoRouter(
         return DoubleDiceOnBoard(roomId: roomId);
       },
     ),
+    GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
+    GoRoute(path: '/album', builder: (context, state) => const AlbumPage()),
+    GoRoute(
+      path: '/stamp',
+      builder: (context, state) {
+        final roomId = state.uri.queryParameters['roomId']!;
+        return StampDetailScreen(roomId: roomId);
+      },
+    ),
+    GoRoute(path: '/detail', builder: (context, state) => const TravelRoomDetailPage(roomId: 'Uutz9iJoJJgoa93dHoDi')),
   ],
 );
 
