@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterteam4/travelroom/selectRegion.dart';
 import 'package:flutterteam4/travelroom/selectTheme.dart';
+import 'package:go_router/go_router.dart';
 import '../dice/dice.dart';
 import '../firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,27 +88,27 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
   }
 
   void _selectFriends() async {
-    // final user = FirebaseAuth.instance.currentUser;
-    // if (user == null) return;
-    // final currentUserId = user.uid;
     final user = ref.watch(authStateProvider).value;
+    if (user == null) return;
 
+    // 1. 먼저 친구 데이터 미리 가져오기
     final friendSnapshot = await FirebaseFirestore.instance
         .collection('users')
-        // .doc(currentUserId)
-        .doc(user?.uid)
+        .doc(user.uid)
         .collection('friends')
         .where('status', isEqualTo: 'accepted')
         .get();
 
     final allFriends = friendSnapshot.docs;
+    if (allFriends.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('친구가 없습니다.')));
+      return;
+    }
 
-    // 임시 선택된 친구 (Map 형태)
     List<Map<String, dynamic>> tempSelected = [...invitedFriends];
+    String searchQuery = '';
 
-    // 이미 선택된 user_id만 뽑기
-    final selectedIds = tempSelected.map((f) => f['user_id']).toList();
-
+    // 2. 이제 다이얼로그 띄우기
     final result = await showDialog(
       context: context,
       builder: (context) {
@@ -115,10 +116,8 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: StatefulBuilder(
             builder: (context, setState) {
-              String searchQuery = '';
               List<QueryDocumentSnapshot<Map<String, dynamic>>> filteredFriends = allFriends;
 
-              // 필터링
               if (searchQuery.isNotEmpty) {
                 filteredFriends = allFriends.where((doc) {
                   final nickname = doc.data()['nickname'] ?? '';
@@ -134,10 +133,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
                   child: Column(
                     children: [
                       const Text('친구 초대하기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-
                       const SizedBox(height: 12),
-
-                      // 🔍 검색창
                       TextField(
                         decoration: InputDecoration(
                           hintText: "닉네임 검색",
@@ -145,13 +141,12 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         onChanged: (value) {
-                          setState(() => searchQuery = value);
+                          setState(() {
+                            searchQuery = value;
+                          });
                         },
                       ),
-
                       const SizedBox(height: 12),
-
-                      // 🙋 초대한 친구들
                       if (tempSelected.isNotEmpty)
                         SizedBox(
                           height: 80,
@@ -192,16 +187,13 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
                             }).toList(),
                           ),
                         ),
-
                       const SizedBox(height: 12),
-
-                      // 📋 친구 목록
                       Expanded(
                         child: ListView(
                           children: filteredFriends.map((doc) {
                             final data = doc.data();
                             final userId = doc.id;
-                            final nickname = data['nickname'] ?? '이름없음';
+                            final nickname = data['nickname'] ?? '';
                             final avatarId = data['avatar_id'] ?? '';
                             final titles = data['titles'] ?? '';
                             final isInvited = tempSelected.any((f) => f['user_id'] == userId);
@@ -236,17 +228,12 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
                           }).toList(),
                         ),
                       ),
-
-                      // ✅ 확인/닫기 버튼
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(onPressed: () => Navigator.pop(context), child: const Text('닫기')),
                           TextButton(
                             onPressed: () {
-                              setState(() {
-                                invitedFriends = tempSelected;
-                              });
                               Navigator.pop(context, tempSelected);
                             },
                             child: const Text('확인'),
@@ -260,7 +247,6 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
             },
           ),
         );
-
       },
     );
 
@@ -269,8 +255,9 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
         invitedFriends = result;
       });
     }
-
   }
+
+
 
   //지역 선택 페이지
   Future<void> _selectRegion() async {
@@ -406,6 +393,19 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
       "titles": "칭호",  // 또는 유저가 가진 타이
     });
 
+    // users 컬렉션에 하위 컬렉션 join_rooms 추가
+    await fs.collection('users')
+        .doc(user?.uid)
+        .collection('join_rooms')
+        .doc(roomId)
+        .set({
+      "room_id": roomId,
+      "region": selectedRegion,
+      "theme": selectedThemes,
+      "is_owner": true,
+      "cdatetime": FieldValue.serverTimestamp(),
+    });
+
     // 초대한 친구들 저장
     for (final friend in invitedFriends) {
       await fs.collection('travel_rooms')
@@ -420,6 +420,20 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
         "avatar_id": null,
         "titles": friend['titles'] ?? '',
       });
+
+      // 친구들의 users 문서에도 joined_rooms 추가
+      await fs.collection('users')
+          .doc(friend['user_id'])
+          .collection('join_rooms')
+          .doc(roomId)
+          .set({
+        "room_id": roomId,
+        "region": selectedRegion,
+        "theme": selectedThemes,
+        "is_owner": false,
+        "cdatetime": FieldValue.serverTimestamp(),
+      });
+
     }
 
     // 성공적으로 저장 후 알림 또는 페이지 이동
@@ -455,6 +469,17 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false, // 기본 뒤로가기 제거
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              GoRouter.of(context).go('/mainPage');
+            },
+          ),
+          elevation: 0,
+          backgroundColor: Colors.white, // 필요에 따라 배경색 지정
+        ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),

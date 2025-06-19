@@ -2,16 +2,20 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class AlbumService {
 
   static Future<void> uploadAlbumPhoto(String roomId, String uploaderId) async {
     try {
+      //1. 이미지 선택
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
       if (pickedFile == null) return;
 
+      //2. 이미지 스토리지 업로드
       final filename = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final storageRef = FirebaseStorage.instance
           .ref()
@@ -22,12 +26,22 @@ class AlbumService {
 
       final imageUrl = await storageRef.getDownloadURL();
 
+      //3. 컬렉션에서 닉네임 가져오기
+      final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uploaderId)
+        .get();
+
+      final nickname = userDoc.data()?['nickname'] ?? '닉네임 없음';
+
+      //4. 파이어스토어 저장
       await FirebaseFirestore.instance
           .collection('travel_rooms')
           .doc(roomId)
           .collection('album_photos')
           .add({
         'uploader_id': uploaderId,
+        'uploader_nickname' : nickname,
         'image_url': imageUrl,
         'cdatetime': FieldValue.serverTimestamp(),
       });
