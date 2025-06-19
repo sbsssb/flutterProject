@@ -10,6 +10,7 @@ class FirestoreService {
         .collection('travel_rooms')
         .doc(roomId)
         .collection('schedules')
+        .orderBy('start')
         .get();
 
     return snapshot.docs

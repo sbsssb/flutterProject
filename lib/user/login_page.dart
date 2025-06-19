@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text('로그인 성공!')),
       );
 
-      GoRouter.of(context).go('/festivalList');
+      GoRouter.of(context).go('/mainPage');
 
     } on FirebaseAuthException catch (e) {
       String message = '로그인 오류';
@@ -97,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Future.delayed(const Duration(milliseconds: 200), () {
         if (mounted) {
-          GoRouter.of(context).go('/festivalList');
+          GoRouter.of(context).go('/mainPage');
         }
       });
 
@@ -190,25 +190,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                // 임시 unlink 버튼
-                // ElevatedButton(
-                //   onPressed: () async {
-                //     try {
-                //       await kakao.UserApi.instance.unlink();
-                //       ScaffoldMessenger.of(context).showSnackBar(
-                //         const SnackBar(content: Text('카카오 연결 해제 완료')),
-                //       );
-                //     } catch (e) {
-                //       ScaffoldMessenger.of(context).showSnackBar(
-                //         SnackBar(content: Text('연결 해제 실패: $e')),
-                //       );
-                //     }
-                //   },
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: Colors.red,
-                //   ),
-                //   child: const Text('카카오 연결 해제'),
-                // ),
+  
+
               ],
             ),
           ),

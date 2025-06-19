@@ -493,6 +493,24 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             ElevatedButton.icon(
               onPressed: () async {
                 try {
+                  // 로딩 다이얼로그 띄우기
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    useRootNavigator: true,
+                    builder: (context) {
+                      return const AlertDialog(
+                        content: Row(
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(width: 20),
+                            Text("일정을 생성 중입니다..."),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+
                   final prompt = buildTravelPrompt(
                     region: _region ?? '',
                     subRegion: _subRegion ?? '',
@@ -505,6 +523,10 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
                     prompt: prompt,
                     apiKey: dotenv.env['GEMINI_API_KEY']!,
                   );
+
+                  if (context.mounted) {
+                    Navigator.of(context, rootNavigator: true).pop();
+                  }
 
                   if (context.mounted) {
                     Navigator.push(

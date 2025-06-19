@@ -58,6 +58,7 @@ dependencies:
   url_launcher: ^6.1.10
   flutter_localizations:
     sdk: flutter
+  image_gallery_saver_plus: ^4.0.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -89,6 +90,7 @@ flutter:
     - assets/mypage_images/
     - assets/common_images/
     - assets/festival_images/
+    - assets/main_images/
     - .env
 
 

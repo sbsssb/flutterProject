@@ -3,6 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../gemini/gemini_service.dart';
+import '../map/google_places_service.dart';
+import '../stamp/screens/stamp_detail_screen.dart';
+
+import 'package:go_router/go_router.dart';//새별1
+
 
 class ScheduleList extends StatefulWidget {
   final List<Map<String, dynamic>> scheduleList;
@@ -64,6 +69,12 @@ class _ScheduleListState extends State<ScheduleList> {
         .collection('schedules');
 
     final batch = FirebaseFirestore.instance.batch();
+
+    // Google Maps API로 좌표 보정
+    final correctedSchedules = await correctScheduleListWithGoogleMaps(
+      rawList: schedules,
+      googleApiKey: dotenv.env['GEMINI_API_KEY']!, // ✅ .env에 넣어둔 Google Maps 키
+    );
 
     // 기존 일정 삭제
     final snapshot = await ref.get();
@@ -143,11 +154,7 @@ class _ScheduleListState extends State<ScheduleList> {
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       await saveToFirestore();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("일정이 확정되어 저장되었습니다!")),
-                        );
-                      }
+                      context.go('/stamp?roomId=${widget.roomId}');
                     },
                     icon: const Icon(Icons.check),
                     label: const Text("일정 확정"),

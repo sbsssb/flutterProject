@@ -11,23 +11,25 @@ import 'package:confetti/confetti.dart';
 import 'dart:async';
 import '../widgets/stamp_header.dart';
 import '../widgets/stamp_end_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../user/user_provider.dart';
 
-class StampDetailScreen extends StatefulWidget {
-  final String roomId = 'gpsTest';
+class StampDetailScreen extends ConsumerStatefulWidget {
+  final String roomId;
 
-  const StampDetailScreen({super.key});
+  const StampDetailScreen({super.key, required this.roomId});
 
   @override
-  State<StampDetailScreen> createState() => _StampDetailScreenState();
+  ConsumerState<StampDetailScreen> createState() => _StampDetailScreenState();
 }
 
-class _StampDetailScreenState extends State<StampDetailScreen> {
+class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
   late Future<List<Schedule>> _futureSchedules;
   late ConfettiController _confettiController;
-
-  final String userId = 'gpsTest1';
   bool _checkedDistance = false;
   Timer? _distanceTimer;
+  late String? userId;
+
 
   //위치 권한 허용
   Future<bool> requestLocationPermission() async {
@@ -68,7 +70,7 @@ class _StampDetailScreenState extends State<StampDetailScreen> {
 
       print('[${schedule.title}]와의 거리 : ${distance.toStringAsFixed(2)}m');
 
-      //2km 이내일 경우 알림 + 진동
+      //1km 이내일 경우 알림 + 진동
       if (distance <= 2000) {
         //이미 알림 안 울렸을 경우에만
         if (!schedule.canStampAlreadyNoti) {
@@ -156,6 +158,7 @@ class _StampDetailScreenState extends State<StampDetailScreen> {
     _futureSchedules = FirestoreService.getSchedules(widget.roomId);
     initializeNotifications();
     _confettiController = ConfettiController(duration: Duration(seconds: 3));
+    print('roomId: ${widget.roomId}');
 
     //30초 마다 거리 체크
     _distanceTimer = Timer.periodic(Duration(seconds: 30), (timer) async {
@@ -173,6 +176,12 @@ class _StampDetailScreenState extends State<StampDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authStateProvider).value;
+    userId = user?.uid;
+    if (userId == null) {
+      return const Center(child: Text("로그인이 필요합니다"));
+    }
+
     return Scaffold(
       body: FutureBuilder<List<Schedule>>(
         future: _futureSchedules,
@@ -223,7 +232,7 @@ class _StampDetailScreenState extends State<StampDetailScreen> {
 
                                 final log = StampLog(
                                   stampId: '${userId}_${schedule.id}',
-                                  userId: userId,
+                                  userId: userId!,
                                   scheduleId: schedule.id,
                                   cdatetime: DateTime.now(),
                                 );
@@ -254,6 +263,7 @@ class _StampDetailScreenState extends State<StampDetailScreen> {
                         done: done,
                         total: total,
                         confettiController: _confettiController,
+                        roomId: widget.roomId,
                       ),
                       const SizedBox(height: 20),
                     ],
@@ -267,6 +277,9 @@ class _StampDetailScreenState extends State<StampDetailScreen> {
                   confettiController: _confettiController,
                   blastDirectionality: BlastDirectionality.explosive,
                   shouldLoop: false,
+                  numberOfParticles: 100,
+                  emissionFrequency: 0.05,
+                  gravity: 0.3,
                 ),
               ),
               Positioned(
