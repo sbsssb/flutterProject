@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'appbar.dart';
 
-void main() {
-  runApp(const PrevRoomApp());
-}
+
 
 class PrevRoomApp extends StatelessWidget {
   const PrevRoomApp({super.key});
@@ -39,12 +37,7 @@ class _PrevRoomInState extends State<PrevRoomIn> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buildAppBar(
-        unreadCount: _unreadCount,
-        onNotificationTap: () {
-          // 알림 페이지 이동
-        },
-      ),
+      // appBar: CustomAppBar(userId: userId),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
