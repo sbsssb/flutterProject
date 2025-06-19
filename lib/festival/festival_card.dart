@@ -31,7 +31,7 @@ class FestivalCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: SizedBox(
-          height: 260,
+          height: 280,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
