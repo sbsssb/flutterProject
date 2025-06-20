@@ -418,6 +418,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
       "theme": selectedThemes,
       "is_owner": true,
       "cdatetime": FieldValue.serverTimestamp(),
+      "is_done" : false
     });
 
     // 초대한 친구들 저장
@@ -446,6 +447,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
         "theme": selectedThemes,
         "is_owner": false,
         "cdatetime": FieldValue.serverTimestamp(),
+        "is_done" : false
       });
 
     }
