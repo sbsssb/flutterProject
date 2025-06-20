@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import '../common/bottom_nav_bar.dart';
 
+import '../mypage/profile_avatar.dart';
+
 class TravelRoomDetailPage extends StatelessWidget {
   final String roomId;
 
@@ -104,29 +106,40 @@ class TravelRoomDetailPage extends StatelessWidget {
                             // 👥 멤버 목록
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children:
-                                  members.map((member) {
+                              children: members.map((member) {
+                                return FutureBuilder<DocumentSnapshot>(
+                                  future: FirebaseFirestore.instance.collection('users').doc(member['user_id']).get(),
+                                  builder: (context, snapshot) {
+                                    int stampCount = 0;
+                                    if (snapshot.hasData && snapshot.data!.exists) {
+                                      final userData = snapshot.data!.data() as Map<String, dynamic>;
+                                      stampCount = userData['stampCount'] ?? 0;
+                                    }
+
                                     return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
                                       child: Column(
                                         children: [
-                                          const CircleAvatar(radius: 36),
+                                          CircleAvatar(
+                                            radius: 36,
+                                            backgroundImage: AssetImage(getProfileImagePath(stampCount)),
+                                            backgroundColor: Colors.grey[300],
+                                          ),
                                           const SizedBox(height: 8),
                                           Text(
                                             member['nickname'] ?? '',
                                             style: const TextStyle(
                                               color: Colors.black,
                                               fontSize: 17,
-                                              // 🔼 닉네임 폰트 크기 키움 (기존 14~16 → 18)
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ],
                                       ),
                                     );
-                                  }).toList(),
+                                  },
+                                );
+                              }).toList(),
                             ),
 
                             const SizedBox(height: 50),

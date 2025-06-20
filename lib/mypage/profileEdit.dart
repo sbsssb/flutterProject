@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_avatar.dart';
+import '../common/bottom_nav_bar.dart';
 
 class ProfileEditPage extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -178,6 +179,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           ],
         ),
       ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }
 }

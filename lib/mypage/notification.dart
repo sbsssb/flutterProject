@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'appbar.dart';
 import 'package:flutterteam4/mypage/send_notification.dart'; // 네 구조에 맞게
 import 'friends.dart'; // FriendsPage로 이동할 거야
+import 'profile_avatar.dart';
+import '../common/bottom_nav_bar.dart';
 
 class NotificationPage extends StatelessWidget {
   final String userId;
@@ -21,7 +23,7 @@ class NotificationPage extends StatelessWidget {
         .snapshots();
 
     return Scaffold(
-      appBar: CustomAppBar(userId: userId),
+      // appBar: CustomAppBar(userId: userId),
       body: StreamBuilder<QuerySnapshot>(
         stream: notificationStream,
         builder: (context, snapshot) {
@@ -69,6 +71,8 @@ class NotificationPage extends StatelessWidget {
                       final isRead = data['is_read'] ?? false;
                       final time = (data['cdatetime'] as Timestamp?)?.toDate();
                       final senderNickname = data['sender_nickname'] ?? '';
+                      final stampCount = data['sender_stampCount'] ?? 0; // ✅ stampCount 읽기
+                      final avatarImagePath = getProfileImagePath(stampCount); // ✅ 경로 변환
 
                       return Stack(
                         children: [
@@ -120,7 +124,7 @@ class NotificationPage extends StatelessWidget {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Image.asset('assets/mypage_images/profile_gold.png', height: 48),
+                                  Image.asset(avatarImagePath, height: 48),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
@@ -193,17 +197,7 @@ class NotificationPage extends StatelessWidget {
         },
       ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.share), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-        ],
-        onTap: (index) {
-          // TODO: 페이지 전환 처리 (home, mypage 등)
-        },
-      ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }
 }

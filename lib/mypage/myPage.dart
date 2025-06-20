@@ -8,7 +8,7 @@ import 'friends.dart';
 import 'prevRoom.dart';
 import 'appbar.dart'; // ✅ 기존 앱바 연동
 import 'profile_avatar.dart';
-
+import '../common/bottom_nav_bar.dart';
 
 class myPageApp extends StatelessWidget {
   const myPageApp({super.key});
@@ -35,6 +35,18 @@ Future<Map<String, dynamic>?> fetchUserData(String userId) async {
     print('Firestore error: $e');
     return null;
   }
+}
+
+// ✅ Firestore에서 "친구 수"를 세는 함수
+Future<int> fetchAcceptedFriendCount(String userId) async {
+  final snapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('friends')
+      .where('status', isEqualTo: 'accepted') // 🔹 친구로 수락된 경우만
+      .get();
+
+  return snapshot.docs.length; // 🔹 문서 개수 = 친구 수
 }
 
 class myPageMainApp extends ConsumerStatefulWidget {
@@ -92,147 +104,145 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
 
             int unreadCount = 3;
 
-            // 🔹 여기서 스탬프 수 불러오기 FutureBuilder 추가
-            return FutureBuilder<int>(
-              future: getSumStampCount(user.uid),
-              builder: (context, stampSnapshot) {
-                if (stampSnapshot.connectionState == ConnectionState.waiting) {
+
+
+            // 🔹 친구 수 먼저 불러오기 → 그 안에서 스탬프 수 FutureBuilder 중첩
+            return StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .collection('friends')
+                  .where('status', isEqualTo: 'accepted')
+                  .snapshots(),
+              builder: (context, friendsSnapshot) {
+                if (friendsSnapshot.connectionState == ConnectionState.waiting) {
                   return const Scaffold(body: Center(child: CircularProgressIndicator()));
                 }
 
-                final stampCount = stampSnapshot.data ?? 0;
-                final String imagePath = getProfileImagePath(stampCount);
+                final friendsCount = friendsSnapshot.data?.docs.length ?? 0;
 
-                return Scaffold(
-                  appBar: CustomAppBar(userId: user.uid),
-                  body: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '프로필',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildLicenseCard(userData, stampCount), // ✅ 수정된 부분
-                        const SizedBox(height: 20),
-                        Center(
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ProfileEditPage(
-                                          userData: userData,
-                                          stampCount: stampCount
+                return FutureBuilder<int>(
+                  future: getSumStampCount(user.uid),
+                  builder: (context, stampSnapshot) {
+                    if (stampSnapshot.connectionState == ConnectionState.waiting) {
+                      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                    }
+
+                    final stampCount = stampSnapshot.data ?? 0;
+                    final String imagePath = getProfileImagePath(stampCount);
+
+                    return Scaffold(
+                      appBar: CustomAppBar(userId: user.uid),
+                      body: SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '프로필',
+                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildLicenseCard(userData, stampCount, friendsCount), // ✅ 친구 수 넘기기
+                            const SizedBox(height: 20),
+                            Center(
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ProfileEditPage(
+                                            userData: userData,
+                                            stampCount: stampCount,
+                                          ),
+                                        ),
+                                      );
+                                      if (result == true) {
+                                        _refreshUserData();
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 55, vertical: 14),
+                                      backgroundColor: const Color(0xFF1E6FD9),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
-                                  );
-                                  if (result == true) {
-                                    _refreshUserData();
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 55,
-                                    vertical: 14,
-                                  ),
-                                  backgroundColor: const Color(0xFF1E6FD9),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: const Text(
-                                  '면허 갱신하기',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                left: -24,
-                                top: -18,
-                                child: Image.asset(
-                                  'assets/mypage_images/license_character.png',
-                                  height: 70,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 180,
-                              height: 180,
-                              child: _buildFunctionCard(
-                                image: 'assets/mypage_images/prev_travel.png',
-                                label: '이전 여행',
-                                imageSize: 100,
-                                fontSize: 24,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const PrevRoomIn(),
+                                    child: const Text(
+                                      '면허 갱신하기',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                                     ),
-                                  );
-                                },
+                                  ),
+                                  Positioned(
+                                    left: -24,
+                                    top: -18,
+                                    child: Image.asset(
+                                      'assets/mypage_images/license_character.png',
+                                      height: 70,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 20),
-                            SizedBox(
-                              width: 180,
-                              height: 180,
-                              child: _buildFunctionCard(
-                                image: 'assets/mypage_images/friends.png',
-                                label: '사귄 친구',
-                                imageSize: 100,
-                                fontSize: 24,
-                                onTap: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => FriendsPage(userData: userData),
-                                    ),
-                                  );
-                                },
-                              ),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 180,
+                                  height: 180,
+                                  child: _buildFunctionCard(
+                                    image: 'assets/mypage_images/prev_travel.png',
+                                    label: '이전 여행',
+                                    imageSize: 100,
+                                    fontSize: 24,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PrevRoomIn(userId: userData['user_id']),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+                                SizedBox(
+                                  width: 180,
+                                  height: 180,
+                                  child: _buildFunctionCard(
+                                    image: 'assets/mypage_images/friends.png',
+                                    label: '사귄 친구',
+                                    imageSize: 100,
+                                    fontSize: 24,
+                                    onTap: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => FriendsPage(userData: userData),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            buildCurrentTravelCard(
+                              image: 'assets/mypage_images/current_travel.png',
+                              label: '진행 중인 여행',
+                              description: '아직 진행 중인 여행 그룹이 있어요.',
+                              onTap: () {},
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        buildCurrentTravelCard(
-                          image: 'assets/mypage_images/current_travel.png',
-                          label: '진행 중인 여행',
-                          description: '아직 진행 중인 여행 그룹이 있어요.',
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                  bottomNavigationBar: BottomNavigationBar(
-                    currentIndex: 2,
-                    items: const [
-                      BottomNavigationBarItem(icon: Icon(Icons.share), label: ''),
-                      BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-                      BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-                    ],
-                    onTap: (index) {
-                      // TODO: 탭 이동 처리
-                    },
-                  ),
+                      ),
+                        bottomNavigationBar: const BottomNavBar(currentIndex: 1),
+                    );
+                  },
                 );
               },
             );
@@ -257,7 +267,7 @@ String _formatTimestamp(dynamic timestamp) {
 
 
 
-Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount) {
+Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int friendsCount) {
   // int stampCount = userData['travel_success_count'] ?? 0;
   String nickname = userData['nickname'] ?? '여행자';
   String title = getTitleWithNickname(stampCount, nickname); // ✅ 여기에 추가
@@ -359,7 +369,7 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount) {
                           Column(
                             children: [
                               const Text(
-                                '사귄 팅구',
+                                '사귄 친구',
                                 style: TextStyle(
                                   color: Color(0xFF1E6FD9),
                                   fontSize: 15,
@@ -367,7 +377,7 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount) {
                               ),
                               const SizedBox(height: 20),
                               Text(
-                                '${userData['friends_count'] ?? 0}명',
+                                '$friendsCount명',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),

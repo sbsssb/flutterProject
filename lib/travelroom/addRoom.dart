@@ -10,6 +10,9 @@ import '../firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutterteam4/user/user_provider.dart';
 
+import '../mypage/profile_avatar.dart';
+import '../common/bottom_nav_bar.dart';
+
 class RoomCreate extends StatelessWidget {
   const RoomCreate({super.key});
 
@@ -52,7 +55,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundImage: AssetImage('assets/avatars/${friend['avatar_id']}.png'),  // 경로는 프로젝트에 맞게
+                  backgroundImage: AssetImage(getProfileImagePath(friend['stampCount'] ?? 0)), // 경로는 프로젝트에 맞게
                   backgroundColor: Colors.grey[300],
                 ),
                 SizedBox(height: 4),
@@ -162,7 +165,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
                                       children: [
                                         CircleAvatar(
                                           radius: 24,
-                                          backgroundImage: AssetImage('assets/avatars/${friend['avatar_id']}.png'),
+                                          backgroundImage: AssetImage(getProfileImagePath(friend['stampCount'] ?? 0)),
                                           backgroundColor: Colors.grey[300],
                                         ),
                                         GestureDetector(
@@ -194,25 +197,25 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
                             final data = doc.data();
                             final userId = doc.id;
                             final nickname = data['nickname'] ?? '';
-                            final avatarId = data['avatar_id'] ?? '';
+                            final stampCount = data['stampCount'] ?? 0;
                             final titles = data['titles'] ?? '';
                             final isInvited = tempSelected.any((f) => f['user_id'] == userId);
 
                             return ListTile(
                               leading: CircleAvatar(
-                                backgroundImage: AssetImage('assets/avatars/$avatarId.png'),
+                                backgroundImage: AssetImage(getProfileImagePath(stampCount)),
                                 backgroundColor: Colors.grey[300],
                               ),
                               title: Text(nickname),
                               trailing: ElevatedButton(
                                 onPressed: isInvited
                                     ? null
-                                    : () {
+                                    : ()  {
                                   setState(() {
                                     tempSelected.add({
                                       'user_id': userId,
                                       'nickname': nickname,
-                                      'avatar_id': avatarId,
+                                      'stampCount': stampCount,
                                       'titles': titles,
                                     });
                                   });
@@ -469,17 +472,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false, // 기본 뒤로가기 제거
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              GoRouter.of(context).go('/mainPage');
-            },
-          ),
-          elevation: 0,
-          backgroundColor: Colors.white, // 필요에 따라 배경색 지정
-        ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
