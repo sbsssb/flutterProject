@@ -9,22 +9,35 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO: Firestore에서 실제 읽지 않은 알림 수 가져오기
-    final int unreadCount = 3; // 지금은 임시 하드코딩 (테스트용)
+    final int unreadCount = 3; // 지금은 임시 하드코딩
 
     return AppBar(
-      centerTitle: false,
-      title: Padding(
-        padding: const EdgeInsets.only(left: 100.0, top: 11.0),
-        child: Image.asset(
-          'assets/mypage_images/logo.png',
-          height: 70,
-        ),
+      centerTitle: true, // ✅ 제목은 항상 중앙
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: Navigator.canPop(context)
+          ? IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
+      )
+          : null,
+
+      title: Row(
+        mainAxisSize: MainAxisSize.min, // ✅ 로고 너비만큼만 차지
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/mypage_images/logo.png',
+            height: 60,
+          ),
+        ],
       ),
+
       actions: [
         Stack(
           children: [
             IconButton(
-              icon: const Icon(Icons.notifications_none),
+              icon: const Icon(Icons.notifications_none, color: Colors.black),
               onPressed: () {
                 Navigator.push(
                   context,
