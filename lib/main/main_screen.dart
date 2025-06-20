@@ -119,12 +119,12 @@ class _MainScreenState extends State<MainScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
+                            Text(
                               '주사위 굴리기',
                               style: TextStyle(
+                                fontFamily: 'Jalnan',
                                 fontSize: 32,
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(width: 2),
@@ -227,7 +227,10 @@ class _MainScreenState extends State<MainScreen> {
 
                           final rooms = snapshot.data!;
                           if (rooms.isEmpty) {
-                            return const Text('참여한 여행이 없습니다.');
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: List.generate(3, (index) => _emptyRegionSlot(index)),
+                            );
                           }
 
                           return Row(
@@ -270,9 +273,9 @@ class _MainScreenState extends State<MainScreen> {
                             const Text(
                               "축제 구경가기",
                               style: TextStyle(
+                                fontFamily: 'Jalnan',
                                 fontSize: 32,
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(width: 12),

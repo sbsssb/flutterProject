@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ 추가
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutterteam4/travelroom/travelDetail.dart';
+import 'package:flutterteam4/utils/app_theme.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutterteam4/album/album_page.dart';
 import 'firebase_options.dart';
@@ -27,9 +28,7 @@ import 'mypage/notification.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']!);
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -38,8 +37,14 @@ final GoRouter router = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => LoginPage()),
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
-    GoRoute(path: '/mainPage', builder: (context, state) => const MainPageWrapper()),
-    GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
+    GoRoute(
+      path: '/mainPage',
+      builder: (context, state) => const MainPageWrapper(),
+    ),
+    GoRoute(
+      path: '/festival',
+      builder: (context, state) => const FestivalListPage(),
+    ),
     GoRoute(
       path: '/dice/:roomId',
       builder: (context, state) {
@@ -48,7 +53,15 @@ final GoRouter router = GoRouter(
       },
     ),
     GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
-    GoRoute(path: '/album', builder: (context, state) => const AlbumPage()),
+    GoRoute(
+      path: '/album/:roomId/:uploaderId',
+      name: 'album',
+      builder: (context, state) {
+        final roomId = state.pathParameters['roomId']!;
+        final uploaderId = state.pathParameters['uploaderId']!;
+        return AlbumPage(roomId: roomId, uploaderId: uploaderId);
+      },
+    ),
     GoRoute(
       path: '/stamp',
       builder: (context, state) {
@@ -64,19 +77,19 @@ final GoRouter router = GoRouter(
       },
     ),
     GoRoute(path: '/mypage', builder: (context, state) => const myPageApp()),
-    GoRoute(path: '/prevRoom', builder: (context, state) => const PrevRoomApp()),
+    GoRoute(
+      path: '/prevRoom',
+      builder: (context, state) => const PrevRoomApp(),
+    ),
     GoRoute(
       path: '/notification/:userId',
       builder: (context, state) {
         final userId = state.pathParameters['userId']!;
         return NotificationPage(userId: userId);
       },
-    )
-
+    ),
   ],
 );
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -85,6 +98,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: router,
+      theme: AppTheme.mainTheme, // 여기에서 테마 적용
     );
   }
 }
@@ -98,6 +112,7 @@ class MainPageWrapper extends StatefulWidget {
 
 class _MainPageWrapperState extends State<MainPageWrapper> {
   StreamSubscription<QuerySnapshot>? _invitedRoomListener;
+
   @override
   void initState() {
     super.initState();
@@ -110,8 +125,6 @@ class _MainPageWrapperState extends State<MainPageWrapper> {
     print("✅ 하드코딩된 UID로 감시 시작: $hardcodedUid");
     _listenToInvitations(hardcodedUid);
   }
-
-
 
   // void _waitForLoginAndListenToInvitations() {
   //   FirebaseAuth.instance.authStateChanges().listen((user) {
@@ -130,102 +143,93 @@ class _MainPageWrapperState extends State<MainPageWrapper> {
         .where('user_id', isEqualTo: uid)
         .snapshots()
         .listen((snapshot) async {
-      if (snapshot.docs.isEmpty) {
-        print("📭 members 문서 없음");
-        return;
-      }
+          if (snapshot.docs.isEmpty) {
+            print("📭 members 문서 없음");
+            return;
+          }
 
-      for (final doc in snapshot.docs) {
-        final memberData = doc.data();
-        final isOwner = memberData['is_owner'] == true;
-        final memberPath = doc.reference.path;
-        print("🔍 members 문서 확인: $memberPath");
-        print("   └ is_owner: $isOwner");
+          for (final doc in snapshot.docs) {
+            final memberData = doc.data();
+            final isOwner = memberData['is_owner'] == true;
+            final memberPath = doc.reference.path;
+            print("🔍 members 문서 확인: $memberPath");
+            print("   └ is_owner: $isOwner");
 
-        if (isOwner) {
-          print("🙅‍♂️ members 기준 방장이므로 무시");
-          continue;
-        }
+            if (isOwner) {
+              print("🙅‍♂️ members 기준 방장이므로 무시");
+              continue;
+            }
 
-        final parentRoomRef = doc.reference.parent.parent;
-        if (parentRoomRef == null) {
-          print("⚠️ parentRoomRef가 null");
-          continue;
-        }
+            final parentRoomRef = doc.reference.parent.parent;
+            if (parentRoomRef == null) {
+              print("⚠️ parentRoomRef가 null");
+              continue;
+            }
 
-        final roomDoc = await parentRoomRef.get();
-        final roomData = roomDoc.data();
-        if (roomData == null) {
-          print("⚠️ roomData 없음");
-          continue;
-        }
+            final roomDoc = await parentRoomRef.get();
+            final roomData = roomDoc.data();
+            if (roomData == null) {
+              print("⚠️ roomData 없음");
+              continue;
+            }
 
-        final hostIsActive = roomData['host_is_active'] == true;
-        final currentUid = FirebaseAuth.instance.currentUser?.uid;
-        final ownerId = roomData['owner_id'];
-        final roomId = parentRoomRef.id;
+            final hostIsActive = roomData['host_is_active'] == true;
+            final currentUid = FirebaseAuth.instance.currentUser?.uid;
+            final ownerId = roomData['owner_id'];
+            final roomId = parentRoomRef.id;
 
-        print("📦 room 문서 확인: $roomId");
-        print("   └ hostIsActive: $hostIsActive");
-        print("   └ room.owner_id: $ownerId");
-        print("   └ currentUid: $currentUid");
+            print("📦 room 문서 확인: $roomId");
+            print("   └ hostIsActive: $hostIsActive");
+            print("   └ room.owner_id: $ownerId");
+            print("   └ currentUid: $currentUid");
 
-        if (!hostIsActive) {
-          print("❌ host_is_active == false → 무시");
-          continue;
-        }
+            if (!hostIsActive) {
+              print("❌ host_is_active == false → 무시");
+              continue;
+            }
 
-        if (currentUid == ownerId) {
-          print("🙅‍♂️ 방 document 기준 방장 → 무시");
-          continue;
-        }
+            if (currentUid == ownerId) {
+              print("🙅‍♂️ 방 document 기준 방장 → 무시");
+              continue;
+            }
 
-        print('🎯 초대 알림 조건 만족! → roomId: $roomId');
+            print('🎯 초대 알림 조건 만족! → roomId: $roomId');
 
-        if (!mounted) return;
-        _showInvitationDialog(context, roomId);
-        break;
-      }
-    });
+            if (!mounted) return;
+            _showInvitationDialog(context, roomId);
+            break;
+          }
+        });
   }
-
-
-
-
-
-
-
-
 
   void _showInvitationDialog(BuildContext context, String roomId) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("🎉 방 초대"),
-        content: Text("방에 초대되었습니다!\n방 ID: $roomId"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // 닫기
-            child: const Text("취소"),
+      builder:
+          (context) => AlertDialog(
+            title: const Text("🎉 방 초대"),
+            content: Text("방에 초대되었습니다!\n방 ID: $roomId"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context), // 닫기
+                child: const Text("취소"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // 다이얼로그 먼저 닫고
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DoubleDiceOnBoard(roomId: roomId),
+                    ),
+                  );
+                },
+                child: const Text("입장하기"),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // 다이얼로그 먼저 닫고
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DoubleDiceOnBoard(roomId: roomId),
-                ),
-              );
-            },
-            child: const Text("입장하기"),
-          ),
-        ],
-      ),
     );
   }
-
-
 
   @override
   void dispose() {
@@ -239,16 +243,13 @@ class _MainPageWrapperState extends State<MainPageWrapper> {
   }
 }
 
-
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('임시 메인 페이지'),
-      ),
+      appBar: AppBar(title: const Text('임시 메인 페이지')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -267,7 +268,6 @@ class MainPage extends StatelessWidget {
               },
               child: const Text("축제 페이지"),
             ),
-
           ],
         ),
       ),

@@ -78,6 +78,6 @@ Widget buildStampEndButton({
         );
       }
     },
-    child: const Text("일정 끝내기", style: TextStyle(fontSize: 18),),
+    child: const Text("일정 끝내기", style: TextStyle(fontSize: 22, fontFamily: 'Jalnan'),),
   );
 }

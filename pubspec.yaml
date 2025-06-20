@@ -93,6 +93,13 @@ flutter:
     - assets/festival_images/
     - assets/main_images/
     - .env
+  fonts:
+    - family: Jalnan
+      fonts:
+        - asset: assets/fonts/Jalnan/Jalnan2TTF.ttf
+    - family: AstaSans
+      fonts:
+        - asset: assets/fonts/AstaSans/AstaSans-Regular.ttf
 
 
   # The following line ensures that the Material Icons font is
