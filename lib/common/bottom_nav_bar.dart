@@ -33,7 +33,9 @@ class BottomNavBar extends StatelessWidget {
             context.go('/main');
             break;
           case 1:
-            context.go('/prevRoom');
+            if (userId != null) {
+              context.go('/prevRoom/$userId');
+            }
             break;
           case 2:
             context.go('/mypage');
@@ -46,22 +48,10 @@ class BottomNavBar extends StatelessWidget {
         }
       },
       items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: '홈',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.map),
-          label: '여행',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: '마이페이지',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
-          label: '알림',
-        ),
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
+        BottomNavigationBarItem(icon: Icon(Icons.map), label: '여행'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: '마이페이지'),
+        BottomNavigationBarItem(icon: Icon(Icons.notifications), label: '알림'),
       ],
     );
   }
