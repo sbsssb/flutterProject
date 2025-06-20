@@ -472,17 +472,6 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false, // 기본 뒤로가기 제거
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              GoRouter.of(context).go('/mainPage');
-            },
-          ),
-          elevation: 0,
-          backgroundColor: Colors.white, // 필요에 따라 배경색 지정
-        ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
       body: SafeArea(
         child: Padding(
