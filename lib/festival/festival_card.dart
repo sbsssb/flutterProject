@@ -31,7 +31,7 @@ class FestivalCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: SizedBox(
-          height: 300,
+          height: 280,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -62,8 +62,9 @@ class FestivalCard extends StatelessWidget {
                     children: [
                       Text(
                         festival.title,
-                        style: const TextStyle(
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontSize: 15,
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 2,
@@ -72,15 +73,19 @@ class FestivalCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         '${formatDate(festival.eventStartDate)} ~ ${formatDate(festival.eventEndDate)}',
-                        style: const TextStyle(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontSize: 12,
+                          color: Colors.grey[600],
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         festival.address,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontSize: 13,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../common/bottom_nav_bar.dart';
 import '../utils/festival_top_bar.dart';
 import 'festival_model.dart';
 import 'festival_api.dart';
@@ -107,6 +108,7 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
     final currentPageItems = selectedDayFestivals.sublist(startIndex, endIndex);
 
     return Scaffold(
+      bottomNavigationBar: const BottomNavBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -138,7 +140,8 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                           child: Text(
                             text,
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontFamily: 'AstaSans',
+                              fontWeight: FontWeight.w600,
                               fontSize: 16,
                               color: isSunday
                                   ? Colors.redAccent
@@ -179,13 +182,21 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                               child: Text(
                                 '${date.day}',
                                 style: TextStyle(
+                                  fontFamily: 'AstaSans',
                                   color: textColor,
                                   fontSize: 18,
                                 ),
                               ),
                             ),
                             if (count > 0) ...[
-                              Text('$count개', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text(
+                                  '$count개',
+                                  style: const TextStyle(
+                                      fontFamily: 'AstaSans',
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                  ),
+                              ),
                               const Icon(Icons.arrow_drop_down, size: 12, color: Colors.grey),
                             ],
                           ],
@@ -198,10 +209,25 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                       color: Colors.blue,
                       shape: BoxShape.circle,
                     ),
-                    selectedTextStyle: TextStyle(color: Colors.white, fontSize: 18),
-                    todayTextStyle: TextStyle(color: Colors.white, fontSize: 18),
-                    defaultTextStyle: TextStyle(fontSize: 14),
-                    weekendTextStyle: TextStyle(fontSize: 14, color: Colors.redAccent),
+                    selectedTextStyle: TextStyle(
+                        fontFamily: 'AstaSans',
+                        color: Colors.white,
+                        fontSize: 18
+                    ),
+                    todayTextStyle: TextStyle(
+                        fontFamily: 'AstaSans',
+                        color: Colors.white,
+                        fontSize: 18
+                    ),
+                    defaultTextStyle: TextStyle(
+                        fontFamily: 'AstaSans',
+                        fontSize: 14
+                    ),
+                    weekendTextStyle: TextStyle(
+                        fontFamily: 'AstaSans',
+                        fontSize: 14,
+                        color: Colors.redAccent
+                    ),
                     cellMargin: EdgeInsets.symmetric(vertical: 4),
                   ),
                   onDaySelected: (selected, _) {
@@ -260,10 +286,22 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                           currentPage--;
                         });
                       },
-                      child: const Text('이전'),
+                      child: Text(
+                          '이전',
+                          style: TextStyle(
+                            fontFamily: 'AstaSans',
+                            fontSize: 14,
+                          ),
+                      ),
                     ),
                   const SizedBox(width: 16),
-                  Text('페이지 $currentPage'),
+                  Text(''
+                      '페이지 $currentPage',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontFamily: 'AstaSans',
+                        fontSize: 14,
+                      ),
+                  ),
                   const SizedBox(width: 16),
                   if (endIndex < selectedDayFestivals.length)
                     TextButton(
@@ -272,7 +310,13 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                           currentPage++;
                         });
                       },
-                      child: const Text('다음'),
+                      child: Text(
+                          '다음',
+                          style: TextStyle(
+                          fontFamily: 'AstaSans',
+                          fontSize: 14,
+                          ),
+                      ),
                     ),
                 ],
               ),

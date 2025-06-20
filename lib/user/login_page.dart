@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import '../common/bottom_nav_bar.dart';
 import '../common/logo_header.dart';
 import 'signup_page.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
@@ -56,8 +57,8 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(content: Text(message)),
       );
     } catch (e, stackTrace) {
-      print('로그인 실패: $e');
-      print('스택트레이스: $stackTrace');
+      // print('로그인 실패: $e');
+      // print('스택트레이스: $stackTrace');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('로그인 실패: ${e.toString()}')),
@@ -97,7 +98,9 @@ class _LoginPageState extends State<LoginPage> {
 
       Future.delayed(const Duration(milliseconds: 200), () {
         if (mounted) {
+
           GoRouter.of(context).go('/main');
+
         }
       });
 
@@ -118,6 +121,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const BottomNavBar(),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -126,15 +130,15 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const LogoHeader(topPadding: 0, bottomPadding: 50),
-                const Text(
+
+                Text(
                   '로그인',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
+
                 const SizedBox(height: 24),
+
                 TextField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -143,6 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
@@ -152,16 +157,16 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
+
                 ElevatedButton(
                   onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                  ),
                   child: const Text('로그인'),
                 ),
                 const SizedBox(height: 16),
+
                 const Divider(),
                 const SizedBox(height: 16),
+
                 ElevatedButton(
                   onPressed: _loginWithKakao,
                   style: ElevatedButton.styleFrom(
@@ -173,6 +178,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
                 Center(
                   child: GestureDetector(
                     onTap: () {
@@ -181,17 +187,16 @@ class _LoginPageState extends State<LoginPage> {
                         MaterialPageRoute(builder: (context) => const SignUpPage()),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       '아직 회원이 아니신가요? [회원가입하기]',
                       style: TextStyle(
                         decoration: TextDecoration.underline,
-                        color: Colors.blue,
+                        color: Theme.of(context).colorScheme.primary,
+                        fontFamily: 'AstaSans',
                       ),
                     ),
                   ),
                 ),
-  
-
               ],
             ),
           ),

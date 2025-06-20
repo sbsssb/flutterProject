@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ 추가
+import 'package:flutter_localizations/flutter_localizations.dart'; // ✅ 축제 달력 한글화 import
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutterteam4/travelroom/travelDetail.dart';
@@ -10,6 +11,8 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutterteam4/album/album_page.dart';
 import 'firebase_options.dart';
 import 'festival/festival_list_page.dart';
+import 'festival/festival_calendar_page.dart';
+import 'festival_detail/festival_detail_page.dart';
 import 'user/login_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutterteam4/travelroom/addRoom.dart';
@@ -21,6 +24,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutterteam4/dice/dice.dart'; // ✅ 주사위판 페이지 import
 import 'main/main_screen.dart';
+import 'utils/app_theme.dart'; // 👈 테마 임포트 추가
 import 'mypage/prevRoom.dart';
 import 'mypage/myPage.dart';
 import 'mypage/notification.dart';
@@ -37,6 +41,20 @@ final GoRouter router = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => LoginPage()),
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
+    GoRoute(path: '/mainPage', builder: (context, state) => const MainPageWrapper()),
+    GoRoute(path: '/festivalList', builder: (context, state) => const FestivalListPage()),
+    GoRoute(path: '/festivalCalendar', builder: (context, state) => const FestivalCalendarPage()),
+    GoRoute(
+      path: '/festivalDetail/:contentId',
+      builder: (context, state) {
+        final contentId = state.pathParameters['contentId']!;
+        final contentTypeId = int.tryParse(state.uri.queryParameters['type'] ?? '15') ?? 15;
+        return FestivalDetailPage(
+          contentId: contentId,
+          contentTypeId: contentTypeId,
+        );
+      },
+    ), // ✅ 상세 페이지 이동 시 contentId와 contentTypeId을 넘김
     GoRoute(
       path: '/mainPage',
       builder: (context, state) => const MainPageWrapper(),
@@ -98,7 +116,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: router,
-      theme: AppTheme.mainTheme, // 여기에서 테마 적용
+      theme: AppTheme.mainTheme, // ✅ 여기서 테마(폰트, 색상) 적용
+      // ✅ 축제 달력 한글화 코드
+      locale: const Locale('ko', 'KR'),
+      supportedLocales: const [
+        Locale('ko', 'KR'),
+        Locale('en', 'US'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }
