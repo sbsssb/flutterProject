@@ -57,8 +57,8 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(content: Text(message)),
       );
     } catch (e, stackTrace) {
-      print('로그인 실패: $e');
-      print('스택트레이스: $stackTrace');
+      // print('로그인 실패: $e');
+      // print('스택트레이스: $stackTrace');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('로그인 실패: ${e.toString()}')),
