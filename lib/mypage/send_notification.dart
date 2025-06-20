@@ -9,10 +9,9 @@ Future<void> sendNotification({
   required String senderId,            // 보낸 사용자 UID
   required String senderNickname,      // 보낸 사용자 닉네임
   required String senderAvatarId,      // 보낸 사용자 아바타 ID
+  required int senderStampCount, // ✅ 스탬프 카운트 추가
 }) async {
   try {
-    final timestamp = Timestamp.now();
-
     await FirebaseFirestore.instance
         .collection('users')
         .doc(targetUserId)
@@ -20,15 +19,14 @@ Future<void> sendNotification({
         .add({
       'type': type,
       'content': content,
-      'is_read': false,
-      'cdatetime': timestamp,
       'sender_id': senderId,
       'sender_nickname': senderNickname,
-      'sender_avatar_id': senderAvatarId,
+      'sender_avatarId': senderAvatarId,
+      'sender_stampCount': senderStampCount, // ✅ 이 줄 추가
+      'cdatetime': Timestamp.now(),
+      'is_read': false,
     });
-
-    print('✅ 알림 전송 완료 → $targetUserId');
   } catch (e) {
-    print('❌ 알림 전송 실패: $e');
+    print('알림 전송 실패: $e');
   }
 }
