@@ -366,6 +366,17 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
   void _createRoom() async {
     final user = ref.watch(authStateProvider).value;
 
+    // ✅ 유효성 검사
+    if (_nameController.text.trim().isEmpty ||
+        selectedRegion.isEmpty ||
+        selectedTransport.isEmpty ||
+        selectedThemes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("모든 항목을 선택해 주세요.")),
+      );
+      return; // 조건 미충족 시 함수 종료
+    }
+
     final roomId = fs.collection('travel_rooms').doc().id;
 
     await fs.collection('travel_rooms')
