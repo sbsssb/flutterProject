@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
         const SnackBar(content: Text('로그인 성공!')),
       );
 
-      GoRouter.of(context).go('/festivalList');
+      GoRouter.of(context).go('/main');
 
     } on FirebaseAuthException catch (e) {
       String message = '로그인 오류';
@@ -98,7 +98,9 @@ class _LoginPageState extends State<LoginPage> {
 
       Future.delayed(const Duration(milliseconds: 200), () {
         if (mounted) {
-          GoRouter.of(context).go('/festivalList');
+
+          GoRouter.of(context).go('/main');
+
         }
       });
 

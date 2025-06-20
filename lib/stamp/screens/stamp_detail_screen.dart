@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vibration/vibration.dart';
+import '../../common/bottom_nav_bar.dart';
 import '../../models/schedule_model.dart';
 import '../../models/stamp_log_model.dart';
 import '../services/firestore_service.dart';
@@ -70,8 +72,8 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
 
       print('[${schedule.title}]와의 거리 : ${distance.toStringAsFixed(2)}m');
 
-      //1km 이내일 경우 알림 + 진동
-      if (distance <= 2000) {
+      //3km 이내일 경우 알림 + 진동
+      if (distance <= 3000) {
         //이미 알림 안 울렸을 경우에만
         if (!schedule.canStampAlreadyNoti) {
           print('알림 조건 만족 => ${schedule.title}');
@@ -91,27 +93,27 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
 
   //알림 초기화
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin();
 
   void initializeNotifications() async {
     const AndroidInitializationSettings initSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    AndroidInitializationSettings('@mipmap/ic_launcher');
     const InitializationSettings initializationSettings =
-        InitializationSettings(android: initSettingsAndroid);
+    InitializationSettings(android: initSettingsAndroid);
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   //알림 보내기
   Future<void> showStampNotificaions(String title) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-          'stamp_channel',
-          '스탬프 알림',
-          channelDescription: '스탬프 적립 안내 알림 채널입니다',
-          importance: Importance.max,
-          priority: Priority.high,
-          ticker: 'ticker',
-        );
+    AndroidNotificationDetails(
+      'stamp_channel',
+      '스탬프 알림',
+      channelDescription: '스탬프 적립 안내 알림 채널입니다',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+    );
 
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
@@ -132,21 +134,21 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/stamp_images/stamp-animation.gif',
-                  width: 150,
-                  height: 150,
-                ),
-                const SizedBox(height: 10),
-                const Text('스탬프 적립 중', style: TextStyle(color: Colors.white)),
-              ],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/stamp_images/stamp-animation.gif',
+              width: 150,
+              height: 150,
             ),
-          ),
+            const SizedBox(height: 10),
+            const Text('스탬프 적립 중', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
     );
     await Future.delayed(const Duration(seconds: 2));
     Navigator.of(context).pop();
@@ -183,6 +185,7 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
     }
 
     return Scaffold(
+      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
       body: FutureBuilder<List<Schedule>>(
         future: _futureSchedules,
         builder: (context, snapshot) {
@@ -263,7 +266,7 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
                         done: done,
                         total: total,
                         confettiController: _confettiController,
-                        roomId: widget.roomId,
+                        roomId: widget.roomId, userId: userId!,
                       ),
                       const SizedBox(height: 20),
                     ],

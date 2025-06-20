@@ -3,7 +3,7 @@ import 'appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'send_notification.dart';
 import 'profile_avatar.dart';
-
+import '../common/bottom_nav_bar.dart';
 
 
 class FriendsPage extends StatefulWidget {
@@ -25,6 +25,8 @@ class _FriendsPageState extends State<FriendsPage> {
   List<Map<String, dynamic>> friendList = [];
   List<Map<String, dynamic>> allUsers = [];
   List<Map<String, dynamic>> pendingRequests = [];
+
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -65,6 +67,7 @@ class _FriendsPageState extends State<FriendsPage> {
             'user_id': friendUserId,
             'nickname': userData['nickname'] ?? '',
             'avatar_id': userData['avatar_id'] ?? '',
+            'stampCount': userData['stampCount'] ?? 0, // ✅ 이 줄 추가!
           });
         }
       } catch (e) {
@@ -114,13 +117,30 @@ class _FriendsPageState extends State<FriendsPage> {
         .where('status', whereIn: ['incoming', 'sending'])
         .get();
 
+    List<Map<String, dynamic>> fetchedPending = [];
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final friendUserId = doc.id;
+
+      // 🔎 상대방 유저 정보 조회
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(friendUserId)
+          .get();
+
+      final userData = userDoc.data() ?? {};
+
+      fetchedPending.add({
+        ...data,
+        'friend_user_id': friendUserId,
+        'is_incoming': data['status'] == 'incoming',
+        'stampCount': userData['stampCount'] ?? 0, // ✅ 여기!
+      });
+    }
+
     setState(() {
-      pendingRequests = snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['friend_user_id'] = doc.id;
-        data['is_incoming'] = data['status'] == 'incoming';
-        return data;
-      }).toList();
+      pendingRequests = fetchedPending;
     });
   }
 
@@ -138,6 +158,7 @@ class _FriendsPageState extends State<FriendsPage> {
       final data = currentUserDoc.data() ?? {};
       final currentNickname = data['nickname'] ?? '알수없음';
       final avatarId = data.containsKey('avatar_id') ? data['avatar_id'] : 'default_avatar';
+      final stampCount = data['stampCount'] ?? 0;
 
       // 🔹 상대방에게 친구 요청 정보 저장 (incoming)
       await FirebaseFirestore.instance
@@ -177,6 +198,7 @@ class _FriendsPageState extends State<FriendsPage> {
         senderId: currentUserId,
         senderNickname: currentNickname,
         senderAvatarId: avatarId,
+        senderStampCount: stampCount,
       );
 
       // 🔄 상태 새로고침
@@ -213,6 +235,7 @@ class _FriendsPageState extends State<FriendsPage> {
       final data = myUserDoc.data() ?? {};
       final myNickname = data['nickname'] ?? '알수없음';
       final myAvatarId = data.containsKey('avatar_id') ? data['avatar_id'] : 'default_avatar';
+      final stampCount = data['stampCount'] ?? 0;
 
       // 🔹 상대방 친구 목록에도 accepted 추가
       await FirebaseFirestore.instance
@@ -238,6 +261,7 @@ class _FriendsPageState extends State<FriendsPage> {
         senderId: myUserId,
         senderNickname: myNickname,
         senderAvatarId: myAvatarId,
+        senderStampCount: stampCount,
       );
 
       // 🔹 친구 목록/요청 목록 새로고침
@@ -342,14 +366,19 @@ class _FriendsPageState extends State<FriendsPage> {
   @override
   Widget build(BuildContext context) {
     final String userId = widget.userData['user_id']; // ✅ 추가
-    List<Map<String, dynamic>> displayList;
+    List<Map<String, dynamic>> baseList;
     if (selectedTab == 2) {
-      displayList = pendingRequests.where((r) => r['is_incoming'] == true).toList();
+      baseList = pendingRequests.where((r) => r['is_incoming'] == true).toList();
     } else if (selectedTab == 1) {
-      displayList = allUsers;
+      baseList = allUsers;
     } else {
-      displayList = friendList;
+      baseList = friendList;
     }
+    // ✅ 검색어가 비어 있지 않으면 필터링, 아니면 전체 보여줌
+    final displayList = baseList.where((user) {
+      final name = (user['nickname'] ?? '').toString().toLowerCase();
+      return name.contains(searchQuery); // 실시간 필터링
+    }).toList();
 
     return Scaffold(
       appBar: CustomAppBar(userId: userId),
@@ -369,6 +398,11 @@ class _FriendsPageState extends State<FriendsPage> {
             const SizedBox(height: 8),
             if (selectedTab != 2)
               TextField(
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value.toLowerCase(); // 검색어 업데이트
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: '친구 이름을 검색하세요',
                   prefixIcon: const Icon(Icons.search),
@@ -494,16 +528,22 @@ class _FriendsPageState extends State<FriendsPage> {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildTabButton('친구 목록', 0),
-            _buildTabButton('친구 추가', 1),
-            _buildTabButton('요청 수락', 2),
-          ],
-        ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildTabButton('친구 목록', 0),
+                _buildTabButton('친구 추가', 1),
+                _buildTabButton('요청 수락', 2),
+              ],
+            ),
+          ),
+          const BottomNavBar(currentIndex: 1), // 👈 여기까지 포함
+        ],
       ),
     );
   }
