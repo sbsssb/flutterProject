@@ -17,6 +17,10 @@ String extractUrl(String html) {
   return match?.group(1) ?? '';
 }
 
+String stripHtmlTags(String htmlText) {
+  return htmlText.replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), '').trim();
+}
+
 class FestivalDetailPage extends StatefulWidget {
   final String contentId;
   final int contentTypeId;
@@ -33,13 +37,14 @@ class FestivalDetailPage extends StatefulWidget {
 
 class _FestivalDetailPageState extends State<FestivalDetailPage> {
   late Future<FestivalDetail?> futureDetail;
+  int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
     futureDetail = FestivalDetailApi.fetchFestivalDetail(
-        widget.contentId,
-        widget.contentTypeId,
+      widget.contentId,
+      widget.contentTypeId,
     );
   }
 
@@ -89,47 +94,71 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
                         Text(
                           detail.title,
                           style: const TextStyle(
-                              fontFamily: 'Jalnan',
-                              fontSize: 24,
+                            fontFamily: 'Jalnan',
+                            fontSize: 24,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                            '${formatDate(detail.eventStartDate)} ~ ${formatDate(detail.eventEndDate)}',
-                            style: const TextStyle(fontFamily: 'AstaSans'),
+                          '${formatDate(detail.eventStartDate)} ~ ${formatDate(detail.eventEndDate)}',
+                          style: const TextStyle(fontFamily: 'AstaSans'),
                         ),
                         const SizedBox(height: 16),
                         if (detail.imageUrls.isNotEmpty)
-                          SizedBox(
-                            height: 200,
-                            child: PageView.builder(
-                              itemCount: detail.imageUrls.length,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      detail.imageUrls[index],
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Center(child: Icon(Icons.image_not_supported));
-                                      },
-                                    ),
+                          Stack(
+                            children: [
+                              SizedBox(
+                                height: 200,
+                                child: PageView.builder(
+                                  itemCount: detail.imageUrls.length,
+                                  onPageChanged: (index) {
+                                    setState(() {
+                                      _currentPage = index;
+                                    });
+                                  },
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          detail.imageUrls[index],
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return const Center(child: Icon(Icons.image_not_supported));
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 8,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
-                                );
-                              },
-                            ),
+                                  child: Text(
+                                    '${_currentPage + 1} / ${detail.imageUrls.length}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
                         const SizedBox(height: 16),
-                        buildInfoCard("📍 장소", detail.eventPlace),
-                        buildInfoCard("⏰ 시간", detail.playTime),
-                        buildInfoCard("💰 요금", detail.useTimeFestival),
-                        buildInfoCard("🔗 예매", detail.bookingPlace),
-                        buildInfoCard("🎟️ 할인", detail.discountInfoFestival),
-                        buildInfoCard("🏢 주최", detail.sponsor),
-                        buildInfoCard("📞 연락처", detail.tel),
-                        buildInfoCard("🏠 주소", detail.address),
+                        buildInfoCard("\uD83D\uDCCD 장소", detail.eventPlace),
+                        buildInfoCard("\u23F0 시간", stripHtmlTags(detail.playTime)),
+                        buildInfoCard("\uD83D\uDCB0 요금", stripHtmlTags(detail.useTimeFestival)),
+                        buildInfoCard("\uD83D\uDD17 예매", stripHtmlTags(detail.bookingPlace)),
+                        buildInfoCard("\uD83C\uDF9F\uFE0F 할인", stripHtmlTags(detail.discountInfoFestival)),
+                        buildInfoCard("\uD83C\uDFE2 주최", detail.sponsor),
+                        buildInfoCard("\uD83D\uDCDE 연락처", detail.tel),
+                        buildInfoCard("\uD83C\uDFE0 주소", detail.address),
                         if (detail.homepage.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 6),
@@ -137,11 +166,11 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                    '🌐 홈페이지: ',
-                                    style: TextStyle(
-                                      fontFamily: 'AstaSans',
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  '\uD83C\uDF10 홈페이지: ',
+                                  style: TextStyle(
+                                    fontFamily: 'AstaSans',
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 Expanded(
                                   child: GestureDetector(
@@ -152,9 +181,9 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
                                     child: Text(
                                       extractUrl(detail.homepage),
                                       style: TextStyle(
-                                          fontFamily: 'AstaSans',
-                                          color: Theme.of(context).colorScheme.primary,
-                                          decoration: TextDecoration.underline
+                                        fontFamily: 'AstaSans',
+                                        color: Theme.of(context).colorScheme.primary,
+                                        decoration: TextDecoration.underline,
                                       ),
                                     ),
                                   ),
@@ -164,10 +193,10 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
                           ),
                         const SizedBox(height: 12),
                         Text(
-                            detail.overview,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontFamily: 'AstaSans',
-                            ),
+                          stripHtmlTags(detail.overview),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontFamily: 'AstaSans',
+                          ),
                         ),
                       ],
                     ),
@@ -189,18 +218,18 @@ class _FestivalDetailPageState extends State<FestivalDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-              '$title: ',
-              style: const TextStyle(
-                fontFamily: 'AstaSans',
-                fontWeight: FontWeight.w600,
-              ),
+            '$title: ',
+            style: const TextStyle(
+              fontFamily: 'AstaSans',
+              fontWeight: FontWeight.w600,
+            ),
           ),
           Expanded(
-              child: Text(
-                  content,
-                  style: const TextStyle(fontFamily: 'AstaSans'),
-              )
-          ),
+            child: Text(
+              content,
+              style: const TextStyle(fontFamily: 'AstaSans'),
+            ),
+          )
         ],
       ),
     );

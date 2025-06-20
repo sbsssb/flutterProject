@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static ThemeData get mainTheme => ThemeData(
-    fontFamily: 'Jalnan',
+    fontFamily: 'AstaSans',
     primaryColor: const Color(0xFF1E6FD9),
     scaffoldBackgroundColor: Colors.white,
     colorScheme: ColorScheme.fromSeed(
