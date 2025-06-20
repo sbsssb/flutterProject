@@ -10,6 +10,7 @@ Widget buildStampEndButton({
   required int done,
   required int total,
   required String roomId,
+  required String userId,
   required ConfettiController confettiController,
 }) {
   return ElevatedButton(
@@ -22,6 +23,26 @@ Widget buildStampEndButton({
       textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
     ),
     onPressed: () {
+      Future<void> handleEndTrip() async {
+        // 1. 여행방 is_done 업데이트
+        await FirebaseFirestore.instance
+            .collection('travel_rooms')
+            .doc(roomId)
+            .update({'is_done': true});
+        // 2. 사용자 stampCount 누적 업데이트
+        final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+        final userSnapshot = await userRef.get();
+        final currentStampCount = userSnapshot.data()?['stampCount'] ?? 0;
+        final newStampCount = currentStampCount + done;
+
+        await userRef.update({'stampCount' : newStampCount});
+        // 3. 화면 이동 및 알림
+        context.go('/main');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("여행 일정이 종료되었습니다.")),
+        );
+      }
+
       if (done == total) {
         confettiController.play();
         showDialog(
@@ -32,14 +53,7 @@ Widget buildStampEndButton({
             actions: [
               TextButton(
                 onPressed: () async {
-                  await FirebaseFirestore.instance
-                      .collection('travel_rooms')
-                      .doc(roomId)
-                      .update({'is_done': true});
-                  context.go('/mainPage');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("여행 일정이 종료되었습니다.")),
-                  );
+                  await handleEndTrip();
                 },
                 child: const Text("확인"),
               ),
@@ -55,14 +69,7 @@ Widget buildStampEndButton({
             actions: [
               TextButton(
                 onPressed: () async {
-                  await FirebaseFirestore.instance
-                      .collection('travel_rooms')
-                      .doc(roomId)
-                      .update({'is_done': true});
-                  context.go('/mainPage');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("여행 일정이 종료되었습니다.")),
-                  );
+                  await handleEndTrip();
                 },
                 child: const Text("네, 종료할게요."),
               ),
@@ -71,6 +78,6 @@ Widget buildStampEndButton({
         );
       }
     },
-    child: const Text("일정 끝내기", style: TextStyle(fontSize: 18),),
+    child: const Text("일정 끝내기", style: TextStyle(fontSize: 22, fontFamily: 'Jalnan'),),
   );
 }

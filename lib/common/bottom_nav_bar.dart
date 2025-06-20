@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +9,8 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
     Color resolveIconColor(int index) {
       return currentIndex == index ? const Color(0xFFFACC15) : Colors.white;
     }
@@ -33,10 +36,12 @@ class BottomNavBar extends StatelessWidget {
             context.go('/prevRoom');
             break;
           case 2:
-            context.go('/myPage');
+            context.go('/mypage');
             break;
           case 3:
-            context.go('/notification');
+            if (userId != null) {
+              context.go('/notification/$userId');
+            }
             break;
         }
       },

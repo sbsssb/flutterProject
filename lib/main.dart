@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ 추가
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutterteam4/travelroom/travelDetail.dart';
+import 'package:flutterteam4/utils/app_theme.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutterteam4/album/album_page.dart';
 import 'firebase_options.dart';
@@ -20,13 +21,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutterteam4/dice/dice.dart'; // ✅ 주사위판 페이지 import
 import 'main/main_screen.dart';
+import 'mypage/prevRoom.dart';
+import 'mypage/myPage.dart';
+import 'mypage/notification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   KakaoSdk.init(nativeAppKey: dotenv.env['KAKAO_NATIVE_APP_KEY']!);
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -35,8 +37,14 @@ final GoRouter router = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => LoginPage()),
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
-    GoRoute(path: '/mainPage', builder: (context, state) => const MainPageWrapper()),
-    GoRoute(path: '/festival', builder: (context, state) => const FestivalListPage()),
+    GoRoute(
+      path: '/mainPage',
+      builder: (context, state) => const MainPageWrapper(),
+    ),
+    GoRoute(
+      path: '/festival',
+      builder: (context, state) => const FestivalListPage(),
+    ),
     GoRoute(
       path: '/dice/:roomId',
       builder: (context, state) {
@@ -45,7 +53,15 @@ final GoRouter router = GoRouter(
       },
     ),
     GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
-    GoRoute(path: '/album', builder: (context, state) => const AlbumPage()),
+    GoRoute(
+      path: '/album/:roomId/:uploaderId',
+      name: 'album',
+      builder: (context, state) {
+        final roomId = state.pathParameters['roomId']!;
+        final uploaderId = state.pathParameters['uploaderId']!;
+        return AlbumPage(roomId: roomId, uploaderId: uploaderId);
+      },
+    ),
     GoRoute(
       path: '/stamp',
       builder: (context, state) {
@@ -53,7 +69,25 @@ final GoRouter router = GoRouter(
         return StampDetailScreen(roomId: roomId);
       },
     ),
-    GoRoute(path: '/detail', builder: (context, state) => const TravelRoomDetailPage(roomId: 'Uutz9iJoJJgoa93dHoDi')),
+    GoRoute(
+      path: '/detail/:roomId',
+      builder: (context, state) {
+        final roomId = state.pathParameters['roomId']!;
+        return TravelRoomDetailPage(roomId: roomId);
+      },
+    ),
+    GoRoute(path: '/mypage', builder: (context, state) => const myPageApp()),
+    GoRoute(
+      path: '/prevRoom',
+      builder: (context, state) => const PrevRoomApp(),
+    ),
+    GoRoute(
+      path: '/notification/:userId',
+      builder: (context, state) {
+        final userId = state.pathParameters['userId']!;
+        return NotificationPage(userId: userId);
+      },
+    ),
   ],
 );
 
@@ -64,6 +98,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: router,
+      theme: AppTheme.mainTheme, // 여기에서 테마 적용
     );
   }
 }
@@ -77,6 +112,7 @@ class MainPageWrapper extends StatefulWidget {
 
 class _MainPageWrapperState extends State<MainPageWrapper> {
   StreamSubscription<QuerySnapshot>? _invitedRoomListener;
+
   @override
   void initState() {
     super.initState();
@@ -103,11 +139,6 @@ class _MainPageWrapperState extends State<MainPageWrapper> {
       await Future.delayed(const Duration(seconds: 1));
     }
   }
-
-
-
-
-
 
 
   // void _waitForLoginAndListenToInvitations() {

@@ -23,21 +23,40 @@ class _MainScreenState extends State<MainScreen> {
 
   // 🔹 Firestore에서 최근 여행 3건 조회
   Future<List<Map<String, dynamic>>> getRecentJoinRooms(String userId) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('join_rooms')
-        .orderBy('cdatetime', descending: true)
-        .limit(3)
-        .get();
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('join_rooms')
+            .orderBy('cdatetime', descending: true)
+            .limit(3)
+            .get();
 
     return snapshot.docs.map((doc) {
-      return {
-        'room_id': doc['room_id'],
-        'region': doc['region'],
-      };
+      return {'room_id': doc['room_id'], 'region': doc['region']};
     }).toList();
   }
+
+  //유저 정보
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    return doc.data();
+  }
+
+  String getProfileImagePath(int count) {
+    if (count >= 11) return 'assets/mypage_images/profile_gold.png';
+    if (count >= 6) return 'assets/mypage_images/profile_silver.png';
+    return 'assets/mypage_images/profile_bronze.png';
+  }
+
+  String getTitleWithNickname(int count, String nickname) {
+    if (count >= 11) return '인간 네비게이션\n$nickname';
+    if (count >= 6) return '차 멀미에 익숙한\n$nickname';
+    return '집 밖을 나선\n$nickname';
+  }
+
+  final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +72,14 @@ class _MainScreenState extends State<MainScreen> {
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 children: [
-                  const Text('어디든 좋아!', style: TextStyle(color: Colors.white, fontSize: 18)),
-                  Image.asset('assets/common_images/logo-main-ver2.png', height: 150),
+                  const Text(
+                    '어디든 좋아!',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Image.asset(
+                    'assets/common_images/logo-main-ver2.png',
+                    height: 150,
+                  ),
                 ],
               ),
             ),
@@ -63,7 +88,10 @@ class _MainScreenState extends State<MainScreen> {
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 32,
+                  horizontal: 24,
+                ),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -80,26 +108,113 @@ class _MainScreenState extends State<MainScreen> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1E6FD9),
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('주사위 굴리기',
-                                style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text(
+                              '주사위 굴리기',
+                              style: TextStyle(
+                                fontFamily: 'Jalnan',
+                                fontSize: 32,
+                                color: Colors.white,
+                              ),
+                            ),
                             const SizedBox(width: 2),
-                            Image.asset('assets/main_images/icon-dice1.png', height: 70),
+                            Image.asset(
+                              'assets/main_images/icon-dice1.png',
+                              height: 50,
+                            ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 30),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '나의 여행 등급',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E6FD9),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // 유저정보
+                      FutureBuilder<Map<String, dynamic>?>(
+                        future: getUserProfile(userId),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) return SizedBox();
+
+                          final data = snapshot.data!;
+                          final stampCount = data['stampCount'] ?? 0;
+                          final nickname = data['nickname'] ?? '여행자';
+                          final imagePath = getProfileImagePath(stampCount);
+                          final titleText = getTitleWithNickname(stampCount, nickname);
+
+                          return Center(
+                            child: Container(
+                              constraints: BoxConstraints(maxWidth: 350),
+                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
+                              decoration: BoxDecoration(
+                                color: Color(0xFFFFF9C4), // 연한 노란색
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(imagePath, height: 80),
+                                  const SizedBox(width: 12),
+                                  RichText(
+                                    textAlign: TextAlign.left,
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: '${titleText.split('\n').first}\n', // 칭호만
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.normal,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: titleText.split('\n').last, // 닉네임만
+                                          style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
 
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('최근 여행',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E6FD9))),
+                        child: Text(
+                          '최근 여행',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E6FD9),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 12),
 
@@ -112,7 +227,10 @@ class _MainScreenState extends State<MainScreen> {
 
                           final rooms = snapshot.data!;
                           if (rooms.isEmpty) {
-                            return const Text('참여한 여행이 없습니다.');
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: List.generate(3, (index) => _emptyRegionSlot(index)),
+                            );
                           }
 
                           return Row(
@@ -120,7 +238,11 @@ class _MainScreenState extends State<MainScreen> {
                             children: List.generate(3, (index) {
                               if (index < rooms.length) {
                                 final room = rooms[index];
-                                return _regionItem(context, room['region'], room['room_id']);
+                                return _regionItem(
+                                  context,
+                                  room['region'],
+                                  room['room_id'],
+                                );
                               } else {
                                 return _emptyRegionSlot(index); // 빈 슬롯
                               }
@@ -129,7 +251,7 @@ class _MainScreenState extends State<MainScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 30),
 
                       ElevatedButton(
                         onPressed: () {
@@ -137,16 +259,30 @@ class _MainScreenState extends State<MainScreen> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1E6FD9),
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text("축제 구경가기",
-                                style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold)),
+                            const Text(
+                              "축제 구경가기",
+                              style: TextStyle(
+                                fontFamily: 'Jalnan',
+                                fontSize: 32,
+                                color: Colors.white,
+                              ),
+                            ),
                             const SizedBox(width: 12),
-                            Image.asset('assets/main_images/icon-festival.png', height: 70),
+                            Image.asset(
+                              'assets/main_images/icon-festival.png',
+                              height: 50,
+                            ),
                           ],
                         ),
                       ),
@@ -165,8 +301,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget _regionItem(BuildContext context, String region, String roomId) {
     return GestureDetector(
       onTap: () {
-        // TODO: RoomDetail 머지되면 아래 주석 해제
-        // context.push('/roomDetail/$roomId');
+        context.push('/detail/$roomId');
       },
       child: Container(
         width: 100,
@@ -185,7 +320,10 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Column(
           children: [
-            Text(region, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            Text(
+              region,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
             const SizedBox(height: 6),
             Image.asset('assets/main_images/icon-dice2.png', height: 50),
           ],

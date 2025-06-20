@@ -24,13 +24,6 @@ class MainPage extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                GoRouter.of(context).go('/festival');
-              },
-              child: const Text("축제 페이지"),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
                 GoRouter.of(context).go('/main');
               },
               child: const Text("진짜 메인이 될 페이지"),
@@ -42,6 +35,7 @@ class MainPage extends StatelessWidget {
               },
               child: const Text("여행 상세"),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
