@@ -96,8 +96,11 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(path: '/mypage', builder: (context, state) => const myPageApp()),
     GoRoute(
-      path: '/prevRoom',
-      builder: (context, state) => const PrevRoomApp(),
+      path: '/prevRoom/:userId',
+      builder: (context, state) {
+        final userId = state.pathParameters['userId']!;
+        return PrevRoomApp(userId: userId);
+      },
     ),
     GoRoute(
       path: '/notification/:userId',
