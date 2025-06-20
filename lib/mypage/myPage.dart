@@ -240,7 +240,7 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
                           ],
                         ),
                       ),
-                        bottomNavigationBar: const BottomNavBar(currentIndex: 1),
+                        bottomNavigationBar: const BottomNavBar(currentIndex: 2),
                     );
                   },
                 );

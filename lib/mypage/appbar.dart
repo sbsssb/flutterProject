@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'notification.dart';
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -37,32 +39,14 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         Stack(
           children: [
             IconButton(
-              icon: const Icon(Icons.notifications_none, color: Colors.black),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NotificationPage(userId: userId),
-                  ),
-                );
+              icon: const Icon(Icons.logout, color: Colors.redAccent),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut(); // 🔑 로그아웃
+                if (context.mounted) {
+                  context.go('/main');
+                }
               },
             ),
-            if (unreadCount > 0)
-              Positioned(
-                right: 10,
-                top: 10,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.red,
-                  ),
-                  child: Text(
-                    '$unreadCount',
-                    style: const TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ),
-              ),
           ],
         ),
       ],

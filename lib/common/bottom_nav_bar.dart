@@ -35,18 +35,36 @@ class BottomNavBar extends StatelessWidget {
           case 1:
             if (userId != null) {
               context.go('/prevRoom/$userId');
+            } else {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다.')));
+              context.go('/login');
             }
             break;
           case 2:
-            context.go('/mypage');
+            if (userId != null) {
+              context.go('/mypage');
+            } else {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다.')));
+              context.go('/login');
+            }
             break;
           case 3:
             if (userId != null) {
               context.go('/notification/$userId');
+            } else {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('로그인이 필요합니다.')));
+              context.go('/login');
             }
             break;
         }
       },
+
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
         BottomNavigationBarItem(icon: Icon(Icons.map), label: '여행'),
