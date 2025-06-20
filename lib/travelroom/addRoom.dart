@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutterteam4/user/user_provider.dart';
 
 import '../mypage/profile_avatar.dart';
+import '../common/bottom_nav_bar.dart';
 
 class RoomCreate extends StatelessWidget {
   const RoomCreate({super.key});
@@ -482,6 +483,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
           elevation: 0,
           backgroundColor: Colors.white, // 필요에 따라 배경색 지정
         ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),

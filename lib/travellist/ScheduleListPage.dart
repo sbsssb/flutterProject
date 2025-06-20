@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/bottom_nav_bar.dart';
 import 'ScheduleList.dart';
 
 class ScheduleListPage extends StatelessWidget {
@@ -36,6 +37,7 @@ class ScheduleListPage extends StatelessWidget {
           elevation: 0,
           backgroundColor: Colors.white, // 필요에 따라 배경색 지정
         ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
       body: SafeArea(
         child: Column(
           children: [
