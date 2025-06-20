@@ -38,6 +38,8 @@ class _ScheduleListState extends State<ScheduleList> {
   late List<Map<String, dynamic>> schedules;
   final List<Map<String, String>> deletedTimeRanges = [];
 
+  int addedCount = 0;
+
   final DateTime baseStartTime = DateTime.parse("2025-06-20T09:00:00");
   final Duration unitDuration = const Duration(hours: 2);
 
@@ -118,6 +120,12 @@ class _ScheduleListState extends State<ScheduleList> {
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       if (deletedTimeRanges.isEmpty) return;
+                      if (addedCount >= 3) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("⛔ 일정은 최대 3번까지만 추가할 수 있어요!")),
+                        );
+                        return;
+                      }
 
                       final prompt = buildAddSchedulePrompt(
                         region: widget.region,
@@ -126,6 +134,7 @@ class _ScheduleListState extends State<ScheduleList> {
                         transport: widget.transport,
                         date: widget.date,
                         timeRanges: deletedTimeRanges,
+                        existingSchedules: schedules,
                       );
 
                       final newSchedules = await fetchScheduleFromPrompt(
@@ -137,15 +146,20 @@ class _ScheduleListState extends State<ScheduleList> {
                         schedules.addAll(newSchedules);
                         deletedTimeRanges.clear();
                         updateScheduleTimes();
+                        addedCount += 1;
                       });
                     },
-                    icon: const Icon(Icons.add),
+                    // icon: const Icon(Icons.add),
                     label: const Text("일정 추가"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow,
+                      backgroundColor: Color(0xFFFACC15),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      textStyle: TextStyle(
+                        fontFamily: 'Jalnan',
+                        fontSize: 17,
+                      ),
                     ),
                   ),
                 ),
@@ -156,13 +170,17 @@ class _ScheduleListState extends State<ScheduleList> {
                       await saveToFirestore();
                       context.go('/stamp?roomId=${widget.roomId}');
                     },
-                    icon: const Icon(Icons.check),
+                    // icon: const Icon(Icons.check),
                     label: const Text("일정 확정"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Color(0xFF1E6FD9),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      textStyle: TextStyle(
+                        fontFamily: 'Jalnan',
+                        fontSize: 17,
+                      ),
                     ),
                   ),
                 ),
@@ -196,7 +214,10 @@ class _ScheduleListState extends State<ScheduleList> {
                     children: [
                       Text(
                         item['travel_title'] ?? '',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontFamily: 'Jalnan',
+                          fontSize: 18,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(
@@ -204,9 +225,21 @@ class _ScheduleListState extends State<ScheduleList> {
                         style: const TextStyle(color: Colors.grey),
                       ),
                       const SizedBox(height: 6),
-                      Text("📍 ${item['place_name']}"),
+                      Text(
+                        "📍 ${item['place_name']}",
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontFamily: 'AstaSans',
+                          fontSize: 17,
+                        ),
+                      ),
                       const SizedBox(height: 6),
-                      Text(item['description'] ?? ''),
+                      Text(
+                          item['description'] ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontFamily: 'AstaSans',
+                          fontSize: 15,
+                        ),
+                      ),
                     ],
                   ),
                 ),
