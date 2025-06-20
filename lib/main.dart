@@ -81,14 +81,32 @@ class _MainPageWrapperState extends State<MainPageWrapper> {
   void initState() {
     super.initState();
     _waitForLoginAndListenToInvitations(); // ✅ 로그인 후 스트림 시작
+    _startInvitationPolling('zNhdAIu8B1T7reLzyDwQ');
   }
 
-  void _waitForLoginAndListenToInvitations() {
-    // 하드코딩된 UID로 바로 리스너 실행
-    const hardcodedUid = 'zNhdAIu8B1T7reLzyDwQ';
-    print("✅ 하드코딩된 UID로 감시 시작: $hardcodedUid");
-    _listenToInvitations(hardcodedUid);
+  void _waitForLoginAndListenToInvitations() async {
+    const uid = 'zNhdAIu8B1T7reLzyDwQ';
+
+    while (true) {
+      final snapshot = await FirebaseFirestore.instance
+          .collectionGroup('members')
+          .where('user_id', isEqualTo: uid)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        print("✅ members 문서가 생성됨 → listener 붙이기 시작");
+        _listenToInvitations(uid); // 🔥 이때부터 실시간 감지 시작!
+        break;
+      }
+
+      print("⏳ members 문서 아직 없음 → 대기 중...");
+      await Future.delayed(const Duration(seconds: 1));
+    }
   }
+
+
+
+
 
 
 
@@ -101,6 +119,9 @@ class _MainPageWrapperState extends State<MainPageWrapper> {
   //   });
   // }
 
+  Set<String> _notifiedRooms = {}; // 중복 방지용
+  bool _initialCheckDone = false;
+
   void _listenToInvitations(String uid) {
     _invitedRoomListener?.cancel();
 
@@ -109,61 +130,10 @@ class _MainPageWrapperState extends State<MainPageWrapper> {
         .where('user_id', isEqualTo: uid)
         .snapshots()
         .listen((snapshot) async {
-      if (snapshot.docs.isEmpty) {
-        print("📭 members 문서 없음");
-        return;
-      }
+      print("📡 실시간 초대 수신: ${snapshot.docs.length}");
 
       for (final doc in snapshot.docs) {
-        final memberData = doc.data();
-        final isOwner = memberData['is_owner'] == true;
-        final memberPath = doc.reference.path;
-        print("🔍 members 문서 확인: $memberPath");
-        print("   └ is_owner: $isOwner");
-
-        if (isOwner) {
-          print("🙅‍♂️ members 기준 방장이므로 무시");
-          continue;
-        }
-
-        final parentRoomRef = doc.reference.parent.parent;
-        if (parentRoomRef == null) {
-          print("⚠️ parentRoomRef가 null");
-          continue;
-        }
-
-        final roomDoc = await parentRoomRef.get();
-        final roomData = roomDoc.data();
-        if (roomData == null) {
-          print("⚠️ roomData 없음");
-          continue;
-        }
-
-        final hostIsActive = roomData['host_is_active'] == true;
-        final currentUid = FirebaseAuth.instance.currentUser?.uid;
-        final ownerId = roomData['owner_id'];
-        final roomId = parentRoomRef.id;
-
-        print("📦 room 문서 확인: $roomId");
-        print("   └ hostIsActive: $hostIsActive");
-        print("   └ room.owner_id: $ownerId");
-        print("   └ currentUid: $currentUid");
-
-        if (!hostIsActive) {
-          print("❌ host_is_active == false → 무시");
-          continue;
-        }
-
-        if (currentUid == ownerId) {
-          print("🙅‍♂️ 방 document 기준 방장 → 무시");
-          continue;
-        }
-
-        print('🎯 초대 알림 조건 만족! → roomId: $roomId');
-
-        if (!mounted) return;
-        _showInvitationDialog(context, roomId);
-        break;
+        await _handleMemberDoc(doc);
       }
     });
   }
@@ -175,34 +145,114 @@ class _MainPageWrapperState extends State<MainPageWrapper> {
 
 
 
+  Future<void> _handleMemberDoc(DocumentSnapshot doc) async {
+    final memberData = doc.data() as Map<String, dynamic>?;
+    if (memberData == null) return;
+
+    final isOwner = memberData['is_owner'] == true;
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (isOwner || currentUid == null) return;
+
+    final parentRoomRef = doc.reference.parent.parent;
+    if (parentRoomRef == null) return;
+
+    final roomDoc = await parentRoomRef.get();
+    final roomData = roomDoc.data();
+    if (roomData == null) return;
+
+    final hostIsActive = roomData['host_is_active'] == true;
+    final ownerId = roomData['owner_id'];
+    final roomId = parentRoomRef.id;
+
+    // 🔁 중복 알림 방지
+    print("🧪 조건 체크");
+    print("  hostIsActive: $hostIsActive");
+    print("  currentUid: $currentUid");
+    print("  ownerId: $ownerId");
+    print("  notifiedRooms.contains: ${_notifiedRooms.contains(roomId)}");
+
+    // 조건 체크 전에 강제로 제거 (테스트용)
+    _notifiedRooms.remove(roomId);
+
+    // 🔁 중복 알림 방지
+    if (!hostIsActive || currentUid == ownerId || _notifiedRooms.contains(roomId)) return;
+    // if (currentUid == ownerId || _notifiedRooms.contains(roomId)) return;
+
+    print('🎯 초대 알림 조건 만족 → roomId: $roomId');
+    _notifiedRooms.add(roomId);
+
+    if (!mounted) return;
+
+// 🔒 안전하게 다이얼로그 띄우기
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        print("📢 다이얼로그 진짜 호출 직전");
+        _showInvitationDialog(context, roomId);
+      }
+    });
+  }
+  void _startInvitationPolling(String uid) {
+    Timer.periodic(const Duration(seconds: 5), (timer) async {
+      final snapshot = await FirebaseFirestore.instance
+          .collectionGroup('members')
+          .where('user_id', isEqualTo: uid)
+          .get();
+
+      for (final doc in snapshot.docs) {
+        await _handleMemberDoc(doc); // 🔁 조건 검사해서 다이얼로그 띄우기
+      }
+    });
+
+    print("✅ 초대 polling 시작 (5초 간격)");
+  }
+
+
+
+
+
+
+
 
   void _showInvitationDialog(BuildContext context, String roomId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("🎉 방 초대"),
-        content: Text("방에 초대되었습니다!\n방 ID: $roomId"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // 닫기
-            child: const Text("취소"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // 다이얼로그 먼저 닫고
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DoubleDiceOnBoard(roomId: roomId),
-                ),
-              );
-            },
-            child: const Text("입장하기"),
-          ),
-        ],
-      ),
-    );
+    print("📢 _showInvitationDialog called");
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print("📢 addPostFrameCallback → 실행됨");
+      if (!context.mounted) {
+        print("❌ context가 유효하지 않음 → 다이얼로그 스킵");
+        return;
+      }
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("🎉 방 초대"),
+          content: Text("방에 초대되었습니다!\n방 ID: $roomId"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("취소"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DoubleDiceOnBoard(roomId: roomId),
+                  ),
+                );
+              },
+              child: const Text("입장하기"),
+            ),
+          ],
+        ),
+      );
+    });
   }
+
+
+
 
 
 
