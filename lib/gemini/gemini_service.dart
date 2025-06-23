@@ -12,6 +12,7 @@ String buildTravelPrompt({
   final themeList = themes.join(', ');
   return '''
 한국 $region $subRegion에서만 할 수 있는 여행 일정을 짜줘.
+$region이 광주면, 경기도 광주가 아니라 광주광역시야.
 테마는 "$themeList"이고, 교통수단은 "$transport"야.
 오전 9시부터 오후 7시까지 하루 일정으로 총 5개의 일정을 제안해 줘.
 그 외 시간대(예: 밤, 새벽)는 절대 포함하지 마.

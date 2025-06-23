@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../common/bottom_nav_bar.dart';
-import '../common/logo_header.dart';
 import 'ScheduleList.dart';
 
 class ScheduleListPage extends StatelessWidget {
@@ -33,7 +32,10 @@ class ScheduleListPage extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
             Center(
-              child: const LogoHeader(),
+              child: Image.asset(
+                'assets/common_images/logo-main-ver1.png',
+                height: 80,
+              ),
             ),
             const SizedBox(height: 16),
             // 리스트는 아래 공간 전체를 차지하게

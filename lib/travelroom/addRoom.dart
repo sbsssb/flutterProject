@@ -10,6 +10,7 @@ import '../firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutterteam4/user/user_provider.dart';
 
+import '../models/travel_room_draft.dart';
 import '../mypage/profile_avatar.dart';
 import '../common/bottom_nav_bar.dart';
 import '../common/logo_header.dart';
@@ -384,8 +385,9 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
 
   void _createRoom() async {
     final user = ref.watch(authStateProvider).value;
+    final userDoc = await fs.collection('users').doc(user?.uid).get();
+    final userData = userDoc.data();
 
-    // ✅ 유효성 검사
     if (_nameController.text.trim().isEmpty ||
         selectedRegion.isEmpty ||
         selectedTransport.isEmpty ||
@@ -393,7 +395,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("모든 항목을 선택해 주세요.")),
       );
-      return; // 조건 미충족 시 함수 종료
+      return;
     }
 
     final roomId = fs.collection('travel_rooms').doc().id;
@@ -401,17 +403,17 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
     await fs.collection('travel_rooms')
         .doc(roomId)
         .set({
-            "room_id": roomId,
-            "room_name" : _nameController.text,
-            //"owner_id": user.uid,
-            "owner_id": user?.uid,
-            "region": selectedRegion,
-            "sub_region": null,
-            "theme": selectedThemes,
-            "transport": selectedTransport,
-            "cdatetime": FieldValue.serverTimestamp(),
-            "is_done" : false
-          });
+      "room_id": roomId,
+      "room_name" : _nameController.text,
+      //"owner_id": user.uid,
+      "owner_id": user?.uid,
+      "region": selectedRegion,
+      "sub_region": null,
+      "theme": selectedThemes,
+      "transport": selectedTransport,
+      "cdatetime": FieldValue.serverTimestamp(),
+      "is_done" : false
+    });
 
     // members 서브컬렉션에 방장 추가
     await fs.collection('travel_rooms')
@@ -421,9 +423,9 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
         .set({
       "user_id": user?.uid,
       "is_owner": true,
-      "nickname": "test1111",
+      "nickname": userData?['nickname'] ?? '익명',
       "avatar_id": null,
-      "titles": "칭호",  // 또는 유저가 가진 타이
+      "titles": userData?['titles'] ?? '',  // 또는 유저가 가진 타이
     });
 
     // users 컬렉션에 하위 컬렉션 join_rooms 추가
@@ -437,7 +439,6 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
       "theme": selectedThemes,
       "is_owner": true,
       "cdatetime": FieldValue.serverTimestamp(),
-      "is_done" : false
     });
 
     // 초대한 친구들 저장
@@ -466,7 +467,6 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
         "theme": selectedThemes,
         "is_owner": false,
         "cdatetime": FieldValue.serverTimestamp(),
-        "is_done" : false
       });
 
     }
@@ -474,7 +474,7 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
     // 성공적으로 저장 후 알림 또는 페이지 이동
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("여행방이 생성되었습니다!")),
+        const SnackBar(content: Text("여행방이 생성되었습니다!")),
       );
     }
 
@@ -494,14 +494,6 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
       ),
     );
   }
-
-  // final ButtonStyle commonButtonStyle = ElevatedButton.styleFrom(
-  //   backgroundColor: Color(0xFFFACC15),
-  //   foregroundColor: Colors.black,
-  //   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-  //   textStyle: const TextStyle(fontSize: 16),
-  // );
-
 
   @override
   Widget build(BuildContext context) {
