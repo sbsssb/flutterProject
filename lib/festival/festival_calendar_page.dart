@@ -26,7 +26,6 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
   int currentPage = 1;
   final int itemsPerPage = 10;
 
-  // 📌 ScrollController 추가
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -39,7 +38,7 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
 
   @override
   void dispose() {
-    _scrollController.dispose(); // 📌 ScrollController 해제
+    _scrollController.dispose();
     super.dispose();
   }
 

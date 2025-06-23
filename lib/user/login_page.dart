@@ -1,13 +1,11 @@
-// lib/user/login_page.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../common/bottom_nav_bar.dart';
 import '../common/logo_header.dart';
 import 'signup_page.dart';
-import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
-import 'package:kakao_flutter_sdk_auth/kakao_flutter_sdk_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -44,7 +42,6 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       GoRouter.of(context).go('/main');
-
     } on FirebaseAuthException catch (e) {
       String message = '로그인 오류';
       if (e.code == 'user-not-found') {
@@ -56,57 +53,47 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
-    } catch (e, stackTrace) {
-      // print('로그인 실패: $e');
-      // print('스택트레이스: $stackTrace');
-
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('로그인 실패: ${e.toString()}')),
+        SnackBar(content: Text('로그인 실패: $e')),
       );
     }
   }
 
-  void _loginWithKakao() async {
+  void _loginWithGoogle() async {
     try {
-      kakao.OAuthToken token;
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return;
 
-      if (await kakao.isKakaoTalkInstalled()) {
-        try {
-          token = await kakao.UserApi.instance.loginWithKakaoTalk();
-        } catch (e) {
-          token = await kakao.UserApi.instance.loginWithKakaoAccount();
-        }
-      } else {
-        token = await kakao.UserApi.instance.loginWithKakaoAccount();
-      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      kakao.User user = await kakao.UserApi.instance.me();
-      String email = user.kakaoAccount?.email ?? '';
-      String nickname = user.kakaoAccount?.profile?.nickname ?? '';
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-      await FirebaseFirestore.instance.collection('users').doc(user.id.toString()).set({
-        'user_id': user.id.toString(),
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final uid = userCredential.user!.uid;
+      final email = userCredential.user!.email ?? '';
+      final nickname = userCredential.user!.displayName ?? '익명';
+
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'user_id': uid,
         'email': email,
         'nickname': nickname,
-        'provider': 'kakao',
+        'provider': 'google',
         'cdatetime': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('카카오 로그인 성공!')),
-      );
-
-      Future.delayed(const Duration(milliseconds: 200), () {
-        if (mounted) {
-
-          GoRouter.of(context).go('/main');
-
-        }
-      });
-
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google 로그인 성공!')),
+        );
+        GoRouter.of(context).go('/main');
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('카카오 로그인 실패: $e')),
+        SnackBar(content: Text('Google 로그인 실패: $e')),
       );
     }
   }
@@ -136,7 +123,6 @@ class _LoginPageState extends State<LoginPage> {
                   style: Theme.of(context).textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 24),
 
                 TextField(
@@ -160,21 +146,50 @@ class _LoginPageState extends State<LoginPage> {
 
                 ElevatedButton(
                   onPressed: _login,
-                  child: const Text('로그인'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E6FD9),
+                    minimumSize: const Size.fromHeight(56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text(
+                    '로그인',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
-                const Divider(),
-                const SizedBox(height: 16),
-
                 ElevatedButton(
-                  onPressed: _loginWithKakao,
+                  onPressed: _loginWithGoogle,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.yellow,
+                    backgroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      side: const BorderSide(color: Colors.black12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    minimumSize: const Size.fromHeight(56),
                   ),
-                  child: const Text(
-                    '카카오로 로그인하기',
-                    style: TextStyle(color: Colors.black),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/common_images/google_logo.png',
+                        height: 30,
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Google 로그인',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),

@@ -8,8 +8,6 @@ class FestivalDetailApi {
 
   static Future<FestivalDetail?> fetchFestivalDetail(String contentId, int contentTypeId) async {
 
-    print('🛰️ 상세 API 요청 시작 - contentId: $contentId / type: $contentTypeId');
-
     try {
       final commonRes = await http.get(Uri.parse(
         '$baseUrl/detailCommon2'
@@ -32,20 +30,14 @@ class FestivalDetailApi {
       final introJson = json.decode(introRes.body);
       final imageJson = json.decode(imageRes.body);
 
-      print('📨 commonRes.body: ${commonRes.body}');
-      print('📨 introRes.body: ${introRes.body}');
-      print('📨 imageRes.body: ${imageRes.body}');
-
       final commonRaw = commonJson['response']?['body']?['items']?['item'];
       final introRaw = introJson['response']?['body']?['items']?['item'];
       final imageRaw = imageJson['response']?['body']?['items']?['item'];
 
       if (commonRaw == null) {
-        print('❌ commonItem 없음');
         return null;
       }
       if (introRaw == null) {
-        print('❌ introItem 없음');
       }
 
       final commonItem = (commonRaw is List) ? commonRaw[0] : commonRaw;
@@ -87,7 +79,6 @@ class FestivalDetailApi {
         imageUrls: imageUrls,
       );
     } catch (e) {
-      print('🧨 상세정보 가져오기 오류: $e');
       return null;
     }
   }
