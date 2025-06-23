@@ -65,7 +65,7 @@ class _SignUpPageState extends State<SignUpPage> {
         const SnackBar(content: Text('회원가입이 완료되었습니다!')),
       );
 
-      GoRouter.of(context).go('/');
+      GoRouter.of(context).go('/login');
 
     } on FirebaseAuthException catch (e) {
       print('Firebase Auth 오류 코드: ${e.code}');

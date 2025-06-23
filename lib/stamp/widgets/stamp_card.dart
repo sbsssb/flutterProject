@@ -5,12 +5,14 @@ import '../../models/schedule_model.dart';
 
 class StampCard extends StatelessWidget {
   final Schedule schedule;
-  final VoidCallback onStampPressed;
+  final VoidCallback? onStampPressed;
+  final bool isTripDone;
 
   const StampCard({
     super.key,
     required this.schedule,
     required this.onStampPressed,
+    required this.isTripDone,
   });
 
   @override
@@ -56,31 +58,35 @@ class StampCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  SizedBox(height: 4,),
-                  AnimatedScale(
-                    scale: schedule.canStamp ? 1.1 : 1.0,
-                    duration: Duration(milliseconds: 200),
-                    child: ElevatedButton(
-                      onPressed: schedule.canStamp ? onStampPressed : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFF5F5F5),
-                        foregroundColor: Colors.black87,
-                        disabledBackgroundColor: Colors.grey[200],
-                        disabledForegroundColor: Colors.grey,
-                        side: const BorderSide(
-                          color: Color(0xFF1E6FD9),
-                          width: 3,
+                  SizedBox(height: 4),
+                  if (!isTripDone)
+                    AnimatedScale(
+                      scale: schedule.canStamp ? 1.1 : 1.0,
+                      duration: Duration(milliseconds: 200),
+                      child: ElevatedButton(
+                        onPressed: schedule.canStamp ? onStampPressed : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFF5F5F5),
+                          foregroundColor: Colors.black87,
+                          disabledBackgroundColor: Colors.grey[200],
+                          disabledForegroundColor: Colors.grey,
+                          side: const BorderSide(
+                            color: Color(0xFF1E6FD9),
+                            width: 3,
+                          ),
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(15),
+                          textStyle: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(15),
-                        textStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                        child: const Text(
+                          '스탬프\n찍기',
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      child: const Text('스탬프\n찍기', textAlign: TextAlign.center),
                     ),
-                  ),
                 ],
               ),
         ],

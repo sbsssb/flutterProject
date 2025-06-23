@@ -36,7 +36,16 @@ Widget buildStampEndButton({
         final newStampCount = currentStampCount + done;
 
         await userRef.update({'stampCount' : newStampCount});
-        // 3. 화면 이동 및 알림
+
+        // 3. users/{userId}/join_rooms/{roomId}의 is_done 필드 true로 변경
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('join_rooms')
+            .doc(roomId)
+            .set({'is_done': true}, SetOptions(merge: true));
+
+        // 4. 화면 이동 및 알림
         context.go('/main');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("여행 일정이 종료되었습니다.")),
