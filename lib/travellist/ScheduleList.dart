@@ -73,6 +73,8 @@ class _ScheduleListState extends State<ScheduleList> {
     final correctedSchedules = await correctScheduleListWithGoogleMaps(
       rawList: schedules,
       googleApiKey: dotenv.env['GEMINI_API_KEY']!,
+      region: widget.region,
+      subRegion: widget.subRegion,
     );
 
     final snapshot = await ref.get();
@@ -80,7 +82,7 @@ class _ScheduleListState extends State<ScheduleList> {
       batch.delete(doc.reference);
     }
 
-    for (final schedule in schedules) {
+    for (final schedule in correctedSchedules) {
       batch.set(ref.doc(), {
         ...schedule,
         'created_at': Timestamp.now(),

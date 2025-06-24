@@ -30,7 +30,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
       // ✅ 로그인 페이지로 이동
       if (context.mounted) {
-        context.go('/'); // 또는 context.go('/login');
+        context.go('/login'); // 또는 context.go('/login');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
