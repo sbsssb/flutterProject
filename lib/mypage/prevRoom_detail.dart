@@ -3,30 +3,30 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import '../common/bottom_nav_bar.dart';
-
 import '../mypage/profile_avatar.dart';
+import 'package:flutterteam4/mypage/prevRoom_stamp.dart';
 
-class TravelRoomDetailPage extends StatelessWidget {
+class PrevRoomDetailPage extends StatelessWidget {
   final String roomId;
 
-  const TravelRoomDetailPage({super.key, required this.roomId});
+  const PrevRoomDetailPage({super.key, required this.roomId});
 
   Future<Map<String, dynamic>?> fetchRoomData(String roomId) async {
     final doc =
-        await FirebaseFirestore.instance
-            .collection('travel_rooms')
-            .doc(roomId)
-            .get();
+    await FirebaseFirestore.instance
+        .collection('travel_rooms')
+        .doc(roomId)
+        .get();
     return doc.exists ? doc.data() : null;
   }
 
   Future<List<Map<String, dynamic>>> fetchRoomMembers(String roomId) async {
     final snapshot =
-        await FirebaseFirestore.instance
-            .collection('travel_rooms')
-            .doc(roomId)
-            .collection('members')
-            .get();
+    await FirebaseFirestore.instance
+        .collection('travel_rooms')
+        .doc(roomId)
+        .collection('members')
+        .get();
 
     return snapshot.docs
         .map((doc) => doc.data())
@@ -92,9 +92,9 @@ class TravelRoomDetailPage extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 Text(
                                   '${roomData['region']} ${roomData['sub_region']}',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontFamily: 'AstaSans',
-                                    fontSize: 23,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    color: Colors.black,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -104,10 +104,8 @@ class TravelRoomDetailPage extends StatelessWidget {
                             const SizedBox(height: 40),
 
                             // 👥 멤버 목록
-                            Wrap(
-                              spacing: 20,
-                              runSpacing: 30,
-                              alignment: WrapAlignment.center,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: members.map((member) {
                                 return FutureBuilder<DocumentSnapshot>(
                                   future: FirebaseFirestore.instance.collection('users').doc(member['user_id']).get(),
@@ -118,8 +116,8 @@ class TravelRoomDetailPage extends StatelessWidget {
                                       stampCount = userData['stampCount'] ?? 0;
                                     }
 
-                                    return SizedBox(
-                                      width: 90, // ✅ 너비 제한 (한 줄에 3개 맞춤)
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
                                       child: Column(
                                         children: [
                                           CircleAvatar(
@@ -135,9 +133,6 @@ class TravelRoomDetailPage extends StatelessWidget {
                                               fontSize: 17,
                                               fontWeight: FontWeight.w600,
                                             ),
-                                            textAlign: TextAlign.center,
-                                            maxLines: 2, // 두 줄로
-                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ],
                                       ),
@@ -146,7 +141,6 @@ class TravelRoomDetailPage extends StatelessWidget {
                                 );
                               }).toList(),
                             ),
-
 
                             const SizedBox(height: 50),
 
@@ -163,15 +157,12 @@ class TravelRoomDetailPage extends StatelessWidget {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFFFACC15),
+                                foregroundColor: Colors.black,
                                 minimumSize: const Size.fromHeight(60),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                textStyle: TextStyle(
-                                    fontFamily: 'Jalnan',
-                                    fontSize: 19,
-                                    color: Colors.white
-                                ),
+                                textStyle: const TextStyle(fontSize: 22),
                               ),
                               child: const Text('앨범 보기'),
                             ),
@@ -181,19 +172,21 @@ class TravelRoomDetailPage extends StatelessWidget {
                             // 📅 일정 버튼
                             ElevatedButton(
                               onPressed: () {
-                                context.go('/stamp?roomId=$roomId');
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PrevRoomStampPage(roomId: roomId),
+                                  ),
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFFFACC15),
+                                foregroundColor: Colors.black,
                                 minimumSize: const Size.fromHeight(60),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                textStyle: TextStyle(
-                                    fontFamily: 'Jalnan',
-                                    fontSize: 19,
-                                    color: Colors.white
-                                ),
+                                textStyle: const TextStyle(fontSize: 22),
                               ),
                               child: const Text('일정 보기'),
                             ),
@@ -225,9 +218,10 @@ class TravelRoomDetailPage extends StatelessWidget {
                         ),
                         child: Text(
                           roomData['room_name'] ?? '',
-                          style: TextStyle(
-                            fontFamily: 'Jalnan',
-                            fontSize: 24,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

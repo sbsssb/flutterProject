@@ -18,14 +18,20 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  late String userId;
   late Future<List<Map<String, dynamic>>> _recentRooms;
 
   @override
   void initState() {
     super.initState();
+    userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     _waitForLoginAndListenToInvitations();
-    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    _recentRooms = getRecentJoinRooms(userId);
+
+    if (userId.isNotEmpty) {
+      _recentRooms = getRecentJoinRooms(userId);
+    } else {
+      _recentRooms = Future.value([]);
+    }
   }
 
   StreamSubscription? _invitedRoomListener;
@@ -271,10 +277,9 @@ class _MainScreenState extends State<MainScreen> {
     return '집 밖을 나선\n$nickname';
   }
 
-  final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: const Color(0xFF1E6FD9),
       bottomNavigationBar: const BottomNavBar(currentIndex: 0),
@@ -319,12 +324,19 @@ class _MainScreenState extends State<MainScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
+                          if (userId == '') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('로그인 후 이용 가능합니다.')),
+                            );
+                            context.go('/login');
+                            return;
+                          }
                           context.push('/addRoom');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1E6FD9),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
+                            horizontal: 30,
                             vertical: 16,
                           ),
                           shape: RoundedRectangleBorder(
@@ -364,60 +376,10 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
+
                       // 유저정보
-                      FutureBuilder<Map<String, dynamic>?>(
-                        future: getUserProfile(userId),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) return SizedBox();
+                      _buildProfileSection(),
 
-                          final data = snapshot.data!;
-                          final stampCount = data['stampCount'] ?? 0;
-                          final nickname = data['nickname'] ?? '여행자';
-                          final imagePath = getProfileImagePath(stampCount);
-                          final titleText = getTitleWithNickname(stampCount, nickname);
-
-                          return Center(
-                            child: Container(
-                              constraints: BoxConstraints(maxWidth: 350),
-                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
-                              decoration: BoxDecoration(
-                                color: Color(0xFFFFF9C4), // 연한 노란색
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image.asset(imagePath, height: 80),
-                                  const SizedBox(width: 12),
-                                  RichText(
-                                    textAlign: TextAlign.left,
-                                    text: TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: '${titleText.split('\n').first}\n', // 칭호만
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.normal,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: titleText.split('\n').last, // 닉네임만
-                                          style: TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
                       const SizedBox(height: 12),
 
                       Align(
@@ -432,22 +394,47 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
-                      FutureBuilder<List<Map<String, dynamic>>>(
+                      userId == ''
+                          ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Text(
+                            '로그인하고 여행 기록을 확인해보세요!',
+                            style: TextStyle(fontSize: 18, color: Colors.black54),
+                          ),
+                        ),
+                      )
+                          : FutureBuilder<List<Map<String, dynamic>>>(
                         future: _recentRooms,
                         builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return const CircularProgressIndicator();
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const CircularProgressIndicator(); // 🔄 로딩 중
                           }
 
-                          final rooms = snapshot.data!;
-                          if (rooms.isEmpty) {
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: List.generate(3, (index) => _emptyRegionSlot(index)),
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 32),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: const Text(
+                                  '최근 여행 기록이 없습니다.',
+                                  style: TextStyle(fontSize: 18, color: Colors.black54),
+                                ),
+                              ),
                             );
                           }
 
+                          // ✅ 여행 리스트 표시
+                          final rooms = snapshot.data!;
                           return Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: List.generate(3, (index) {
@@ -459,7 +446,7 @@ class _MainScreenState extends State<MainScreen> {
                                   room['room_id'],
                                 );
                               } else {
-                                return _emptyRegionSlot(index); // 빈 슬롯
+                                return _emptyRegionSlot(index);
                               }
                             }),
                           );
@@ -475,7 +462,7 @@ class _MainScreenState extends State<MainScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1E6FD9),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
+                            horizontal: 30,
                             vertical: 16,
                           ),
                           shape: RoundedRectangleBorder(
@@ -537,7 +524,9 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             Text(
               region,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             const SizedBox(height: 6),
             Image.asset('assets/main_images/icon-dice2.png', height: 50),
@@ -566,5 +555,77 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildProfileSection() {
+    if (userId == '') {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: const Text(
+            '로그인하고 여행 등급을 확인해보세요!',
+            style: TextStyle(fontSize: 18, color: Colors.black54),
+          ),
+        ),
+      );
+    } else {
+      return FutureBuilder<Map<String, dynamic>?>(
+        future: getUserProfile(userId),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return SizedBox();
+
+          final data = snapshot.data!;
+          final stampCount = data['stampCount'] ?? 0;
+          final nickname = data['nickname'] ?? '여행자';
+          final imagePath = getProfileImagePath(stampCount);
+          final titleText = getTitleWithNickname(stampCount, nickname);
+
+          return Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: 350),
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Color(0xFFFFF9C4),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(imagePath, height: 80),
+                  const SizedBox(width: 12),
+                  RichText(
+                    textAlign: TextAlign.left,
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${titleText.split('\n').first}\n',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: titleText.split('\n').last,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
   }
 }

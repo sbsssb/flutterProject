@@ -25,14 +25,46 @@ class StampDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<StampDetailScreen> createState() => _StampDetailScreenState();
 }
 
+class ScheduleResult {
+  final bool isTripDone;
+  final List<Schedule> schedules;
+
+  ScheduleResult({required this.isTripDone, required this.schedules});
+}
+
 class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
-  late Future<List<Schedule>> _futureSchedules;
+  late Future<ScheduleResult> _futureScheduleResult;
   late ConfettiController _confettiController;
   bool _checkedDistance = false;
   Timer? _distanceTimer;
   late String? userId;
 
+  Future<void> handleStampPressed(Schedule schedule) async {
+    await showStampDialog(context);
 
+    final log = StampLog(
+      stampId: '${userId}_${schedule.id}',
+      userId: userId!,
+      scheduleId: schedule.id,
+      cdatetime: DateTime.now(),
+    );
+
+    await FirestoreService.addStampLog(
+      roomId: widget.roomId,
+      log: log,
+    );
+
+    await FirestoreService.markScheduleDone(
+      roomId: widget.roomId,
+      scheduleId: schedule.id,
+    );
+
+    Fluttertoast.showToast(msg: '스탬프가 적립되었습니다!');
+
+    setState(() {
+      schedule.isDone = true;
+    });
+  }
   //위치 권한 허용
   Future<bool> requestLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
@@ -93,27 +125,27 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
 
   //알림 초기화
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   void initializeNotifications() async {
     const AndroidInitializationSettings initSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const InitializationSettings initializationSettings =
-    InitializationSettings(android: initSettingsAndroid);
+        InitializationSettings(android: initSettingsAndroid);
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   //알림 보내기
   Future<void> showStampNotificaions(String title) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
-      'stamp_channel',
-      '스탬프 알림',
-      channelDescription: '스탬프 적립 안내 알림 채널입니다',
-      importance: Importance.max,
-      priority: Priority.high,
-      ticker: 'ticker',
-    );
+        AndroidNotificationDetails(
+          'stamp_channel',
+          '스탬프 알림',
+          channelDescription: '스탬프 적립 안내 알림 채널입니다',
+          importance: Importance.max,
+          priority: Priority.high,
+          ticker: 'ticker',
+        );
 
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
@@ -134,21 +166,21 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
       barrierDismissible: false,
       builder:
           (context) => AlertDialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/stamp_images/stamp-animation.gif',
-              width: 150,
-              height: 150,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/stamp_images/stamp-animation.gif',
+                  width: 150,
+                  height: 150,
+                ),
+                const SizedBox(height: 10),
+                const Text('스탬프 적립 중', style: TextStyle(color: Colors.white)),
+              ],
             ),
-            const SizedBox(height: 10),
-            const Text('스탬프 적립 중', style: TextStyle(color: Colors.white)),
-          ],
-        ),
-      ),
+          ),
     );
     await Future.delayed(const Duration(seconds: 2));
     Navigator.of(context).pop();
@@ -157,17 +189,22 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _futureSchedules = FirestoreService.getSchedules(widget.roomId);
+    _futureScheduleResult = FirestoreService.getScheduleResult(widget.roomId);
     initializeNotifications();
     _confettiController = ConfettiController(duration: Duration(seconds: 3));
     print('roomId: ${widget.roomId}');
 
     //30초 마다 거리 체크
     _distanceTimer = Timer.periodic(Duration(seconds: 30), (timer) async {
-      final schedules = await _futureSchedules;
-      await checkDistance(schedules);
+      final result = await _futureScheduleResult;
+      if (result.isTripDone) {
+        timer.cancel(); //여행 끝났으면 더이상 체크 X
+        return;
+      }
+      await checkDistance(result.schedules);
     });
   }
+
 
   @override
   void dispose() {
@@ -185,22 +222,22 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
     }
 
     return Scaffold(
-      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
-      body: FutureBuilder<List<Schedule>>(
-        future: _futureSchedules,
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
+      body: FutureBuilder<ScheduleResult>(
+        future: _futureScheduleResult,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          if (!snapshot.hasData || snapshot.data!.schedules.isEmpty) {
             return Center(child: Text("일정이 없습니다."));
           }
-
-          final schedules = snapshot.data!;
+          final schedules = snapshot.data!.schedules;
+          final isTripDone = snapshot.data!.isTripDone;
           final total = schedules.length;
           final done = schedules.where((s) => s.isDone).length;
 
-          if (!_checkedDistance) {
+          if (!_checkedDistance && !isTripDone) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               checkDistance(schedules);
               _checkedDistance = true;
@@ -230,44 +267,27 @@ class _StampDetailScreenState extends ConsumerState<StampDetailScreen> {
                             final schedule = schedules[index];
                             return StampCard(
                               schedule: schedule,
-                              onStampPressed: () async {
-                                await showStampDialog(context);
-
-                                final log = StampLog(
-                                  stampId: '${userId}_${schedule.id}',
-                                  userId: userId!,
-                                  scheduleId: schedule.id,
-                                  cdatetime: DateTime.now(),
-                                );
-
-                                await FirestoreService.addStampLog(
-                                  roomId: widget.roomId,
-                                  log: log,
-                                );
-                                await FirestoreService.markScheduleDone(
-                                  roomId: widget.roomId,
-                                  scheduleId: schedule.id,
-                                );
-
-                                Fluttertoast.showToast(msg: '스탬프가 적립되었습니다!');
-
-                                setState(() {
-                                  schedule.isDone = true;
-                                });
+                              onStampPressed: isTripDone
+                                  ? null
+                                  : () {
+                                handleStampPressed(schedule);
                               },
+                              isTripDone: isTripDone,
                             );
                           },
                         ),
                       ),
                       const SizedBox(height: 10),
                       //종료 버튼
-                      buildStampEndButton(
-                        context: context,
-                        done: done,
-                        total: total,
-                        confettiController: _confettiController,
-                        roomId: widget.roomId, userId: userId!,
-                      ),
+                      if (!isTripDone)
+                        buildStampEndButton(
+                          context: context,
+                          done: done,
+                          total: total,
+                          confettiController: _confettiController,
+                          roomId: widget.roomId,
+                          userId: userId!,
+                        ),
                       const SizedBox(height: 20),
                     ],
                   ),

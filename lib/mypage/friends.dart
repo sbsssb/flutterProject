@@ -444,7 +444,7 @@ class _FriendsPageState extends State<FriendsPage> {
                       children: [
                         Image.asset(getProfileImagePath(stampCount), height: 80),
                         const SizedBox(width: 16),
-                        Expanded(child: Text(name, style: const TextStyle(fontSize: 22))),
+                        Expanded(child: Text(name, style: const TextStyle(fontSize: 22,fontFamily: 'AstaSans',))),
                         if (selectedTab == 0)
                           ElevatedButton(
                             onPressed: () async {
@@ -542,7 +542,7 @@ class _FriendsPageState extends State<FriendsPage> {
               ],
             ),
           ),
-          const BottomNavBar(currentIndex: 1), // 👈 여기까지 포함
+          const BottomNavBar(currentIndex: 2), // 👈 여기까지 포함
         ],
       ),
     );

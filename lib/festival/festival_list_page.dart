@@ -22,10 +22,13 @@ class _FestivalListPageState extends State<FestivalListPage> {
   String selectedRegion = '';
   String selectedCategory = '';
   int currentPage = 1;
-  final int numOfRows = 10;
+  final int itemsPerPage = 10;
   bool isLastPage = false;
 
   late Future<List<Festival>> futureFestivals;
+  List<Festival> allFestivals = [];
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -33,9 +36,35 @@ class _FestivalListPageState extends State<FestivalListPage> {
     selectedDate = generateDateOptions().first;
     futureFestivals = fetchFestivals(
       eventStartDate: selectedDate,
-      page: currentPage,
-      numOfRows: numOfRows,
-    );
+      page: 1,
+      numOfRows: 200,
+    ).then((data) => _filterFestivalsByMonth(data));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  List<Festival> _filterFestivalsByMonth(List<Festival> data) {
+    final month = int.parse(selectedDate.substring(4, 6));
+    final year = int.parse(selectedDate.substring(0, 4));
+    final monthStart = DateTime(year, month, 1);
+    final monthEnd = DateTime(year, month + 1, 0);
+
+    final filtered = data.where((f) {
+      final start = DateTime.parse(f.eventStartDate);
+      final end = DateTime.parse(f.eventEndDate);
+      return !end.isBefore(monthStart) && !start.isAfter(monthEnd);
+    }).toList();
+
+    setState(() {
+      allFestivals = filtered;
+      isLastPage = filtered.length <= itemsPerPage;
+    });
+
+    return filtered;
   }
 
   void _fetchFiltered() {
@@ -45,16 +74,10 @@ class _FestivalListPageState extends State<FestivalListPage> {
         eventStartDate: selectedDate,
         areaCode: selectedRegion,
         cat3: selectedCategory,
-        page: currentPage,
-        numOfRows: numOfRows,
-      ).then((data) {
-        setState(() {
-          isLastPage = data.length < numOfRows;
-        });
-        return data;
-      });
+        page: 1,
+        numOfRows: 200,
+      ).then((data) => _filterFestivalsByMonth(data));
     });
-    print('🎯 검색: date=$selectedDate, region=$selectedRegion, cat3=${selectedCategory == '전체' ? '' : selectedCategory}');
   }
 
   void _resetFilters() {
@@ -65,28 +88,21 @@ class _FestivalListPageState extends State<FestivalListPage> {
       currentPage = 1;
       futureFestivals = fetchFestivals(
         eventStartDate: selectedDate,
-        page: currentPage,
-        numOfRows: numOfRows,
-      );
+        page: 1,
+        numOfRows: 200,
+      ).then((data) => _filterFestivalsByMonth(data));
     });
   }
 
   void _goToPage(int page) {
     setState(() {
       currentPage = page;
-      futureFestivals = fetchFestivals(
-        eventStartDate: selectedDate,
-        areaCode: selectedRegion,
-        cat3: selectedCategory,
-        page: currentPage,
-        numOfRows: numOfRows,
-      ).then((data) {
-        setState(() {
-          isLastPage = data.length < numOfRows;
-        });
-        return data;
-      });
     });
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -94,6 +110,7 @@ class _FestivalListPageState extends State<FestivalListPage> {
     return Scaffold(
       bottomNavigationBar: const BottomNavBar(),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -126,34 +143,34 @@ class _FestivalListPageState extends State<FestivalListPage> {
 
                   if (snapshot.hasError) {
                     return Center(
-                        child: Text(
-                            '에러: ${snapshot.error}',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                        ),
+                      child: Text(
+                        '에러: ${snapshot.error}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     );
                   }
 
-                  final festivals = snapshot.data ?? [];
-
-                  for (var f in festivals) {
-                    print('🧪 ${f.title} - contentId: ${f.contentId} - type: ${f.contentTypeId}');
-                  }
-
-                  if (festivals.isEmpty) {
+                  if (allFestivals.isEmpty) {
                     return const Center(
-                        child: Text(
-                          '축제가 없습니다.',
-                          style: TextStyle(fontFamily: 'AstaSans'),
-                        ),
+                      child: Text(
+                        '축제가 없습니다.',
+                        style: TextStyle(fontFamily: 'AstaSans'),
+                      ),
                     );
                   }
+
+                  final startIndex = (currentPage - 1) * itemsPerPage;
+                  final endIndex = (startIndex + itemsPerPage < allFestivals.length)
+                      ? startIndex + itemsPerPage
+                      : allFestivals.length;
+                  final currentPageItems = allFestivals.sublist(startIndex, endIndex);
 
                   return Column(
                     children: [
-                      ...List.generate((festivals.length / 2).ceil(), (index) {
-                        final left = festivals[index * 2];
-                        final right = (index * 2 + 1 < festivals.length)
-                            ? festivals[index * 2 + 1]
+                      ...List.generate((currentPageItems.length / 2).ceil(), (index) {
+                        final left = currentPageItems[index * 2];
+                        final right = (index * 2 + 1 < currentPageItems.length)
+                            ? currentPageItems[index * 2 + 1]
                             : null;
 
                         return Padding(
@@ -177,32 +194,26 @@ class _FestivalListPageState extends State<FestivalListPage> {
                           if (currentPage > 1)
                             TextButton(
                               onPressed: () => _goToPage(currentPage - 1),
-                              child: Text(
-                                  '이전',
-                                  style: TextStyle(
-                                    fontFamily: 'AstaSans',
-                                    fontSize: 14,
-                                  ),
+                              child: const Text(
+                                '이전',
+                                style: TextStyle(fontFamily: 'AstaSans', fontSize: 14),
                               ),
                             ),
                           const SizedBox(width: 16),
                           Text(
-                              '페이지 $currentPage',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontFamily: 'AstaSans',
-                                fontSize: 14,
-                              ),
+                            '페이지 $currentPage',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontFamily: 'AstaSans',
+                              fontSize: 14,
+                            ),
                           ),
                           const SizedBox(width: 16),
-                          if (festivals.length == numOfRows)
+                          if (endIndex < allFestivals.length)
                             TextButton(
                               onPressed: () => _goToPage(currentPage + 1),
-                              child: Text(
-                                  '다음',
-                                  style: TextStyle(
-                                    fontFamily: 'AstaSans',
-                                    fontSize: 14,
-                                  ),
+                              child: const Text(
+                                '다음',
+                                style: TextStyle(fontFamily: 'AstaSans', fontSize: 14),
                               ),
                             ),
                         ],

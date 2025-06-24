@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/logo_header.dart';
+
 class RegionSelectPage extends StatelessWidget {
   const RegionSelectPage({Key? key}) : super(key: key);
 
@@ -32,11 +34,8 @@ class RegionSelectPage extends StatelessWidget {
           children: [
             // ⬆️ 로고
             Padding(
-              padding: const EdgeInsets.all(16),
-              child: Image.asset(
-                'assets/common_images/logo-main-ver1.png',
-                height: 80,
-              ),
+              padding: const EdgeInsets.all(0),
+              child: const LogoHeader(bottomPadding: 0),
             ),
 
             // ⬇️ 지도 + 버튼 영역
@@ -65,10 +64,9 @@ class RegionSelectPage extends StatelessWidget {
                             color: Colors.transparent,
                             child: Text(
                               region['label'],
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
+                              style: TextStyle(
+                                fontFamily: 'Jalnan',
+                                fontSize: 19,
                               ),
                             ),
                           ),

@@ -44,12 +44,16 @@ class _AlbumPageState extends ConsumerState<AlbumPage> {
                 child: Icon(Icons.add, color: Colors.white),
                 onPressed: () async {
                   //사진 업로드
-                  await AlbumService.uploadAlbumPhoto(widget.roomId, uploaderId);
-                  //리스트 새로고침
-                  _refreshPhotos();
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('사진 업로드 완료!')));
+                  final success = await AlbumService.uploadAlbumPhoto(widget.roomId, uploaderId);
+                  if (success) {
+                    //리스트 새로고침
+                    _refreshPhotos();
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('사진 업로드 완료!')));
+                  } else {
+                    print('사진 업로드 안 됨');
+                  }
                 },
               ),
     );

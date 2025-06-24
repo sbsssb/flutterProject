@@ -26,6 +26,7 @@ import 'package:flutterteam4/dice/dice.dart'; // ✅ 주사위판 페이지 impo
 import 'main/main_screen.dart';
 import 'utils/app_theme.dart'; // 👈 테마 임포트 추가
 import 'mypage/prevRoom.dart';
+import 'mypage/currentRoom.dart';
 import 'mypage/myPage.dart';
 import 'mypage/notification.dart';
 
@@ -38,10 +39,22 @@ void main() async {
 }
 
 final GoRouter router = GoRouter(
+  initialLocation: '/main', // 초기 진입점
+  redirect: (context, state) {
+    final user = FirebaseAuth.instance.currentUser;
+    final goingTo = state.matchedLocation;
+    
+    // 로그인했는데 login 접근 시 메인으로
+    if (user != null && goingTo == '/login') return '/main';
+
+    // 그 외엔 허용
+    return null;
+  },
+
   routes: [
-    GoRoute(path: '/', builder: (context, state) => LoginPage()),
+    GoRoute(path: '/login', builder: (context, state) => LoginPage()),
+    GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
-    GoRoute(path: '/mainPage', builder: (context, state) => const MainPageWrapper()),
     GoRoute(path: '/festivalList', builder: (context, state) => const FestivalListPage()),
     GoRoute(path: '/festivalCalendar', builder: (context, state) => const FestivalCalendarPage()),
     GoRoute(
@@ -56,10 +69,6 @@ final GoRouter router = GoRouter(
       },
     ), // ✅ 상세 페이지 이동 시 contentId와 contentTypeId을 넘김
     GoRoute(
-      path: '/mainPage',
-      builder: (context, state) => const MainPageWrapper(),
-    ),
-    GoRoute(
       path: '/festival',
       builder: (context, state) => const FestivalListPage(),
     ),
@@ -70,7 +79,6 @@ final GoRouter router = GoRouter(
         return DoubleDiceOnBoard(roomId: roomId);
       },
     ),
-    GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
     GoRoute(
       path: '/album/:roomId/:uploaderId',
       name: 'album',
@@ -96,8 +104,11 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(path: '/mypage', builder: (context, state) => const myPageApp()),
     GoRoute(
-      path: '/prevRoom',
-      builder: (context, state) => const PrevRoomApp(),
+      path: '/currentRoom/:userId',
+      builder: (context, state) {
+        final userId = state.pathParameters['userId']!;
+        return CurrentRoomApp(userId: userId);
+      },
     ),
     GoRoute(
       path: '/notification/:userId',
