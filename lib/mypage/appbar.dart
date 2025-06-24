@@ -50,12 +50,12 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       backgroundColor: Colors.white,
       elevation: 0,
       leading:
-      Navigator.canPop(context)
-          ? IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
-        onPressed: () => Navigator.pop(context),
-      )
-          : null,
+          Navigator.canPop(context)
+              ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              )
+              : null,
 
       title: Row(
         mainAxisSize: MainAxisSize.min, // ✅ 로고 너비만큼만 차지
@@ -67,10 +67,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         Stack(
           children: [
             IconButton(
-                icon: const Icon(Icons.logout, color: Colors.redAccent),
-                onPressed: (){
-                  handleLogout(context);
-                }
+              icon: const Icon(Icons.logout, color: Colors.redAccent),
+              onPressed: (){
+                handleLogout(context);
+              }
             ),
           ],
         ),

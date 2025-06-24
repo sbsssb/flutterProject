@@ -197,7 +197,7 @@ class NotificationPage extends StatelessWidget {
         },
       ),
 
-      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 3),
     );
   }
 }
