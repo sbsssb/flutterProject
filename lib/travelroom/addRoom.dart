@@ -388,6 +388,28 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
     final userDoc = await fs.collection('users').doc(user?.uid).get();
     final userData = userDoc.data();
 
+    final roomsSnapshot = await fs.collection('travel_rooms').get();
+
+    for (final roomDoc in roomsSnapshot.docs) {
+      final roomRef = roomDoc.reference;
+
+      // schedules 서브컬렉션 확인
+      final schedulesSnapshot = await roomRef.collection('schedules').limit(1).get();
+
+      if (schedulesSnapshot.docs.isEmpty) {
+        // schedules가 없으면 members 삭제
+        final membersSnapshot = await roomRef.collection('members').get();
+
+        for (final memberDoc in membersSnapshot.docs) {
+          await memberDoc.reference.delete();
+        }
+        await roomRef.delete();
+        print('members 삭제 완료: ${roomRef.id}');
+      } else {
+        print('schedules 존재: ${roomRef.id} - members 삭제 안함');
+      }
+    }
+
     if (_nameController.text.trim().isEmpty ||
         selectedRegion.isEmpty ||
         selectedTransport.isEmpty ||
