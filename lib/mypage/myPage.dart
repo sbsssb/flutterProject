@@ -3,21 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ Riverpod 연동�
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutterteam4/user/user_provider.dart'; // ✅ 로그인 사용자 정보를 가져오기 위한 Provider
+import 'currentRoom.dart';
 import 'profileEdit.dart';
 import 'friends.dart';
 import 'prevRoom.dart';
 import 'appbar.dart'; // ✅ 기존 앱바 연동
 import 'profile_avatar.dart';
 import '../common/bottom_nav_bar.dart';
+import '../utils/app_theme.dart'; // ✅ 테마 파일 추가
+
 
 class myPageApp extends StatelessWidget {
   const myPageApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: myPageMainApp(), // ✅ 마이페이지 메인 위젯
+      theme: AppTheme.mainTheme, // ✅ 여기에서 테마 적용!
+      home: myPageMainApp(),
     );
   }
 }
@@ -138,9 +142,13 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              '프로필',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                            Text(
+                              '마이페이지',
+                              style: TextStyle(
+                                fontFamily: 'Jalnan',
+                                fontSize: 33,
+                                color:  Theme.of(context).colorScheme.primary, // 또는 Theme.of(context).colorScheme.secondary
+                              ),
                             ),
                             const SizedBox(height: 16),
                             _buildLicenseCard(userData, stampCount, friendsCount), // ✅ 친구 수 넘기기
@@ -173,12 +181,12 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
                                     ),
                                     child: const Text(
                                       '면허 갱신하기',
-                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'AstaSans',color: Colors.white),
                                     ),
                                   ),
                                   Positioned(
                                     left: -24,
-                                    top: -18,
+                                    top: -16,
                                     child: Image.asset(
                                       'assets/mypage_images/license_character.png',
                                       height: 70,
@@ -235,7 +243,14 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
                               image: 'assets/mypage_images/current_travel.png',
                               label: '진행 중인 여행',
                               description: '아직 진행 중인 여행 그룹이 있어요.',
-                              onTap: () {},
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CurrentRoomIn(userId: userData['user_id']),
+                                    ),
+                                  );
+                                },
                             ),
                           ],
                         ),
@@ -293,6 +308,7 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
+                  fontFamily: 'AstaSans',
                   color: Color(0xFF1E6FD9),
                 ),
               ),
@@ -311,6 +327,7 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 14,
+                      fontFamily: 'AstaSans',
                       color: Color(0xFF1E6FD9),
                     ),
                   ),
@@ -323,20 +340,17 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
                   children: [
                     const SizedBox(height: 12),
                     Text(
-                      nickname,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E6FD9),
-                      ),
-                    ),
-                    Text(
                       userData['email'] ?? '이메일 없음',
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'AstaSans',
+                          color: Colors.grey
+                      ),
                     ),
                     const SizedBox(height: 20),
                     Container(
                       width: 180,
+                      height: 85,
                       padding: const EdgeInsets.symmetric(
                         vertical: 8,
                         horizontal: 12,
@@ -346,47 +360,68 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Column(
-                            children: [
-                              const Text(
-                                '스템프 횟수',
-                                style: TextStyle(
-                                  color: Color(0xFF1E6FD9),
-                                  fontSize: 15,
+                          // ✅ 좌측 Column (Expanded)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '스템프',
+                                  style: TextStyle(
+                                    fontFamily: 'AstaSans',
+                                    color: Color(0xFF1E6FD9),
+                                    fontSize: 20,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                '${stampCount}회',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(height: 10),
+                                Text(
+                                  '$stampCount회',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      fontFamily: 'AstaSans',
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          Column(
-                            children: [
-                              const Text(
-                                '사귄 친구',
-                                style: TextStyle(
-                                  color: Color(0xFF1E6FD9),
-                                  fontSize: 15,
+
+                          // ✅ 구분선
+                          Container(
+                            height: 40,
+                            width: 1,
+                            color: Colors.grey,
+                          ),
+
+                          // ✅ 우측 Column (Expanded)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '친구',
+                                  style: TextStyle(
+                                    fontFamily: 'AstaSans',
+                                    color: Color(0xFF1E6FD9),
+                                    fontSize: 20,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                '$friendsCount명',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(height: 10),
+                                Text(
+                                  '$friendsCount명',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      fontFamily: 'AstaSans',
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
@@ -401,13 +436,14 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
               children: [
                 Text(
                   '발급일자: ${_formatTimestamp(userData['cdatetime'])}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey,fontFamily: 'AstaSans',),
                 ),
                 const SizedBox(width: 8),
                 const Text(
                   '랜덤어때 협회',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'AstaSans',
                     fontSize: 20,
                     color: Color(0xFF1E6FD9),
                   ),

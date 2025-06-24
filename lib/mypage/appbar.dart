@@ -42,7 +42,6 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO: Firestore에서 실제 읽지 않은 알림 수 가져오기
-    final int unreadCount = 3; // 지금은 임시 하드코딩
 
     return AppBar(
       centerTitle: true,
@@ -62,12 +61,17 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [Image.asset('assets/mypage_images/logo.png', height: 60)],
       ),
-
       actions: [
         Stack(
           children: [
             IconButton(
               icon: const Icon(Icons.logout, color: Colors.redAccent),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut(); // 🔑 로그아웃
+                if (context.mounted) {
+                  context.go('/');
+                }
+              },
               onPressed: (){
                 handleLogout(context);
               }
@@ -75,6 +79,39 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
           ],
         ),
       ],
+      // actions: [
+      //   Stack(
+      //     children: [
+      //       IconButton(
+      //         icon: const Icon(Icons.notifications_none, color: Colors.black),
+      //         onPressed: () {
+      //           Navigator.push(
+      //             context,
+      //             MaterialPageRoute(
+      //               builder: (context) => NotificationPage(userId: userId),
+      //             ),
+      //           );
+      //         },
+      //       ),
+      //       if (unreadCount > 0)
+      //         Positioned(
+      //           right: 10,
+      //           top: 10,
+      //           child: Container(
+      //             padding: const EdgeInsets.all(4),
+      //             decoration: const BoxDecoration(
+      //               shape: BoxShape.circle,
+      //               color: Colors.red,
+      //             ),
+      //             child: Text(
+      //               '$unreadCount',
+      //               style: const TextStyle(color: Colors.white, fontSize: 10),
+      //             ),
+      //           ),
+      //         ),
+      //     ],
+      //   ),
+      // ],
     );
   }
 
