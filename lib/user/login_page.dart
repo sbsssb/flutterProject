@@ -42,6 +42,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       GoRouter.of(context).go('/main');
+
     } on FirebaseAuthException catch (e) {
       String message = '로그인 오류';
       if (e.code == 'user-not-found') {
