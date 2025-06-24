@@ -493,11 +493,11 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
     }
 
     // 성공적으로 저장 후 알림 또는 페이지 이동
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("여행방이 생성되었습니다!")),
-      );
-    }
+    // if (mounted) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text("여행방이 생성되었습니다!")),
+    //   );
+    // }
 
     //초기화
     setState(() {

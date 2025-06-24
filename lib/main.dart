@@ -55,7 +55,6 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => LoginPage()),
     GoRoute(path: '/main', builder: (context, state) => const MainScreen()),
     GoRoute(path: '/addRoom', builder: (context, state) => const RoomCreate()),
-    GoRoute(path: '/festivalList', builder: (context, state) => const FestivalListPage()),
     GoRoute(path: '/festivalCalendar', builder: (context, state) => const FestivalCalendarPage()),
     GoRoute(
       path: '/festivalDetail/:contentId',
