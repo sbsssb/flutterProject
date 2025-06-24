@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../common/bottom_nav_bar.dart';
-import 'prevRoom_detail.dart';
+import '../travelroom/travelDetail.dart';
 import 'appbar.dart';
 
-class PrevRoomApp extends StatelessWidget {
+class CurrentRoomApp extends StatelessWidget {
   final String userId; // 🔹 추가
-  const PrevRoomApp({super.key, required this.userId}); // 🔹 생성자에 추가
+  const CurrentRoomApp({super.key, required this.userId}); // 🔹 생성자에 추가
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: PrevRoomIn(userId: userId), // 🔹 전달
+      home: CurrentRoomIn(userId: userId), // 🔹 전달
     );
   }
 }
 
-class PrevRoomIn extends StatefulWidget {
+class CurrentRoomIn extends StatefulWidget {
   final String userId;
 
-  const PrevRoomIn({super.key, required this.userId});
+  const CurrentRoomIn({super.key, required this.userId});
 
   @override
-  State<PrevRoomIn> createState() => _PrevRoomInState();
+  State<CurrentRoomIn> createState() => _CurrentRoomInState();
 }
 
-class _PrevRoomInState extends State<PrevRoomIn> {
+class _CurrentRoomInState extends State<CurrentRoomIn> {
   List<Map<String, dynamic>> travelRooms = [];
   DocumentSnapshot? lastDocument;
   int currentPage = 1;
@@ -48,50 +48,53 @@ class _PrevRoomInState extends State<PrevRoomIn> {
       isLoading = true;
     });
 
+    // ✅ travel_rooms 기준으로 변경
     Query query = FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .collection('join_rooms')
+        .collection('travel_rooms')
+        .where('is_done', isEqualTo: false) // ✅ 진행 중인 방만
+        .where('owner_id', isEqualTo: widget.userId) // ✅ 본인만
         .orderBy('cdatetime', descending: true)
         .limit(6);
 
+    // 🔹 페이지네이션 커서 처리
     if (page > 1 && pageCursors.length >= page - 1) {
       final last = pageCursors[page - 2];
       query = query.startAfterDocument(last);
     }
 
-    final snapshot = await query.get();
-    final docs = snapshot.docs;
+    try {
+      final snapshot = await query.get();
+      final docs = snapshot.docs;
 
-    // 🔍 is_done == true 필터링 (없거나 null이면 false로 간주)
-    final filteredDocs = docs.where((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      final isDone = data['is_done'] ?? false;
-      return isDone == true;
-    }).toList();
+      // 🔍 travel_rooms 문서에서 필요한 필드 추출
+      final rooms = docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'room_id': doc.id, // ✅ 문서 ID 사용
+          'title': '${data['region']} 여행',
+          'members': 1, // 🔹 인원은 추후 members 서브컬렉션 length로 대체 가능
+          'theme': data['theme'],
+          'cdatetime': data['cdatetime'],
+        };
+      }).toList();
 
-    final rooms = filteredDocs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      return {
-        'room_id': data['room_id'], // travel_rooms 문서 ID
-        'title': '${data['region']} 여행',
-        'members': 1, // 인원은 생략 또는 추후 계산
-        'theme': data['theme'],
-        'cdatetime': data['cdatetime'],
-      };
-    }).toList();
+      setState(() {
+        travelRooms = rooms;
+        currentPage = page;
+        hasMore = docs.length == 6;
 
-    setState(() {
-      travelRooms = rooms;
-      currentPage = page;
-      hasMore = docs.length == 6;
+        if (docs.isNotEmpty && pageCursors.length < page) {
+          pageCursors.add(docs.last);
+        }
 
-      if (docs.isNotEmpty && pageCursors.length < page) {
-        pageCursors.add(docs.last);
-      }
-
-      isLoading = false;
-    });
+        isLoading = false;
+      });
+    } catch (e) {
+      print('🔥 Firestore 조회 오류: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -107,7 +110,7 @@ class _PrevRoomInState extends State<PrevRoomIn> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '이전 여행',
+                      '진행 중인 여행',
                       style: TextStyle(
                         fontSize: 26,
                         fontFamily: 'Jalnan',
@@ -180,7 +183,7 @@ class _PrevRoomInState extends State<PrevRoomIn> {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (context) => PrevRoomDetailPage(roomId: docId),
+                                                builder: (context) => TravelRoomDetailPage(roomId: docId),
                                               ),
                                             );
                                           } else {
@@ -223,6 +226,7 @@ class _PrevRoomInState extends State<PrevRoomIn> {
                             child: OutlinedButton(
                               onPressed: () {},
                               child: Text('$currentPage',style: TextStyle(fontFamily: 'AstaSans', fontSize: 18, color: Color(0xFF1E6FD9)),),
+
                             ),
                           ),
 

@@ -26,6 +26,7 @@ import 'package:flutterteam4/dice/dice.dart'; // ✅ 주사위판 페이지 impo
 import 'main/main_screen.dart';
 import 'utils/app_theme.dart'; // 👈 테마 임포트 추가
 import 'mypage/prevRoom.dart';
+import 'mypage/currentRoom.dart';
 import 'mypage/myPage.dart';
 import 'mypage/notification.dart';
 
@@ -96,10 +97,10 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(path: '/mypage', builder: (context, state) => const myPageApp()),
     GoRoute(
-      path: '/prevRoom/:userId',
+      path: '/currentRoom/:userId',
       builder: (context, state) {
         final userId = state.pathParameters['userId']!;
-        return PrevRoomApp(userId: userId);
+        return CurrentRoomApp(userId: userId);
       },
     ),
     GoRoute(

@@ -10,6 +10,7 @@ Future<void> sendNotification({
   required String senderNickname,      // 보낸 사용자 닉네임
   required String senderAvatarId,      // 보낸 사용자 아바타 ID
   required int senderStampCount, // ✅ 스탬프 카운트 추가
+  String? roomId, // ✅ 이 줄 추가
 }) async {
   try {
     await FirebaseFirestore.instance
@@ -25,6 +26,7 @@ Future<void> sendNotification({
       'sender_stampCount': senderStampCount, // ✅ 이 줄 추가
       'cdatetime': Timestamp.now(),
       'is_read': false,
+      if (type == 'stamp_log') 'room_id': roomId, // ✅ 스탬프일 경우에만 포함
     });
   } catch (e) {
     print('알림 전송 실패: $e');
