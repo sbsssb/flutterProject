@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/logo_header.dart';
+
 class ThemeSelectPage extends StatefulWidget {
   @override
   _ThemeSelectPageState createState() => _ThemeSelectPageState();
@@ -48,12 +50,9 @@ class _ThemeSelectPageState extends State<ThemeSelectPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 60),
+            padding: const EdgeInsets.only(top: 30),
             child: Center(
-              child: Image.asset(
-                'assets/common_images/logo-main-ver1.png',
-                height: 80,
-              ),
+              child: const LogoHeader(bottomPadding: 0),
             ),
           ),
           // 상단 선택 뱃지

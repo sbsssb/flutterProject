@@ -92,9 +92,9 @@ class TravelRoomDetailPage extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 Text(
                                   '${roomData['region']} ${roomData['sub_region']}',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.black,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontFamily: 'AstaSans',
+                                    fontSize: 23,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -104,8 +104,10 @@ class TravelRoomDetailPage extends StatelessWidget {
                             const SizedBox(height: 40),
 
                             // 👥 멤버 목록
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            Wrap(
+                              spacing: 20,
+                              runSpacing: 30,
+                              alignment: WrapAlignment.center,
                               children: members.map((member) {
                                 return FutureBuilder<DocumentSnapshot>(
                                   future: FirebaseFirestore.instance.collection('users').doc(member['user_id']).get(),
@@ -116,8 +118,8 @@ class TravelRoomDetailPage extends StatelessWidget {
                                       stampCount = userData['stampCount'] ?? 0;
                                     }
 
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    return SizedBox(
+                                      width: 90, // ✅ 너비 제한 (한 줄에 3개 맞춤)
                                       child: Column(
                                         children: [
                                           CircleAvatar(
@@ -133,6 +135,9 @@ class TravelRoomDetailPage extends StatelessWidget {
                                               fontSize: 17,
                                               fontWeight: FontWeight.w600,
                                             ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2, // 두 줄로
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ],
                                       ),
@@ -141,6 +146,7 @@ class TravelRoomDetailPage extends StatelessWidget {
                                 );
                               }).toList(),
                             ),
+
 
                             const SizedBox(height: 50),
 
@@ -157,12 +163,15 @@ class TravelRoomDetailPage extends StatelessWidget {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFFFACC15),
-                                foregroundColor: Colors.black,
                                 minimumSize: const Size.fromHeight(60),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                textStyle: const TextStyle(fontSize: 22),
+                                textStyle: TextStyle(
+                                    fontFamily: 'Jalnan',
+                                    fontSize: 19,
+                                    color: Colors.white
+                                ),
                               ),
                               child: const Text('앨범 보기'),
                             ),
@@ -176,12 +185,15 @@ class TravelRoomDetailPage extends StatelessWidget {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Color(0xFFFACC15),
-                                foregroundColor: Colors.black,
                                 minimumSize: const Size.fromHeight(60),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                textStyle: const TextStyle(fontSize: 22),
+                                textStyle: TextStyle(
+                                    fontFamily: 'Jalnan',
+                                    fontSize: 19,
+                                    color: Colors.white
+                                ),
                               ),
                               child: const Text('일정 보기'),
                             ),
@@ -213,10 +225,9 @@ class TravelRoomDetailPage extends StatelessWidget {
                         ),
                         child: Text(
                           roomData['room_name'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
+                          style: TextStyle(
+                            fontFamily: 'Jalnan',
+                            fontSize: 24,
                           ),
                         ),
                       ),
