@@ -21,7 +21,6 @@ class FestivalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print('👉 카드 클릭됨: contentId = ${festival.contentId}');
         context.push('/festivalDetail/${festival.contentId}?type=${festival.contentTypeId}');
       },
       child: Card(

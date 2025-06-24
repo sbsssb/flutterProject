@@ -26,12 +26,20 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
   int currentPage = 1;
   final int itemsPerPage = 10;
 
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
     _selectedDay = _focusedDay;
     _loadFestivalDataIfNeeded(_focusedDay);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   String _toYearMonthKey(DateTime date) {
@@ -110,6 +118,7 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
     return Scaffold(
       bottomNavigationBar: const BottomNavBar(),
       body: SingleChildScrollView(
+        controller: _scrollController,
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
@@ -159,7 +168,10 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                       final isSelected = isSameDay(date, _selectedDay);
 
                       Color? bgColor;
-                      Color textColor = Colors.black;
+                      Color textColor;
+
+                      final isSunday = date.weekday == DateTime.sunday;
+                      final isSaturday = date.weekday == DateTime.saturday;
 
                       if (isSelected) {
                         bgColor = Colors.blue;
@@ -167,6 +179,12 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                       } else if (isToday) {
                         bgColor = Colors.black;
                         textColor = Colors.white;
+                      } else if (isSunday) {
+                        textColor = Colors.redAccent;
+                      } else if (isSaturday) {
+                        textColor = Colors.blueAccent;
+                      } else {
+                        textColor = Colors.black;
                       }
 
                       return Container(
@@ -190,12 +208,12 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                             ),
                             if (count > 0) ...[
                               Text(
-                                  '$count개',
-                                  style: const TextStyle(
-                                      fontFamily: 'AstaSans',
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                  ),
+                                '$count개',
+                                style: const TextStyle(
+                                  fontFamily: 'AstaSans',
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                               const Icon(Icons.arrow_drop_down, size: 12, color: Colors.grey),
                             ],
@@ -210,23 +228,23 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                       shape: BoxShape.circle,
                     ),
                     selectedTextStyle: TextStyle(
-                        fontFamily: 'AstaSans',
-                        color: Colors.white,
-                        fontSize: 18
+                      fontFamily: 'AstaSans',
+                      color: Colors.white,
+                      fontSize: 18,
                     ),
                     todayTextStyle: TextStyle(
-                        fontFamily: 'AstaSans',
-                        color: Colors.white,
-                        fontSize: 18
+                      fontFamily: 'AstaSans',
+                      color: Colors.white,
+                      fontSize: 18,
                     ),
                     defaultTextStyle: TextStyle(
-                        fontFamily: 'AstaSans',
-                        fontSize: 14
+                      fontFamily: 'AstaSans',
+                      fontSize: 14,
                     ),
                     weekendTextStyle: TextStyle(
-                        fontFamily: 'AstaSans',
-                        fontSize: 14,
-                        color: Colors.redAccent
+                      fontFamily: 'AstaSans',
+                      fontSize: 14,
+                      color: Colors.redAccent,
                     ),
                     cellMargin: EdgeInsets.symmetric(vertical: 4),
                   ),
@@ -285,22 +303,27 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                         setState(() {
                           currentPage--;
                         });
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
                       },
                       child: Text(
-                          '이전',
-                          style: TextStyle(
-                            fontFamily: 'AstaSans',
-                            fontSize: 14,
-                          ),
+                        '이전',
+                        style: TextStyle(
+                          fontFamily: 'AstaSans',
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   const SizedBox(width: 16),
-                  Text(''
-                      '페이지 $currentPage',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontFamily: 'AstaSans',
-                        fontSize: 14,
-                      ),
+                  Text(
+                    '페이지 $currentPage',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontFamily: 'AstaSans',
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   if (endIndex < selectedDayFestivals.length)
@@ -309,13 +332,18 @@ class _FestivalCalendarPageState extends State<FestivalCalendarPage> {
                         setState(() {
                           currentPage++;
                         });
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
                       },
                       child: Text(
-                          '다음',
-                          style: TextStyle(
+                        '다음',
+                        style: TextStyle(
                           fontFamily: 'AstaSans',
                           fontSize: 14,
-                          ),
+                        ),
                       ),
                     ),
                 ],

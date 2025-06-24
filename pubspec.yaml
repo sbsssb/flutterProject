@@ -41,7 +41,6 @@ dependencies:
   fluttertoast: ^8.2.12
   confetti: ^0.8.0
   intl: ^0.19.0
-#  intl: ^0.18.1
   go_router:
   firebase_auth: 4.15.3
   http: ^1.4.0
@@ -60,6 +59,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   image_gallery_saver_plus: ^4.0.1
+  google_sign_in:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -1,4 +1,3 @@
-// lib/user/signup_page.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../common/bottom_nav_bar.dart';
 import '../common/logo_header.dart';
 import 'login_page.dart';
-
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -44,11 +42,9 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     try {
-      // 1️⃣ Firebase Auth로 회원가입
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // 2️⃣ Firestore에 사용자 정보 저장
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
@@ -68,8 +64,6 @@ class _SignUpPageState extends State<SignUpPage> {
       GoRouter.of(context).go('/');
 
     } on FirebaseAuthException catch (e) {
-      print('Firebase Auth 오류 코드: ${e.code}');
-      print('Firebase Auth 오류 메시지: ${e.message}');
 
       String message = '회원가입 오류';
       if (e.code == 'email-already-in-use') {
