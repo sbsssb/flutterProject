@@ -1,8 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../common/bottom_nav_bar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../dice/dice.dart';
+
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,6 +25,7 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    _waitForLoginAndListenToInvitations();
 
     if (userId.isNotEmpty) {
       _recentRooms = getRecentJoinRooms(userId);
@@ -26,6 +33,214 @@ class _MainScreenState extends State<MainScreen> {
       _recentRooms = Future.value([]);
     }
   }
+
+  StreamSubscription? _invitedRoomListener;
+  Set<String> _notifiedRooms = {};
+
+  void _waitForLoginAndListenToInvitations() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    while (true) {
+      final snapshot = await FirebaseFirestore.instance
+          .collectionGroup('members')
+          .where('user_id', isEqualTo: uid)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        print("✅ members 문서가 생성됨 → listener 붙이기 시작");
+        _listenToInvitations(uid);
+        break;
+      }
+
+      print("⏳ members 문서 아직 없음 → 대기 중...");
+      await Future.delayed(const Duration(seconds: 1));
+    }
+  }
+
+  Future<void> _handleMemberDoc(DocumentSnapshot doc) async {
+    final memberData = doc.data() as Map<String, dynamic>?;
+    if (memberData == null) {
+      print("❌ memberData 없음 - 문서 비어 있음");
+      return;
+    }
+
+    final isOwner = memberData['is_owner'] == true;
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    print("👤 참여자: ${memberData['nickname']} (${memberData['user_id']}), 방장 여부: $isOwner");
+
+    if (isOwner) {
+      print("⛔ 본인이 방장이므로 알림 제외");
+      return;
+    }
+    if (currentUid == null) {
+      print("❌ currentUid 없음 - 로그인 안됨");
+      return;
+    }
+
+    final parentRoomRef = doc.reference.parent.parent;
+    if (parentRoomRef == null) {
+      print("❌ parentRoomRef 없음 - 상위 room 문서 못 찾음");
+      return;
+    }
+
+    final roomDoc = await parentRoomRef.get();
+    final roomData = roomDoc.data();
+    if (roomData == null) {
+      print("❌ roomData 없음 - 문서 비어 있음");
+      return;
+    }
+
+    final hostIsActive = roomData['host_is_active'] == true;
+    final ownerId = roomData['owner_id'];
+    final roomId = parentRoomRef.id;
+
+    print("📦 방 정보 - roomId: $roomId");
+    print("    host_is_active: $hostIsActive");
+    print("    owner_id: $ownerId");
+    print("    currentUid: $currentUid");
+    print("    이미 알림 보냈나?: ${_notifiedRooms.contains(roomId)}");
+
+    if (!hostIsActive) {
+      print("⛔ 방장이 접속 중 아님 → 알림 제외");
+      return;
+    }
+
+    if (currentUid == ownerId) {
+      print("⛔ 내가 방장 → 알림 제외");
+      return;
+    }
+
+    if (_notifiedRooms.contains(roomId)) {
+      print("⛔ 이미 알림 보냄 → 중복 방지");
+      return;
+    }
+
+    // ✅ 통과한 경우
+    print('🎯 초대 알림 조건 만족 → roomId: $roomId');
+    _notifiedRooms.add(roomId);
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUid)
+        .collection('notifications')
+        .add({
+      'type': 'invitation',
+      'room_id': roomId,
+      'message': '방에 초대되었습니다!',
+      'timestamp': FieldValue.serverTimestamp(),
+      'is_read': false,
+    });
+
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _showInvitationDialog(context, roomId);
+      }
+    });
+  }
+
+
+
+
+
+  void _listenToInvitations(String uid) {
+    _invitedRoomListener?.cancel();
+
+    _invitedRoomListener = FirebaseFirestore.instance
+        .collectionGroup('members')
+        .where('user_id', isEqualTo: uid)
+        .snapshots()
+        .listen((snapshot) async {
+      print("📡 실시간 초대 수신: ${snapshot.docs.length}");
+
+      for (final doc in snapshot.docs) {
+        await _handleMemberDoc(doc);
+      }
+    });
+  }
+
+
+
+  @override
+  void dispose() {
+    _invitedRoomListener?.cancel();
+    super.dispose();
+  }
+
+  void _showInvitationDialog(BuildContext context, String roomId) async {
+    // 🔥 Firestore에서 room_name 읽기
+    final roomDoc = await FirebaseFirestore.instance
+        .collection('travel_rooms')
+        .doc(roomId)
+        .get();
+
+    final roomName = roomDoc.data()?['room_name'] ?? '이름 없음';
+
+    // ✅ 다이얼로그 띄우기
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFAF3E0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "🎉 방 초대",
+          style: TextStyle(
+            fontFamily: 'Jalnan',
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color: Color(0xFF333333),
+          ),
+        ),
+        content: Text(
+          "방에 초대되었습니다!\n\n방 이름: $roomName", // ✅ room_name 표시
+          style: const TextStyle(
+            fontFamily: 'Jalnan',
+            fontSize: 16,
+            color: Color(0xFF555555),
+          ),
+        ),
+        actionsPadding: const EdgeInsets.only(right: 16, bottom: 12),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+              textStyle: const TextStyle(
+                fontFamily: 'Jalnan',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("취소"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFACC15),
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              textStyle: const TextStyle(
+                fontFamily: 'YGTZan',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context); // 다이얼로그 닫기
+              context.push('/dice/$roomId');
+            },
+            child: const Text("입장하기"),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+
+
 
   // 🔹 Firestore에서 최근 여행 3건 조회
   Future<List<Map<String, dynamic>>> getRecentJoinRooms(String userId) async {
