@@ -72,10 +72,15 @@ class _ScheduleListState extends State<ScheduleList> {
 
     final correctedSchedules = await correctScheduleListWithGoogleMaps(
       rawList: schedules,
-      googleApiKey: dotenv.env['GEMINI_API_KEY']!,
+      googleApiKey: dotenv.env['GOOGLE_MAPS_API_KEY']!,
       region: widget.region,
       subRegion: widget.subRegion,
     );
+
+    print("✅ 보정된 일정:");
+    for (final schedule in correctedSchedules) {
+      print("📍 ${schedule['place_name']} | 위도: ${schedule['lat']}, 경도: ${schedule['lng']}");
+    }
 
     final snapshot = await ref.get();
     for (final doc in snapshot.docs) {
