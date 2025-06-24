@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'notification.dart';
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -14,12 +14,12 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     try {
-      // ✅ Kakao 로그아웃은 providerId로 확인
       if (user != null) {
+        // ✅ 구글 로그인인 경우 Google 로그아웃도 수행
         for (var info in user.providerData) {
-          if (info.providerId == 'kakao.com') {
-            // 카카오 로그아웃
-            await UserApi.instance.logout();
+          if (info.providerId == 'google.com') {
+            // Google 로그아웃
+            await GoogleSignIn().signOut();
             break;
           }
         }
@@ -28,9 +28,9 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         await FirebaseAuth.instance.signOut();
       }
 
-      // ✅ 로그아웃 후 로그인 페이지로 이동
+      // ✅ 로그인 페이지로 이동
       if (context.mounted) {
-        context.go('/login'); // 또는 Navigator.pushReplacementNamed(context, '/login')
+        context.go('/'); // 또는 context.go('/login');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
