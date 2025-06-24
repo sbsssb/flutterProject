@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static ThemeData get mainTheme => ThemeData(
-    fontFamily: 'AstaSans', // 메인 포트: 잘난체
-    primaryColor: const Color(0xFF1E6FD9), // 기본 파랑
+    fontFamily: 'AstaSans',
+    primaryColor: const Color(0xFF1E6FD9),
     scaffoldBackgroundColor: Colors.white,
     colorScheme: ColorScheme.fromSeed(
       seedColor: const Color(0xFF1E6FD9),
-      primary: const Color(0xFF1E6FD9),   // 기본 파랑
-      secondary: const Color(0xFFFACC15), // 포인트 노랑
+      primary: const Color(0xFF1E6FD9),
+      secondary: const Color(0xFFFACC15),
     ),
     textTheme: const TextTheme(
       headlineLarge: TextStyle(fontFamily: 'AstaSans'),

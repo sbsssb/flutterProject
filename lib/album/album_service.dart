@@ -7,13 +7,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class AlbumService {
 
-  static Future<void> uploadAlbumPhoto(String roomId, String uploaderId) async {
+  static Future<bool> uploadAlbumPhoto(String roomId, String uploaderId) async {
     try {
       //1. 이미지 선택
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-      if (pickedFile == null) return;
+      if (pickedFile == null) {
+        return false;
+      };
 
       //2. 이미지 스토리지 업로드
       final filename = '${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -46,9 +48,11 @@ class AlbumService {
         'cdatetime': FieldValue.serverTimestamp(),
       });
 
-      print('✅ 업로드 및 Firestore 저장 성공');
+      // print('✅ 업로드 및 Firestore 저장 성공');
+      return true;
     } catch (e) {
-      print('❌ 업로드 실패: $e');
+      // print('❌ 업로드 실패: $e');
+      return false;
     }
   }
 

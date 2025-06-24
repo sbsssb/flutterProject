@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/logo_header.dart';
+
 class RegionSelectPage extends StatelessWidget {
   const RegionSelectPage({Key? key}) : super(key: key);
 
@@ -11,7 +13,7 @@ class RegionSelectPage extends StatelessWidget {
     {'label': '인천', 'value': '인천광역시', 'left': 55.0, 'top': 105.0},
     {'label': '충북', 'value': '충청북도', 'left': 160.0, 'top': 190.0},
     {'label': '충남', 'value': '충청남도', 'left': 80.0, 'top': 210.0},
-    {'label': '세종', 'value': '세종특별자치시', 'left': 120.0, 'top': 215.0},
+    {'label': '세종', 'value': '세종시', 'left': 120.0, 'top': 215.0},
     {'label': '대전', 'value': '대전광역시', 'left': 125.0, 'top': 250.0},
     {'label': '전북', 'value': '전라북도', 'left': 110.0, 'top': 300.0},
     {'label': '전남', 'value': '전라남도', 'left': 80.0, 'top': 400.0},
@@ -21,7 +23,7 @@ class RegionSelectPage extends StatelessWidget {
     {'label': '부산', 'value': '부산광역시', 'left': 290.0, 'top': 360.0},
     {'label': '울산', 'value': '울산광역시', 'left': 298.0, 'top': 328.0},
     {'label': '대구', 'value': '대구광역시', 'left': 230.0, 'top': 290.0},
-    {'label': '제주', 'value': '제주특별자치도', 'left': 50.0, 'top': 545.0},
+    {'label': '제주', 'value': '제주도', 'left': 50.0, 'top': 545.0},
   ];
 
   @override
@@ -32,11 +34,8 @@ class RegionSelectPage extends StatelessWidget {
           children: [
             // ⬆️ 로고
             Padding(
-              padding: const EdgeInsets.all(16),
-              child: Image.asset(
-                'assets/common_images/logo-main-ver1.png',
-                height: 80,
-              ),
+              padding: const EdgeInsets.all(0),
+              child: const LogoHeader(bottomPadding: 0),
             ),
 
             // ⬇️ 지도 + 버튼 영역
@@ -65,10 +64,9 @@ class RegionSelectPage extends StatelessWidget {
                             color: Colors.transparent,
                             child: Text(
                               region['label'],
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
+                              style: TextStyle(
+                                fontFamily: 'Jalnan',
+                                fontSize: 19,
                               ),
                             ),
                           ),

@@ -2,20 +2,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/schedule_model.dart';
 import '../../models/stamp_log_model.dart';
 import '../../mypage/send_notification.dart';
+import '../screens/stamp_detail_screen.dart';
 
 class FirestoreService {
-  // 스케줄 받아오기
-  static Future<List<Schedule>> getSchedules(String roomId) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('travel_rooms')
-        .doc(roomId)
-        .collection('schedules')
-        .orderBy('start')
-        .get();
+  //
+  static Future<ScheduleResult> getScheduleResult(String roomId) async {
+    final roomRef = FirebaseFirestore.instance.collection('travel_rooms').doc(roomId);
 
-    return snapshot.docs
-        .map((doc) => Schedule.fromMap(doc.data(), doc.id))
-        .toList();
+    final roomDoc = await roomRef.get();
+    final isTripDone = roomDoc.data()?['is_done'] ?? false;
+
+    final scheduleSnap = await roomRef.collection('schedules').orderBy('start').get();
+    final schedules = scheduleSnap.docs.map((doc) => Schedule.fromMap(doc.data(), doc.id)).toList();
+
+    return ScheduleResult(isTripDone: isTripDone, schedules: schedules);
   }
 
   // 스탬프 찍기 기록 저장
