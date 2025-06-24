@@ -10,7 +10,6 @@ import '../firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutterteam4/user/user_provider.dart';
 
-import '../models/travel_room_draft.dart';
 import '../mypage/profile_avatar.dart';
 import '../common/bottom_nav_bar.dart';
 import '../common/logo_header.dart';
