@@ -70,16 +70,28 @@ class _PrevRoomInState extends State<PrevRoomIn> {
       return isDone == true;
     }).toList();
 
-    final rooms = filteredDocs.map((doc) {
+    final rooms = await Future.wait(filteredDocs.map((doc) async {
       final data = doc.data() as Map<String, dynamic>;
+      final roomId = data['room_id'];
+      final isOwner = data['is_owner'] ?? false;
+
+
+      // 🔍 Firestore에서 동일한 room_id를 가진 join_rooms 문서 수 카운트
+      final countSnapshot = await FirebaseFirestore.instance
+          .collectionGroup('join_rooms')
+          .where('room_id', isEqualTo: roomId)
+          .get();
+      final memberCount = countSnapshot.docs.length;
+
       return {
-        'room_id': data['room_id'], // travel_rooms 문서 ID
+        'room_id': roomId,
         'title': '${data['region']} 여행',
-        'members': 1, // 인원은 생략 또는 추후 계산
+        'members': memberCount,
         'theme': data['theme'],
         'cdatetime': data['cdatetime'],
+        'is_owner': isOwner, // ✅ 방장 여부 저장
       };
-    }).toList();
+    }).toList());
 
     setState(() {
       travelRooms = rooms;
@@ -92,6 +104,36 @@ class _PrevRoomInState extends State<PrevRoomIn> {
 
       isLoading = false;
     });
+  }
+
+  Future<void> deleteTravelRoom(String roomId) async {
+    final firestore = FirebaseFirestore.instance;
+
+    // 🔸 모든 유저의 join_rooms에서 해당 room_id 삭제
+    final joinRoomsSnapshot = await firestore.collectionGroup('join_rooms')
+        .where('room_id', isEqualTo: roomId)
+        .get();
+
+    for (final doc in joinRoomsSnapshot.docs) {
+      await doc.reference.delete();
+    }
+
+    // 🔸 travel_rooms의 모든 서브컬렉션 삭제
+    final subcollections = ['members', 'schedules', 'stamp_logs', 'album_photos'];
+    for (final sub in subcollections) {
+      final subSnap = await firestore
+          .collection('travel_rooms')
+          .doc(roomId)
+          .collection(sub)
+          .get();
+
+      for (final doc in subSnap.docs) {
+        await doc.reference.delete();
+      }
+    }
+
+    // 🔸 travel_rooms 문서 자체 삭제
+    await firestore.collection('travel_rooms').doc(roomId).delete();
   }
 
   @override
@@ -156,45 +198,87 @@ class _PrevRoomInState extends State<PrevRoomIn> {
                                   const Spacer(),
                                   Align(
                                     alignment: Alignment.bottomRight,
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        final roomId = room['room_id'];
-                                        print('📦 클릭된 room_id: $roomId');
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // 삭제 버튼 (조건부 렌더링)
+                                        if (room['is_owner'] == true)
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              final roomId = room['room_id'];
 
-                                        try {
-                                          final query = await FirebaseFirestore.instance
-                                              .collection('travel_rooms')
-                                              .where('room_id', isEqualTo: roomId)
-                                              .limit(1)
-                                              .get();
+                                              final shouldDelete = await showDialog<bool>(
+                                                context: context,
+                                                builder: (ctx) => AlertDialog(
+                                                  title: const Text('방 삭제'),
+                                                  content: const Text('정말로 이 여행방을 삭제하시겠습니까? 모든 데이터가 사라집니다.'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () => Navigator.of(ctx).pop(false),
+                                                      child: const Text('취소'),
+                                                    ),
+                                                    ElevatedButton(
+                                                      onPressed: () => Navigator.of(ctx).pop(true),
+                                                      child: const Text('삭제'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
 
-                                          if (query.docs.isNotEmpty) {
-                                            final doc = query.docs.first;
-                                            final docId = doc.id; // ✅ 문서 ID (문서 자체의 ID)
-                                            final detailData = doc.data(); // 👉 참고용
+                                              if (shouldDelete == true) {
+                                                await deleteTravelRoom(roomId);
+                                                await fetchTravelRooms(page: currentPage); // 삭제 후 목록 갱신
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('여행방이 삭제되었습니다.')),
+                                                );
+                                              }
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.red,
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            ),
+                                            child: const Text('삭제'),
+                                          )
+                                        else
+                                          const SizedBox(), // 삭제 안 보일 때 공간 차지용
 
-                                            print('✅ travel_rooms 상세 정보:');
-                                            print(detailData);
+                                        // 이동 버튼
+                                        ElevatedButton(
+                                          onPressed: () async {
+                                            final roomId = room['room_id'];
+                                            print('📦 클릭된 room_id: $roomId');
 
-                                            // ✅ 상세 페이지로 이동
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => PrevRoomDetailPage(roomId: docId),
-                                              ),
-                                            );
-                                          } else {
-                                            print('❌ 해당 room_id를 가진 travel_rooms 문서를 찾을 수 없습니다.');
-                                          }
-                                        } catch (e) {
-                                          print('🚨 Firestore 조회 중 오류 발생: $e');
-                                        }
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.amber,
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      ),
-                                      child: const Text('이동'),
+                                            try {
+                                              final query = await FirebaseFirestore.instance
+                                                  .collection('travel_rooms')
+                                                  .where('room_id', isEqualTo: roomId)
+                                                  .limit(1)
+                                                  .get();
+
+                                              if (query.docs.isNotEmpty) {
+                                                final doc = query.docs.first;
+                                                final docId = doc.id;
+
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => PrevRoomDetailPage(roomId: docId),
+                                                  ),
+                                                );
+                                              } else {
+                                                print('❌ 해당 room_id를 가진 travel_rooms 문서를 찾을 수 없습니다.');
+                                              }
+                                            } catch (e) {
+                                              print('🚨 Firestore 조회 중 오류 발생: $e');
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.amber,
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          ),
+                                          child: const Text('이동'),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],

@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'appbar.dart';
-import 'package:flutterteam4/mypage/send_notification.dart'; // 네 구조에 맞게
-import 'friends.dart'; // FriendsPage로 이동할 거야
+import 'package:flutterteam4/mypage/send_notification.dart';
+import 'friends.dart';
 import 'profile_avatar.dart';
 import '../common/bottom_nav_bar.dart';
 
@@ -16,16 +16,14 @@ class NotificationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> notificationStream =
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('notifications')
-            .where('is_read', isEqualTo: false) // ✅ 읽지 않은 알람만 보이게
-            .orderBy('cdatetime', descending: true)
-            .snapshots();
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .where('is_read', isEqualTo: false)
+        .snapshots(); // ✅ timestamp 정렬 제거 (필드 누락 방지)
 
     return Scaffold(
-      // appBar: CustomAppBar(userId: userId),
       body: StreamBuilder<QuerySnapshot>(
         stream: notificationStream,
         builder: (context, snapshot) {
@@ -67,8 +65,6 @@ class NotificationPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // ✅ 알림 리스트 표시
                 Expanded(
                   child: ListView.builder(
                     itemCount: notifications.length,
@@ -78,86 +74,171 @@ class NotificationPage extends StatelessWidget {
 
                       final type = data['type'] ?? '';
                       final content = data['content'] ?? '';
+                      final message = data['message'] ?? '';
                       final isRead = data['is_read'] ?? false;
-                      final time = (data['cdatetime'] as Timestamp?)?.toDate();
+                      final time = (data['timestamp'] ?? data['cdatetime']) as Timestamp?;
+                      final timeValue = time?.toDate();
                       final senderNickname = data['sender_nickname'] ?? '';
-                      final stampCount =
-                          data['sender_stampCount'] ?? 0; // ✅ stampCount 읽기
-                      final avatarImagePath = getProfileImagePath(
-                        stampCount,
-                      ); // ✅ 경로 변환
+                      final stampCount = data['sender_stampCount'] ?? 0;
+                      final avatarImagePath = getProfileImagePath(stampCount);
 
+                      // ✅ [초대 알림은 별도 UI로 분기]
+                      if (type == 'invitation') {
+                        final roomId = data['room_id'];
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Image.asset(avatarImagePath, height: 48),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      message,
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Text(
+                                  timeValue != null
+                                      ? "${timeValue.year}.${timeValue.month.toString().padLeft(2, '0')}.${timeValue.day.toString().padLeft(2, '0')} "
+                                      "${timeValue.hour}:${timeValue.minute.toString().padLeft(2, '0')}"
+                                      : '시간 없음',
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton(
+                                    onPressed: () async {
+                                      if (roomId == null) return;
+
+                                      final roomDoc = await FirebaseFirestore.instance
+                                          .collection('travel_rooms')
+                                          .doc(roomId)
+                                          .get();
+
+                                      if (!roomDoc.exists) {
+                                        // ✅ 방이 삭제된 상태!
+                                        if (context.mounted) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (_) => AlertDialog(
+                                              title: const Text("오류"),
+                                              content: const Text("해당 방이 존재하지 않습니다.\n이미 삭제되었을 수 있습니다."),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context),
+                                                  child: const Text("확인"),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }
+
+                                        // 그래도 알림은 읽음 처리
+                                        await FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(userId)
+                                            .collection('notifications')
+                                            .doc(doc.id)
+                                            .update({'is_read': true});
+
+                                        return;
+                                      }
+
+                                      // ✅ 방이 존재하는 경우 이동
+                                      context.go('/detail/$roomId');
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(userId)
+                                          .collection('notifications')
+                                          .doc(doc.id)
+                                          .update({'is_read': true});
+                                    },
+                                    child: const Text('수락'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(userId)
+                                          .collection('notifications')
+                                          .doc(doc.id)
+                                          .update({'is_read': true});
+                                      print('🚫 초대 거절: 읽음 처리만');
+                                    },
+                                    child: const Text('거절'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      // ✅ [기존 알림 처리 - 친구/스탬프]
                       return Stack(
                         children: [
                           GestureDetector(
                             onTap: () {
                               print('🟡 알림이 클릭되었습니다.');
-
-                              // 초기값: 친구 목록 탭 (0)
-                              int tabIndex = 0; // 기본값
+                              int tabIndex = 0;
 
                               if (type == 'friend_request') {
                                 tabIndex = 2;
-                                print('📨 친구 요청 알림');
                               } else if (type == 'friend_accept') {
                                 tabIndex = 0;
-                                print('✅ 친구 수락 알림');
                               } else if (type == 'stamp_log') {
                                 final roomId = data['room_id'];
-                                print('📍 스탬프 로그 알림 - roomId: $roomId');
-
                                 if (roomId != null && context.mounted) {
-                                  // ❗ GoRouter를 사용하는 경우 - context가 유효할 때 바로 이동
                                   context.go('/detail/$roomId');
-                                  print('🟢 GoRouter로 /detail/$roomId 이동');
-                                } else {
-                                  print('🔴 roomId 없음 또는 context 비활성');
                                 }
-
-                                // 스탬프 로그는 FriendsPage 이동이 아니므로 여기서 return
                                 FirebaseFirestore.instance
                                     .collection('users')
                                     .doc(userId)
                                     .collection('notifications')
                                     .doc(doc.id)
-                                    .update({'is_read': true}).then((_) {
-                                  print('🟢 Firestore 업데이트 완료 - is_read: true');
-                                }).catchError((e) {
-                                  print('🔴 Firestore 업데이트 실패: $e');
-                                });
-
-                                return; // ✅ 여기서 종료
+                                    .update({'is_read': true});
+                                return;
                               }
 
-                              // 친구 요청/수락 처리
-                              if (tabIndex != null && context.mounted) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      print('🟢 FriendsPage 이동 시작 - 탭: $tabIndex');
-                                      return FriendsPage(
-                                        userData: {'user_id': userId},
-                                        initialTabIndex: tabIndex,
-                                      );
-                                    },
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FriendsPage(
+                                    userData: {'user_id': userId},
+                                    initialTabIndex: tabIndex,
                                   ),
-                                );
+                                ),
+                              );
 
-                                print('🟢 Navigator.push 실행 완료');
-
-                                // Firestore 업데이트 (읽음 처리)
-                                FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(userId)
-                                    .collection('notifications')
-                                    .doc(doc.id)
-                                    .update({'is_read': true}).then((_) {
-                                  print('🟢 Firestore 업데이트 완료 - is_read: true');
-                                }).catchError((e) {
-                                  print('🔴 Firestore 업데이트 실패: $e');
-                                });
-                              }
+                              FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(userId)
+                                  .collection('notifications')
+                                  .doc(doc.id)
+                                  .update({'is_read': true});
                             },
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 12),
@@ -181,7 +262,7 @@ class NotificationPage extends StatelessWidget {
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         RichText(
                                           text: TextSpan(
@@ -206,14 +287,10 @@ class NotificationPage extends StatelessWidget {
                                         Align(
                                           alignment: Alignment.bottomRight,
                                           child: Text(
-                                            time != null
-                                                ? "${time.year}.${time.month.toString().padLeft(2, '0')}.${time.day.toString().padLeft(2, '0')} "
-                                                    "${time.hour}:${time.minute.toString().padLeft(2, '0')}"
+                                            timeValue != null
+                                                ? "${timeValue.year}.${timeValue.month.toString().padLeft(2, '0')}.${timeValue.day.toString().padLeft(2, '0')} "
+                                                "${timeValue.hour}:${timeValue.minute.toString().padLeft(2, '0')}"
                                                 : '시간 없음',
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.brown,
-                                            ),
                                           ),
                                         ),
                                       ],
@@ -223,13 +300,12 @@ class NotificationPage extends StatelessWidget {
                               ),
                             ),
                           ),
-                          // ✅ 닫기 버튼 (알림 상자 우상단)
                           Positioned(
                             top: 4,
                             right: 8,
                             child: GestureDetector(
-                              onTap: () async {
-                                await FirebaseFirestore.instance
+                              onTap: () {
+                                FirebaseFirestore.instance
                                     .collection('users')
                                     .doc(userId)
                                     .collection('notifications')
@@ -248,7 +324,6 @@ class NotificationPage extends StatelessWidget {
                     },
                   ),
                 ),
-
                 const SizedBox(height: 12),
                 Center(
                   child: IconButton(
@@ -266,7 +341,6 @@ class NotificationPage extends StatelessWidget {
           );
         },
       ),
-
       bottomNavigationBar: const BottomNavBar(currentIndex: 3),
     );
   }

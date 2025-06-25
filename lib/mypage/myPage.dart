@@ -180,8 +180,8 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
                                       ),
                                     ),
                                     child: const Text(
-                                      '면허 갱신하기',
-                                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'AstaSans',color: Colors.white),
+                                      '프로필 수정하기',
+                                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'Jalnan',color: Colors.white),
                                     ),
                                   ),
                                   Positioned(
