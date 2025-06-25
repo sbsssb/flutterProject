@@ -27,9 +27,14 @@ class StampCard extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              '${DateFormat('HH:mm').format(schedule.start.toDate())} ${schedule.placeName}',
-              style: const TextStyle(fontSize: 20),
+            child: Column(
+              children: [
+                Text(
+                  '${DateFormat('HH:mm').format(schedule.start.toDate())} ${schedule.placeName}',
+                  style: const TextStyle(fontSize: 18),
+                ),
+                Text('${schedule.address}')
+              ],
             ),
           ),
           schedule.isDone

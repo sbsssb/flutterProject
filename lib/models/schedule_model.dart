@@ -8,6 +8,7 @@ class Schedule {
   final double lng;
   final String placeName;
   final Timestamp start;
+  final String address;
   bool isDone;
   bool canStamp;
   bool canStampAlreadyNoti = false;
@@ -21,6 +22,7 @@ class Schedule {
     required this.placeName,
     required this.isDone,
     required this.start,
+    required this.address,
     this.canStamp = false,
 });
   factory Schedule.fromMap(Map<String, dynamic> map, String id) {
@@ -48,6 +50,7 @@ class Schedule {
       placeName: map['place_name'] ?? '',
       isDone: map['is_done'] ?? false,
       start: startTimestamp,
+      address : map['address'] ?? ''
     );
   }
 
