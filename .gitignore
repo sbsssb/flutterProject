@@ -44,4 +44,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android release keystore and signing info (Do NOT commit)
+android/key.properties
+android/app/release-key.jks
+
 .env
