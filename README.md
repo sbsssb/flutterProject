@@ -1,11 +1,11 @@
-# 🎲 랜덤어때 - 주사위로 떠나는 랜덤 여행
+# 🎲 랜덤어때 "어디든 좋아! 주사위가 정해주는 랜덤 여행"
 
 ![Flutter](https://img.shields.io/badge/flutter-3.22.0-blue)
 ![Firebase](https://img.shields.io/badge/firebase-auth-orange)
 ![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios-green)
 
-> **"어디든 좋아. 주사위가 정해주는 랜덤 여행!"**
-![랜덤어때 로고](./assets/screenshots/logo-main-ver1.png)
+> ****
+<img src="./assets/screenshots/logo-main-ver1.png" alt="랜덤어때 로고" style="width:50%;"/>
 ---
 
 ## 👨‍👩‍👧‍👦 팀 소개
