@@ -151,18 +151,26 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>📍 스탬프 적립 (담당: 새별)</summary>
 
-<img src="./assets/screenshots/stamp.png" alt="스탬프 적립" width="300"/>
+<img src="./assets/screenshots/stamp1.png" alt="스탬프 적립" width="300"/>
 
-방문 시 위치 기반으로 자동 스탬프를 적립하며, 여행 중 수집의 재미를 제공합니다.
+
+- 스탬프 적립 기능으로 일정 완료 여부를 확인하고 시각적으로 표시합니다.
+
+- 전체 일정 중 완료 현황을 수치로 보여주고, 여행 종료 처리를 할 수 있습니다.
+
 
 </details>
 
 <details>
 <summary>🖼 공유 앨범 (담당: 새별)</summary>
 
-<img src="./assets/screenshots/album.png" alt="공유 앨범" width="300"/>
+<img src="./assets/screenshots/album2.png" alt="공유 앨범" width="300"/>
+- 여행 사진을 업로드하고 멤버들과 공유할 수 있습니다.
+<img src="./assets/screenshots/album3.png" alt="공유 앨범" width="300"/>
+- 사진 클릭 시 확대보기가 가능하며, 스와이프 기능으로 사진 넘겨보기/사진 저장하기가 가능합니다.
+<img src="./assets/screenshots/album4.png" alt="공유 앨범" width="300"/>
+- 사진을 길게 누를 경우, 전체/선택 삭제를 할 수 있습니다.
 
-여행 중 촬영한 사진을 팀원들과 공유하고 다운로드할 수 있는 앨범 페이지입니다.
 
 </details>
 
