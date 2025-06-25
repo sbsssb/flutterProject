@@ -21,7 +21,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   void initState() {
     super.initState();
 
-    // 넘겨받은 userData를 기반으로 컨트롤러 초기화
+
     nicknameController = TextEditingController(
       text: widget.userData['nickname'] ?? '',
     );
@@ -31,14 +31,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   void _showPasswordChangeDialog(BuildContext rootContext) {
-    // 🔐 입력 필드 컨트롤러들
     final currentPwController = TextEditingController();
     final newPwController = TextEditingController();
     final confirmPwController = TextEditingController();
 
-    // 🔔 팝업창 띄우기
+
     showDialog(
-      context: rootContext, // 여기 context는 dialog용
+      context: rootContext,
       builder: (context) {
         return AlertDialog(
           title: const Text('비밀번호 변경'),
@@ -46,19 +45,19 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ✅ 기존 비밀번호 입력
+
                 TextField(
                   controller: currentPwController,
                   obscureText: true,
                   decoration: const InputDecoration(labelText: '기존 비밀번호'),
                 ),
-                // ✅ 새 비밀번호 입력
+
                 TextField(
                   controller: newPwController,
                   obscureText: true,
                   decoration: const InputDecoration(labelText: '새 비밀번호'),
                 ),
-                // ✅ 새 비밀번호 확인
+
                 TextField(
                   controller: confirmPwController,
                   obscureText: true,
@@ -68,19 +67,19 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             ),
           ),
           actions: [
-            // 🔘 취소 버튼
+
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('취소'),
             ),
-            // ✅ 저장 버튼
+
             ElevatedButton(
               onPressed: () async {
                 final currentPw = currentPwController.text.trim();
                 final newPw = newPwController.text.trim();
                 final confirmPw = confirmPwController.text.trim();
 
-                // 1. 새 비밀번호 일치 여부 확인
+
                 if (newPw != confirmPw) {
                   ScaffoldMessenger.of(rootContext).showSnackBar(
                     const SnackBar(content: Text('새 비밀번호가 일치하지 않습니다.')),
@@ -93,23 +92,22 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   final email = user?.email;
                   if (email == null) throw Exception('이메일 없음');
 
-                  // 2. 🔐 재인증
+
                   final credential = EmailAuthProvider.credential(
                     email: email,
                     password: currentPw,
                   );
                   await user!.reauthenticateWithCredential(credential);
 
-                  // 3. ✅ 비밀번호 변경
+
                   await user.updatePassword(newPw);
 
-                  Navigator.pop(context); // 팝업 닫기
+                  Navigator.pop(context);
 
                   ScaffoldMessenger.of(rootContext).showSnackBar(
                     const SnackBar(content: Text('비밀번호가 성공적으로 변경되었습니다.')),
                   );
                 } catch (e) {
-                  print('❌ 비밀번호 변경 실패: $e');
                   ScaffoldMessenger.of(rootContext).showSnackBar(
                     const SnackBar(content: Text('비밀번호 변경에 실패했습니다.')),
                   );
@@ -125,9 +123,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('✅ 프로필 수정 페이지 userData: ${widget.userData}');
     return Scaffold(
-      // appBar: CustomAppBar(userId: userId),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -143,11 +140,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             ),
             const SizedBox(height: 12),
 
-            // ✅ 가로 선 추가
+
             const Divider(
-              color: Color(0xFF1E6FD9), // 선 색상
-              thickness: 2,              // 두께
-              height: 16,                // 위아래 공간 포함 전체 높이
+              color: Color(0xFF1E6FD9),
+              thickness: 2,
+              height: 16,
             ),
             const SizedBox(height: 12),
             Text(
@@ -155,7 +152,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               style: const TextStyle(color: Color(0xFF1E6FD9)),
             ),
             const SizedBox(height: 12),
-            Image.asset(getProfileImagePath(widget.stampCount), height: 240), // 추후 수정 예정
+            Image.asset(getProfileImagePath(widget.stampCount), height: 240),
             const SizedBox(height: 20),
             Row(
               children: [
@@ -189,7 +186,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         SizedBox(height: 4),
                         Text(
                           getTitleWithNickname(widget.stampCount, widget.userData['nickname']),
-                          style: TextStyle( // ✅ const 제거
+                          style: TextStyle(
                             fontSize: 14,
                               fontFamily: 'AstaSans',
                             color: Color(0xFF1E6FD9),
@@ -232,7 +229,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
-              onPressed: () => _showPasswordChangeDialog(context), // ⬅️ 함수 호출
+              onPressed: () => _showPasswordChangeDialog(context),
               icon: const Icon(Icons.lock_outline),
               label: const Text('비밀번호 변경', style: TextStyle(
                   fontSize: 30,
@@ -250,26 +247,26 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               child: ElevatedButton(
                   onPressed: () async {
                     try {
-                      final userId = widget.userData['user_id']; // 문서 ID로 사용
+                      final userId = widget.userData['user_id'];
                       final newNickname = nicknameController.text.trim();
                       final newPhone = phoneController.text.trim();
 
-                      // ✅ 닉네임 중복 체크
+
                       final query = await FirebaseFirestore.instance
                           .collection('users')
                           .where('nickname', isEqualTo: newNickname)
                           .get();
 
-                      final isDuplicate = query.docs.any((doc) => doc.id != userId); // 본인 제외
+                      final isDuplicate = query.docs.any((doc) => doc.id != userId);
 
                       if (isDuplicate) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('이미 사용 중인 닉네임입니다.')),
                         );
-                        return; // 중복이면 저장하지 않음
+                        return;
                       }
 
-                      // ✅ 중복이 아니라면 저장
+
                       await FirebaseFirestore.instance
                           .collection('users')
                           .doc(userId)
@@ -278,10 +275,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         'phone': newPhone,
                       });
 
-                      // ✅ 저장 완료 후 이전 화면(MyPage)으로 돌아가면서 true를 반환
+
                       Navigator.pop(context, true);
                     } catch (e) {
-                      print('❌ 저장 실패: $e');
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('저장 중 오류가 발생했습니다.')),
                       );

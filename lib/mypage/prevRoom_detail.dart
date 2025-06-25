@@ -58,14 +58,14 @@ class PrevRoomDetailPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Stack을 써서 방 이름을 노란 박스 위에 겹치게
+
               Expanded(
                 child: Stack(
                   alignment: Alignment.topCenter,
                   children: [
-                    // 🟡 노란 박스 (화면 하단 영역)
+
                     Positioned.fill(
-                      top: 30, // 방 이름 박스 높이만큼 여유를 줌
+                      top: 30,
                       child: Container(
                         padding: const EdgeInsets.only(
                           top: 60,
@@ -81,7 +81,7 @@ class PrevRoomDetailPage extends StatelessWidget {
                         ),
                         child: Column(
                           children: [
-                            // 📍 지역 정보
+
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -103,7 +103,7 @@ class PrevRoomDetailPage extends StatelessWidget {
 
                             const SizedBox(height: 40),
 
-                            // 👥 멤버 목록
+
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: members.map((member) {
@@ -144,7 +144,7 @@ class PrevRoomDetailPage extends StatelessWidget {
 
                             const SizedBox(height: 50),
 
-                            // 📷 앨범 버튼
+
                             ElevatedButton(
                               onPressed: () {
                                 final currentUser =
@@ -169,7 +169,7 @@ class PrevRoomDetailPage extends StatelessWidget {
 
                             const SizedBox(height: 30),
 
-                            // 📅 일정 버튼
+
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.push(
@@ -195,7 +195,7 @@ class PrevRoomDetailPage extends StatelessWidget {
                       ),
                     ),
 
-                    // 🔵 방 이름 박스 (노란 박스 위에 겹치게 위치)
+
                     Positioned(
                       top: 0,
                       left: 35,
@@ -203,12 +203,12 @@ class PrevRoomDetailPage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
                           vertical: 12,
-                        ), // ⬅️ padding 키움
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.yellow[700], // 노란색 유지
-                          borderRadius: BorderRadius.circular(30), // ⬅️ 더 둥글게
+                          color: Colors.yellow[700],
+                          borderRadius: BorderRadius.circular(30),
                           boxShadow: [
-                            // ⬅️ 그림자 효과
+
                             BoxShadow(
                               color: Colors.black26,
                               blurRadius: 8,

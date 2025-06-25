@@ -155,7 +155,7 @@ class PrevRoomStampPage extends StatelessWidget {
                 Text(
                   placeName,
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.black54,
                   ),
@@ -188,7 +188,7 @@ class PrevRoomStampPage extends StatelessWidget {
             children: [
               const SizedBox(height: 4),
               ElevatedButton(
-                onPressed: null, // 🚫 동작 없음
+                onPressed: null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFF5F5F5),
                   foregroundColor: Colors.black87,

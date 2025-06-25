@@ -21,7 +21,7 @@ class NotificationPage extends StatelessWidget {
         .doc(userId)
         .collection('notifications')
         .where('is_read', isEqualTo: false)
-        .snapshots(); // ✅ timestamp 정렬 제거 (필드 누락 방지)
+        .snapshots();
 
     return Scaffold(
       body: StreamBuilder<QuerySnapshot>(
@@ -82,127 +82,142 @@ class NotificationPage extends StatelessWidget {
                       final stampCount = data['sender_stampCount'] ?? 0;
                       final avatarImagePath = getProfileImagePath(stampCount);
 
-                      // ✅ [초대 알림은 별도 UI로 분기]
+
                       if (type == 'invitation') {
                         final roomId = data['room_id'];
+                        final stampCount = data['sender_stampCount'] ?? 0;
+                        final avatarImagePath = getProfileImagePath(stampCount);
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade200,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                        return FutureBuilder<DocumentSnapshot>(
+                          future: FirebaseFirestore.instance
+                              .collection('travel_rooms')
+                              .doc(roomId)
+                              .get(),
+                          builder: (context, snapshot) {
+                            String roomName = '알 수 없음';
+                            if (snapshot.hasData && snapshot.data!.exists) {
+                              final roomData = snapshot.data!.data() as Map<String, dynamic>?;
+                              roomName = roomData?['room_name'] ?? '이름 없음';
+                            }
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.amber,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Image.asset(avatarImagePath, height: 48),
-                                  const SizedBox(width: 12),
-                                  Expanded(
+                                  Row(
+                                    children: [
+                                      Image.asset(avatarImagePath, height: 48),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('$roomName $message', style: const TextStyle(fontSize: 16)),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Align(
+                                    alignment: Alignment.bottomRight,
                                     child: Text(
-                                      message,
-                                      style: const TextStyle(fontSize: 16),
+                                      timeValue != null
+                                          ? "${timeValue.year}.${timeValue.month.toString().padLeft(2, '0')}.${timeValue.day.toString().padLeft(2, '0')} "
+                                          "${timeValue.hour}:${timeValue.minute.toString().padLeft(2, '0')}"
+                                          : '시간 없음',
                                     ),
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Text(
-                                  timeValue != null
-                                      ? "${timeValue.year}.${timeValue.month.toString().padLeft(2, '0')}.${timeValue.day.toString().padLeft(2, '0')} "
-                                      "${timeValue.hour}:${timeValue.minute.toString().padLeft(2, '0')}"
-                                      : '시간 없음',
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  TextButton(
-                                    onPressed: () async {
-                                      if (roomId == null) return;
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () async {
+                                          if (roomId == null) return;
 
-                                      final roomDoc = await FirebaseFirestore.instance
-                                          .collection('travel_rooms')
-                                          .doc(roomId)
-                                          .get();
+                                          final roomDoc = await FirebaseFirestore.instance
+                                              .collection('travel_rooms')
+                                              .doc(roomId)
+                                              .get();
 
-                                      if (!roomDoc.exists) {
-                                        // ✅ 방이 삭제된 상태!
-                                        if (context.mounted) {
-                                          showDialog(
-                                            context: context,
-                                            builder: (_) => AlertDialog(
-                                              title: const Text("오류"),
-                                              content: const Text("해당 방이 존재하지 않습니다.\n이미 삭제되었을 수 있습니다."),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context),
-                                                  child: const Text("확인"),
+                                          if (!roomDoc.exists) {
+                                            if (context.mounted) {
+                                              showDialog(
+                                                context: context,
+                                                builder: (_) => AlertDialog(
+                                                  title: const Text("오류"),
+                                                  content: const Text("해당 방이 존재하지 않습니다.\n이미 삭제되었을 수 있습니다."),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () => Navigator.pop(context),
+                                                      child: const Text("확인"),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                          );
-                                        }
+                                              );
+                                            }
 
-                                        // 그래도 알림은 읽음 처리
-                                        await FirebaseFirestore.instance
-                                            .collection('users')
-                                            .doc(userId)
-                                            .collection('notifications')
-                                            .doc(doc.id)
-                                            .update({'is_read': true});
+                                            await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(userId)
+                                                .collection('notifications')
+                                                .doc(doc.id)
+                                                .update({'is_read': true});
 
-                                        return;
-                                      }
+                                            return;
+                                          }
 
-                                      // ✅ 방이 존재하는 경우 이동
-                                      context.go('/detail/$roomId');
-                                      await FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(userId)
-                                          .collection('notifications')
-                                          .doc(doc.id)
-                                          .update({'is_read': true});
-                                    },
-                                    child: const Text('수락'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(userId)
-                                          .collection('notifications')
-                                          .doc(doc.id)
-                                          .update({'is_read': true});
-                                      print('🚫 초대 거절: 읽음 처리만');
-                                    },
-                                    child: const Text('거절'),
+
+                                          context.go('/dice/$roomId');
+
+                                          await FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(userId)
+                                              .collection('notifications')
+                                              .doc(doc.id)
+                                              .update({'is_read': true});
+                                        },
+                                        child: const Text('수락'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(userId)
+                                              .collection('notifications')
+                                              .doc(doc.id)
+                                              .update({'is_read': true});
+                                        },
+                                        child: const Text('거절'),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         );
                       }
 
-                      // ✅ [기존 알림 처리 - 친구/스탬프]
+
                       return Stack(
                         children: [
                           GestureDetector(
-                            onTap: () {
-                              print('🟡 알림이 클릭되었습니다.');
+                            onTap: () async {
                               int tabIndex = 0;
 
                               if (type == 'friend_request') {
@@ -211,10 +226,43 @@ class NotificationPage extends StatelessWidget {
                                 tabIndex = 0;
                               } else if (type == 'stamp_log') {
                                 final roomId = data['room_id'];
+
                                 if (roomId != null && context.mounted) {
+                                  final roomDoc = await FirebaseFirestore.instance
+                                      .collection('travel_rooms')
+                                      .doc(roomId)
+                                      .get();
+
+                                  if (!roomDoc.exists) {
+                                    if (context.mounted) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (_) => AlertDialog(
+                                          title: const Text("알림"),
+                                          content: const Text("해당 방이 존재하지 않습니다."),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text("확인"),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(userId)
+                                        .collection('notifications')
+                                        .doc(doc.id)
+                                        .update({'is_read': true});
+                                    return;
+                                  }
+
                                   context.go('/detail/$roomId');
                                 }
-                                FirebaseFirestore.instance
+
+                                await FirebaseFirestore.instance
                                     .collection('users')
                                     .doc(userId)
                                     .collection('notifications')
@@ -223,17 +271,20 @@ class NotificationPage extends StatelessWidget {
                                 return;
                               }
 
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FriendsPage(
-                                    userData: {'user_id': userId},
-                                    initialTabIndex: tabIndex,
-                                  ),
-                                ),
-                              );
 
-                              FirebaseFirestore.instance
+                              if (context.mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FriendsPage(
+                                      userData: {'user_id': userId},
+                                      initialTabIndex: tabIndex,
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              await FirebaseFirestore.instance
                                   .collection('users')
                                   .doc(userId)
                                   .collection('notifications')

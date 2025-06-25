@@ -6,13 +6,13 @@ import 'prevRoom_detail.dart';
 import 'appbar.dart';
 
 class CurrentRoomApp extends StatelessWidget {
-  final String userId; // 🔹 추가
-  const CurrentRoomApp({super.key, required this.userId}); // 🔹 생성자에 추가
+  final String userId;
+  const CurrentRoomApp({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CurrentRoomIn(userId: userId), // 🔹 전달
+      home: CurrentRoomIn(userId: userId),
     );
   }
 }
@@ -33,13 +33,13 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
   bool hasMore = true;
   bool isLoading = false;
 
-  // 🔹 여기! 페이지 커서 리스트 추가
+
   List<DocumentSnapshot> pageCursors = [];
 
   @override
   void initState() {
     super.initState();
-    fetchTravelRooms(page: 1); // ✅ 초기 진입
+    fetchTravelRooms(page: 1);
   }
 
   Future<void> fetchTravelRooms({required int page}) async {
@@ -64,39 +64,50 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
     final snapshot = await query.get();
     final docs = snapshot.docs;
 
-    // 🔍 is_done == false 필터링 (진행 중인 방만)
-    final filteredDocs = docs.where((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      final isDone = data['is_done'] ?? false;
-      return isDone == false;
-    }).toList();
 
-    // 🔄 members 수를 Firestore에서 불러오는 병렬 작업
-    final rooms = await Future.wait(filteredDocs.map((doc) async {
+    final filteredRooms = <Map<String, dynamic>>[];
+
+    for (final doc in docs) {
       final data = doc.data() as Map<String, dynamic>;
       final roomId = data['room_id'];
       final isOwner = data['is_owner'] ?? false;
 
-      // 🔍 travel_rooms/{roomId}/members 서브컬렉션에서 참여 인원 수 가져오기
-      final membersSnapshot = await FirebaseFirestore.instance
+
+      final travelRoomDoc = await FirebaseFirestore.instance
           .collection('travel_rooms')
           .doc(roomId)
-          .collection('members')
           .get();
 
-      return {
-        'room_id': roomId,
-        'title': '${data['region']} 여행',
-        'members': membersSnapshot.size, // ✅ 실제 인원 수
-        // 'members': 1, // ❌ 기존 하드코딩된 값 (참고용)
-        'theme': data['theme'],
-        'cdatetime': data['cdatetime'],
-        'is_owner': isOwner, // ✅ 방장 여부 저장
-      };
-    }).toList());
+      final travelRoomData = travelRoomDoc.data();
+      if (travelRoomData == null) continue;
+
+      final isDone = travelRoomData['is_done'] ?? false;
+      if (isDone == false) {
+
+      }
+
+
+      if (isDone == false) {
+
+        final membersSnapshot = await FirebaseFirestore.instance
+            .collection('travel_rooms')
+            .doc(roomId)
+            .collection('members')
+            .get();
+
+        filteredRooms.add({
+          'room_id': roomId,
+          'title': '${data['region']} 여행',
+          'members': membersSnapshot.size,
+          'theme': data['theme'],
+          'cdatetime': data['cdatetime'],
+          'is_owner': isOwner,
+        });
+      }
+    }
 
     setState(() {
-      travelRooms = rooms;
+      travelRooms = filteredRooms;
       currentPage = page;
       hasMore = docs.length == 6;
 
@@ -111,7 +122,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
   Future<void> deleteTravelRoom(String roomId) async {
     final firestore = FirebaseFirestore.instance;
 
-    // 🔸 모든 유저의 join_rooms에서 해당 room_id 삭제
+
     final joinRoomsSnapshot = await firestore.collectionGroup('join_rooms')
         .where('room_id', isEqualTo: roomId)
         .get();
@@ -120,7 +131,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
       await doc.reference.delete();
     }
 
-    // 🔸 travel_rooms의 모든 서브컬렉션 삭제
+
     final subcollections = ['members', 'schedules', 'stamp_logs', 'album_photos'];
     for (final sub in subcollections) {
       final subSnap = await firestore
@@ -134,7 +145,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
       }
     }
 
-    // 🔸 travel_rooms 문서 자체 삭제
+
     await firestore.collection('travel_rooms').doc(roomId).delete();
   }
 
@@ -201,7 +212,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // 삭제 버튼 (조건부 렌더링)
+
                               if (room['is_owner'] == true)
                                 ElevatedButton(
                                   onPressed: () async {
@@ -227,7 +238,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
 
                                     if (shouldDelete == true) {
                                       await deleteTravelRoom(roomId);
-                                      await fetchTravelRooms(page: currentPage); // 삭제 후 목록 갱신
+                                      await fetchTravelRooms(page: currentPage);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(content: Text('여행방이 삭제되었습니다.')),
                                       );
@@ -240,13 +251,12 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
                                   child: const Text('삭제'),
                                 )
                               else
-                                const SizedBox(), // 삭제 안 보일 때 공간 차지용
+                                const SizedBox(),
 
-                              // 이동 버튼
                               ElevatedButton(
                                 onPressed: () async {
                                   final roomId = room['room_id'];
-                                  print('📦 클릭된 room_id: $roomId');
+
 
                                   try {
                                     final query = await FirebaseFirestore.instance
@@ -266,10 +276,10 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
                                         ),
                                       );
                                     } else {
-                                      print('❌ 해당 room_id를 가진 travel_rooms 문서를 찾을 수 없습니다.');
+
                                     }
                                   } catch (e) {
-                                    print('🚨 Firestore 조회 중 오류 발생: $e');
+
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -292,7 +302,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ◀️ 이전
+
                   IconButton(
                     onPressed: currentPage > 1 ? () {
                       fetchTravelRooms(page: currentPage - 1);
@@ -300,7 +310,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
                     icon: const Icon(Icons.chevron_left),
                   ),
 
-                  // 📄 숫자 버튼
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: OutlinedButton(
@@ -309,7 +319,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
                     ),
                   ),
 
-                  // ▶️ 다음
+
                   IconButton(
                     onPressed: hasMore ? () {
                       fetchTravelRooms(page: currentPage + 1);
