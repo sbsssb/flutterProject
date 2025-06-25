@@ -212,7 +212,15 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>👤 마이페이지 (담당: 성규)</summary>
 
-<img src="./assets/screenshots/mypage.png" alt="마이페이지" width="20%"/>
+<div align="center">
+  <img src="./assets/screenshots/mypage.png" alt="마이페이지" width="20%"/>
+  <img src="./assets/screenshots/profileEdit.png" alt="마이페이지" width="20%"/>
+  <img src="./assets/screenshots/password.png" alt="마이페이지" width="20%"/>
+  <img src="./assets/screenshots/friendIndex.png" alt="마이페이지" width="20%"/>
+  <img src="./assets/screenshots/addfriend.png" alt="마이페이지" width="20%"/>
+  <img src="./assets/screenshots/travelRoom.png" alt="마이페이지" width="20%"/>
+  <img src="./assets/screenshots/stampIndex.png" alt="마이페이지" width="20%"/>
+</div>
 
 사용자는 자신이 참여한 여행방, 적립한 스탬프, 업로드한 사진 등을 마이페이지에서 확인할 수 있습니다.
 
@@ -221,7 +229,12 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>🔔 알림 페이지 (담당: 성규)</summary>
 
-<img src="./assets/screenshots/notification.png" alt="알림 페이지" width="20%"/>
+<div align="center">
+  <img src="./assets/screenshots/notification.png" alt="알림 페이지" width="20%"/>
+  <img src="./assets/screenshots/aceptedFriend.png" alt="마이페이지" width="20%"/>
+    <img src="./assets/screenshots/addFriend2.png" alt="마이페이지" width="20%"/>
+  <img src="./assets/screenshots/notification.png" alt="알림 페이지" width="20%"/>
+</div>
 
 여행 초대, 스탬프 적립, 친구 요청 등 주요 활동 내역을 실시간으로 확인할 수 있는 알림 페이지입니다.
 
