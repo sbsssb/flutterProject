@@ -5,7 +5,7 @@
 ![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios-green)
 
 > **"어디든 좋아. 주사위가 정해주는 랜덤 여행!"**
-
+(./assets/screenshots/logo-main-ver1.png)  
 ---
 
 ## 👨‍👩‍👧‍👦 팀 소개
