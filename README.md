@@ -19,7 +19,7 @@
 | 김성규 | 마이페이지, 알림기능 | [glodstone1](https://github.com/glodstone1) |
 | 박새별 | 스탬프 및 앨범 기능, 메인화면 | [SaeByeol5285](https://github.com/SaeByeol5285) |
 | 유승호 | 로그인/회원가입, 축제 API 연동 | 추가 |
-| 홍영은 | 주사위 로직, 게임 애니메이션 처리 | 추가 |
+| 홍영은 | 주사위 로직, 게임 애니메이션 처리 | [HongYeongEun](https://github.com/HongYeongEun) |
 
 ---
 
@@ -133,10 +133,23 @@
 <details>
 <summary>🎲 주사위 여행 (담당: 영은)</summary>
 
-<img src="./assets/screenshots/dice.png" alt="주사위 여행" width="20%"/>
+<p align="center">
+  <img src="./assets/screenshots/dice3.png" width="200"/>
+  <img src="./assets/screenshots/dice2.png" width="200"/>
+  <img src="./assets/screenshots/dice1.png" width="200"/>
+</p>
 
-지역을 선택하고 주사위를 굴려 여행지를 랜덤 추천받는 화면입니다.
+<p align="center">
+  <img src="./assets/screenshots/dice4.png" width="200"/>
+  <img src="./assets/screenshots/dice5.png" width="200"/>
+</p>
 
+<p align="center">
+  🗺️ 사용자가 지역을 선택한 뒤 주사위 게임 방에 입장하면, 선택한 지역 내의 12개 장소가 무작위로 주사위 판에 배치되어 표시됩니다.<br/>
+  🎲 ‘두 개 굴리기’ 버튼을 누르면 주사위가 굴러가고, 이동할 칸이 표시되면서 말이 자동으로 이동합니다.<br/>
+  🧳 주사위 말이 해당 칸에 도착하면, 도착한 지역명이 화면에 표시됩니다.<br/>
+  💬 방장이 친구를 초대하고 방을 생성하면, 해당 사용자에게 실시간으로 초대장이 발송됩니다.<br/>
+  👪 초대 수락 시, 방에 입장하여 방장과 동일한 화면을 함께 보게 됩니다.
 </details>
 
 <details>
