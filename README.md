@@ -161,20 +161,19 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 
 </details>
 
-<details> 
-  <summary>🖼 <strong>공유 앨범 (담당: 새별)</strong></summary> 
-  <div align="center"> 
-    <img src="./assets/screenshots/album2.png" alt="앨범 목록 화면" width="250"/> 
-  </div> 
-  <p>📸 여행 사진을 업로드하고 방 멤버들과 공유할 수 있습니다.</p> <br/> 
-  <div align="center"> 
-    <img src="./assets/screenshots/album3.png" alt="앨범 상세 보기" width="250"/> 
-  </div> 
-  <p>👁️ 사진을 클릭하면 확대해서 볼 수 있으며, 좌우 스와이프 및 저장 기능을 제공합니다.</p> <br/> 
-  <div align="center"> 
-    <img src="./assets/screenshots/album4.png" alt="앨범 선택 삭제" width="250"/> 
-  </div> 
-  <p>🗑️ 사진을 길게 누르면 선택/전체 삭제 기능이 활성화됩니다.</p> 
+<details>
+<summary>🖼 공유 앨범 (담당: 새별)</summary>
+
+<div align="center">
+  <img src="./assets/screenshots/album2.png" width="30%"/>
+  <img src="./assets/screenshots/album3.png" width="30%"/>
+  <img src="./assets/screenshots/album4.png" width="30%"/>
+</div>
+
+<p align="center">
+  여행 사진을 업로드하고, 확대 보기 및 선택 삭제 기능을 제공합니다.
+</p>
+
 </details>
 
 <details>
