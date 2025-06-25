@@ -1,4 +1,3 @@
-// 🔁 전체 적용 코드
 import 'dart:async';
 import 'dart:math';
 import 'package:firebase_core/firebase_core.dart';
@@ -55,7 +54,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         .collection('travel_rooms')
         .doc(widget.roomId)
         .update({'host_is_active': false});
-    print("👋 방장 나감 → host_is_active: false 설정됨");
+
     super.dispose();
   }
   String? _ownerProfileImg;
@@ -75,7 +74,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
   final Set<int> _skippablePositions = {0, 4, 8, 12};
 
-  Offset _getTilePosition(int index) { //하위지역 글자 위치
+  Offset _getTilePosition(int index) {
     const tileSize = 85.0;
     const startX = 8.0;
     const startY = 20.0;
@@ -107,7 +106,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
   int _lastSharedSeed = -1;
 
-  // ✅ 리팩토링된 공유 주사위 애니메이션 리스너
   void _setupSharedDiceAnimationListener() {
     FirebaseFirestore.instance
         .collection('travel_rooms')
@@ -136,22 +134,15 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       final v1 = rand.nextInt(6) + 1;
       final v2 = rand.nextInt(6) + 1;
 
-      print("📡 참여자 주사위 애니 재생: $v1, $v2");
-      print("👀 route 이동 시작: $route");
-      print("🧍 이전 위치: $_currentPosition");
-      // ✅ 애니메이션 먼저 확실히 돌리고
       await Future.wait([
         _dice1Key.currentState?.playDiceWithValue(v1) ?? Future.value(),
         _dice2Key.currentState?.playDiceWithValue(v2) ?? Future.value(),
       ]);
 
-      // ✅ 잠시 대기 (시각적으로 더 자연스럽게)
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // ✅ 그 다음 말 이동
       await _moveTokenAlongRoute(route);
 
-      // ✅ 도착 지역 텍스트 띄우기
       setState(() {
         _landedArea = landedArea ?? '';
         _showDiceResult = false;
@@ -162,13 +153,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
   }
 
 
-// ✅ 기존 _setupDiceListener 완전히 제거!
-// 해당 리스너에서는 애니메이션을 별도로 돌릴 필요 없음 (중복 애니 발생 위험)
-
-
-
-
-  bool _hasArrived = false; // ✅ 도착 플래그 추가
+  bool _hasArrived = false;
   bool _isMovingToken = false;
 
   Future<void> _moveTokenAlongRoute(List<int> route) async {
@@ -176,13 +161,11 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
     int? last = route.last;
 
-    // ✅ 말이 이동 중이면 중복 이동 방지
     if (_currentPosition == last) {
-      print("⛔ 이미 도착한 위치입니다. 이동 스킵");
+
       return;
     }
 
-    // ✅ 시작 위치 강제 설정
     setState(() {
       _currentPosition = route.first;
     });
@@ -213,11 +196,10 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     final diceAlreadyRolled = (data['dice_value'] ?? 0) > 0;
 
     if (isRollingRemote || diceAlreadyRolled) {
-      print("🚫 주사위 이미 굴려졌거나 굴리는 중 → 중단");
+
       return;
     }
 
-    // ✅ Firestore에 is_rolling = true 설정
     await roomDocRef.update({'is_rolling': true});
 
     try {
@@ -260,7 +242,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
       setState(() {
         _diceTotal = stepsNeeded;
-        //_showResultOverlay = false;  ✅ 여기서 숨김 처리
         _landedArea = landed;
         _subRegion = landed;
         _showDiceResult = false;
@@ -280,16 +261,15 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       );
 
       await roomDocRef.update({
-        'board_areas': selectedSubAreas, // 🎯 이걸 추가해야 참여자도 같은 리스트를 씀!
+        'board_areas': selectedSubAreas,
         'dice_result': stepsNeeded,
       });
       if (landed.isNotEmpty) {
         await roomDocRef.update({"sub_region": landed});
       }
     } catch (e) {
-      print("❌ 주사위 굴림 중 오류: $e");
+
     } finally {
-      // ✅ 주사위 굴림 완료 후 상태 초기화
       await roomDocRef.update({'is_rolling': false});
     }
   }
@@ -322,16 +302,16 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       'animation_seed': animationSeed,
       'is_rolling': false,
     }).then((_) {
-      print("✅ 주사위 결과 저장 완료!");
+
     }).catchError((error) {
-      print("❌ 주사위 결과 저장 실패: $error");
+
     });
   }
 
 
   String _getLandedAreaName(int position) {
     const boardTileOrder = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15];
-    int index = boardTileOrder.indexOf(position); // 주사위 도착한 타일이 몇 번째 지역인지 찾기
+    int index = boardTileOrder.indexOf(position);
     if (index != -1 && index < selectedSubAreas.length) {
       return selectedSubAreas[index];
     } else {
@@ -364,26 +344,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
   late StreamSubscription<DocumentSnapshot> _diceListener;
 
 
-  Future<void> _playRemoteAnimation(List<int> route) async {
-    int finalPos = _currentPosition;
-
-    for (int i = 0; i < route.length; i++) {
-      await Future.delayed(const Duration(milliseconds: 400));
-      setState(() {
-        _currentPosition = route[i];
-      });
-      finalPos = route[i];
-    }
-
-    await Future.delayed(const Duration(milliseconds: 100));
-    setState(() {
-      _landedArea = _getLandedAreaName(finalPos); // 🎯 정확한 지역 매칭
-    });
-
-    print("🎯 최종 도착 위치: $finalPos → $_landedArea");
-  }
-
-
   void _listenToDiceResult() {
     FirebaseFirestore.instance
         .collection('travel_rooms')
@@ -394,27 +354,17 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       if (data == null) return;
 
       final diceResult = data['dice_result'] ?? 0;
-      print("📡 실시간 dice_result 감지됨: $diceResult");
 
-      // ✅ 0이면 무시!
+
       if (diceResult <= 0) {
-        print("⚠ dice_result가 0 이하 → 무시함");
+
         return;
       }
 
-      // ✅ 1 이상일 때만 결과 표시
       setState(() {
         _sharedDiceResult = diceResult;
         _showResultOverlay = true;
       });
-
-      // Future.delayed(const Duration(seconds: 4), () {
-      //   if (mounted) {
-      //     setState(() {
-      //       _showResultOverlay = false;
-      //     });
-      //   }
-      // });
     });
   }
 
@@ -430,16 +380,11 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       final ownerId = data?['owner_id'];
 
       if (doc.exists && ownerId != null && region != null && boardAreas != null && boardAreas is List && boardAreas.isNotEmpty) {
-        print("✅ 모든 방 필드 로딩 완료! (하위지역까지)");
+
         break;
       }
-
-      print("⏳ 방 데이터 로딩 대기 중... (${i + 1}/50)");
       await Future.delayed(const Duration(milliseconds: 400));
     }
-
-
-    print("❌ 방 초기화 실패 또는 타임아웃");
   }
 
 
@@ -451,7 +396,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     super.initState();
     _roomId = widget.roomId;
 
-    // host_is_active true로 설정
     FirebaseFirestore.instance.collection('travel_rooms').doc(widget.roomId).update({
       'host_is_active': true,
     });
@@ -459,28 +403,27 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     _setupSharedDiceAnimationListener();
     _listenToDiceResult();
 
-    // ✅ 흔들기 감지 연결
     _shakeDetector = ShakeDetector.autoStart(
       shakeThresholdGravity: 1.8,
-      onPhoneShake: onPhoneShake, // ⬅️ 이 함수 연결해줘야 작동함!
+      onPhoneShake: onPhoneShake,
     );
 
     Future(() async {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
-        print("❌ 로그인된 사용자 없음");
+
         return;
       }
 
       final userId = currentUser.uid;
 
-      print("🌍 지역 로딩 시작: ${widget.roomId}");
+
       await fetchRegionAndLoadAreas(widget.roomId);
       await waitForRoomReady(widget.roomId);
       await fetchParticipants(widget.roomId);
 
       final nickname = await fetchNickname(widget.roomId, userId);
-      print("🎯 받아온 닉네임: $nickname");
+
 
       setState(() {
         _nickname = nickname ?? "익명";
@@ -495,15 +438,12 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
   bool _isOwner = false;
 
   void onPhoneShake(ShakeEvent event) async {
-    print("📱 흔들기 감지됨");
     if (_isRolling) {
-      print("🙅‍♂️ 중복 흔들기 무시");
       return;
     }
 
-    // ✅ 진동
     if (await Vibration.hasVibrator() ?? false) {
-      Vibration.vibrate(duration: 300); // 300ms 진동
+      Vibration.vibrate(duration: 300);
     }
 
     _isRolling = true;
@@ -519,23 +459,15 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       final ownerId = data['owner_id'];
 
       if (currentUid != ownerId) {
-        print("🙅‍♂️ 방장이 아님 → 주사위 안 돌림");
         return;
       }
 
-      // ✅ 주사위 굴리기
       await rollBothDice();
     } catch (e) {
-      print("❌ 예외 발생: $e");
     } finally {
       _isRolling = false;
     }
   }
-
-
-
-
-
 
   List<Map<String, dynamic>> _participants = [];
 
@@ -559,7 +491,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         });
       }
 
-      // 🔁 is_owner가 true인 사람을 맨 앞으로 정렬
       loaded.sort((a, b) {
         if (a['is_owner'] == true && b['is_owner'] != true) return -1;
         if (a['is_owner'] != true && b['is_owner'] == true) return 1;
@@ -570,7 +501,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         _participants = loaded;
       });
 
-      // ✅ 현재 유저가 방장인지 확인
       final currentUserId = FirebaseAuth.instance.currentUser?.uid;
       Map<String, dynamic>? owner;
       try {
@@ -584,12 +514,10 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         setState(() {
           _isOwner = true;
         });
-        print("👑 현재 유저는 방장입니다");
       } else {
-        print("🙅‍♂️ 현재 유저는 방장이 아님");
+
       }
 
-// ✅ 방장 프로필 이미지 가져오기
       try {
         final owner = loaded.firstWhere((p) => p['is_owner'] == true, orElse: () => {});
         final ownerUid = owner['user_id'];
@@ -601,27 +529,18 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
           setState(() {
             _ownerProfileImg = imgPath;
           });
-
-          print("👑 방장 프로필 이미지 경로: $_ownerProfileImg");
         }
       } catch (e) {
-        print("⚠️ 방장 정보 처리 실패: $e");
       }
-
-
-      print("✅ 참여자 목록 로딩 완료 (정렬 포함): $_participants");
     } catch (e) {
-      print("🔥 참여자 로딩 실패: $e");
     }
-
-
   }
 
 
 
   Future<String?> fetchNickname(String roomId, String userId) async {
     try {
-      print("📥 닉네임 불러오기 시도 → roomId: $roomId, userId: $userId");
+
 
       final doc = await FirebaseFirestore.instance
           .collection('travel_rooms')
@@ -632,13 +551,11 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
       if (doc.exists) {
         final nickname = doc.data()?['nickname'];
-        print("✅ Firestore 문서 있음, nickname: $nickname");
+
         return nickname as String?;
       } else {
-        print("❌ 닉네임 문서 없음 → path: travel_rooms/$roomId/members/$userId");
       }
     } catch (e) {
-      print("🔥 닉네임 불러오기 에러: $e");
     }
 
     return null;
@@ -655,7 +572,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     final doc = await FirebaseFirestore.instance.collection("travel_rooms").doc(roomId).get();
 
     if (!doc.exists) {
-      print("❌ travel_rooms 문서 없음");
+
       return;
     }
 
@@ -673,12 +590,11 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     final date = data['date'] as String?;
     final boardAreasRaw = data['board_areas'] as List<dynamic>?;
 
-    // ✅ board_areas 처리
     if (boardAreasRaw != null) {
       setState(() {
         selectedSubAreas = boardAreasRaw.map((e) => e.toString()).toList();
       });
-      print("✅ 저장된 board_areas 불러오기 성공: $selectedSubAreas");
+
     } else if (region != null && isHost) {
       final regionId = convertRegionNameToId(region);
       final newAreas = await loadRandomSubAreas(regionId);
@@ -687,16 +603,14 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         selectedSubAreas = newAreas;
       });
 
-      // 🔄 Firestore에도 저장
       await FirebaseFirestore.instance
           .collection("travel_rooms")
           .doc(roomId)
           .update({'board_areas': newAreas});
 
-      print("✅ board_areas Firestore에 저장 완료: $newAreas");
+
     }
 
-    // ✅ 기타 필드 세팅
     setState(() {
       _region = region;
       _subRegion = subRegion;
@@ -705,11 +619,8 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       _date = date;
     });
 
-    print("🌍 불러온 지역: $region");
+
   }
-
-
-
 
 
   String convertRegionNameToId(String name) {
@@ -732,7 +643,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       case "서울특별시": return "seoul";
       case "울산광역시": return "ulsan";
       default:
-        return name; // fallback - 혹시 매핑 안된 이름이면 그대로 전달
+        return name;
     }
   }
     
@@ -741,7 +652,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     final doc = await FirebaseFirestore.instance.collection('region_sets').doc(region).get();
 
     if (!doc.exists) {
-      print("❌ 지역 문서 '$region' 없음");
+
       return [];
     }
 
@@ -765,23 +676,15 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             .collection('travel_rooms')
             .doc(widget.roomId)
             .update({'board_areas': selected});
-        print("✅ board_areas Firestore에 저장 완료 (by host): $selected");
+
       } else {
-        print("ℹ️ 현재 유저는 방장이 아님 → board_areas 저장 안 함");
       }
 
     } catch (e) {
-      print("❌ board_areas 저장 중 오류: $e");
     }
 
     return selected;
   }
-
-
-
-
-
-
 
 
   @override
@@ -798,7 +701,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       body: Center(
     child: DefaultTextStyle(
     style: const TextStyle(
-    fontFamily: 'AstaSans', // 👉 여기서 전체 폰트 지정
+    fontFamily: 'AstaSans',
     fontSize: 16,
     color: Colors.black,
     ),
@@ -808,7 +711,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: Image.asset(
-                'assets/dice_images/logo-main-ver1.png', // 너가 쓰는 로고 경로로 바꿔!
+                'assets/dice_images/logo-main-ver1.png',
                 height: 70,
               ),
             ),
@@ -830,7 +733,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
                       fit: BoxFit.cover,
                     ),
                   )
-                      : const SizedBox.shrink(), // 로딩 중일 땐 비워둠
+                      : const SizedBox.shrink(),
                 ),
 
                 ...[0, 4, 8, 12].map((i) => Positioned(
@@ -871,9 +774,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
                     ),
                   );
                 }),
-
-                // ❌ 조건부로 숨기지 말고
-                // ✅ 항상 보여주고 내부에서 텍스트만 숨기게
 
                 Positioned(
                   top: diceTop,
@@ -926,12 +826,12 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
               ],
             ),
             Align(
-              alignment: Alignment.centerLeft, // 리스트는 왼쪽 정렬 유지
+              alignment: Alignment.centerLeft,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 30), // ✅ "참여자" 텍스트만 오른쪽으로 밀기
+                    padding: const EdgeInsets.only(left: 30),
                     child: const Text(
                       '참여자',
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -958,10 +858,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
                         String displayName = titleWithNickname;
 
-                        // 👑 왕관은 방장에게만 붙임
                         if (isOwner) displayName += ' 👑';
-
-                        print("👤 유저 $nickname 의 stampCount: $stampCount (내가 로그인한 유저: $isMe)");
 
                         return _buildParticipantRow(displayName, '', profileImg);
                       },
@@ -974,13 +871,10 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             Text('지역: ${_region ?? '로딩 중...'}',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            // ✅ 일정 생성 페이지로 이동하는 버튼
-            // 버튼 부분
-            // 🔽 이 부분은 build 내부 적절한 위치 (예: Column 안에) 넣어주면 돼
             (_isOwner)
                 ? ElevatedButton.icon(
               onPressed: () async {
-                print("🧪 [디버깅] _subRegion 값: '${_subRegion}'");
+
                 if ((_subRegion ?? '').trim().isEmpty) {
                   showDialog(
                     context: context,
@@ -1036,7 +930,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
                         .update({'host_is_active': false});
 
                     Navigator.of(context, rootNavigator: true).pop();
-
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -1053,7 +946,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
                     );
                   }
                 } catch (e) {
-                  print("에러 발생: $e");
+
                   if (context.mounted) {
                     Navigator.of(context, rootNavigator: true).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1073,13 +966,13 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             )
                 : StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('travel_rooms') // ✅ travel_rooms 문서 내에
-                  .doc(widget.roomId)         // ✅ 해당 roomId 문서 선택 후
-                  .collection('schedules')    // ✅ schedules 하위 컬렉션 바로 감지
+                  .collection('travel_rooms')
+                  .doc(widget.roomId)
+                  .collection('schedules')
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                  print("📡 schedules snapshot 감지됨. hasData: ${snapshot.hasData}, length: ${snapshot.data?.docs.length}");
+
                   final scheduleDoc = snapshot.data!.docs.first;
                   return ElevatedButton.icon(
                     onPressed: () {
@@ -1131,8 +1024,6 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
   }
 }
 
-// 주사위 클래스는 이전 코드 그대로 유지
-
 class DiceCube extends StatefulWidget {
   const DiceCube({super.key});
 
@@ -1170,7 +1061,6 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
     final baseX = angleMap[value]![0];
     final baseY = angleMap[value]![1];
 
-    // 적당한 랜덤 회전값
     final extraX = 4 * 2 * pi;
     final extraY = 4 * 2 * pi;
 
@@ -1182,7 +1072,6 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
 
     _controller.forward(from: 0);
 
-    // ✅ Future로 반환
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _showResultText = false;
@@ -1196,13 +1085,13 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
     _controller = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
   }
-  bool _showResultText = false; // 상태 변수 추가
+  bool _showResultText = false;
   int _fakeResult = 1;
   void rollDice() {
 
     final random = Random();
     _diceValue = random.nextInt(6) + 1;
-    _fakeResult = _diceValue; // 결과 텍스트에 바로 반영
+    _fakeResult = _diceValue;
 
     final baseX = angleMap[_diceValue]![0];
     final baseY = angleMap[_diceValue]![1];
@@ -1213,12 +1102,11 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
     setState(() {
       _x = baseX + extraX;
       _y = baseY + extraY;
-      _showResultText = true; // 🎯 텍스트 일찍 보이게 설정!
+      _showResultText = true;
     });
 
     _controller.forward(from: 0);
 
-    // 원한다면 애니메이션 끝나고 텍스트 숨기기 (예: 2초 뒤)
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showResultText = false;
@@ -1245,8 +1133,7 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
     final doc = await FirebaseFirestore.instance.collection('travel_rooms').doc(roomId).get();
     final data = doc.data();
 
-    print("✅ roomId: $roomId");
-    print("📡 host_is_active: ${data?['host_is_active']}");
+
 
     if (data != null && data['host_is_active'] == true) {
       Navigator.push(
