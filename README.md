@@ -231,9 +231,9 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 
 <div align="center">
   <img src="./assets/screenshots/notification.png" alt="알림 페이지" width="20%"/>
-  <img src="./assets/screenshots/aceptedFriend.png" alt="마이페이지" width="20%"/>
-    <img src="./assets/screenshots/addFriend2.png" alt="마이페이지" width="20%"/>
-  <img src="./assets/screenshots/notification.png" alt="알림 페이지" width="20%"/>
+  <img src="./assets/screenshots/acceptedFriend.png" alt="알림페이지" width="20%"/>
+    <img src="./assets/screenshots/addFriend2.png" alt="알림페이지" width="20%"/>
+  <img src="./assets/screenshots/notification2.png" alt="알림 페이지" width="20%"/>
 </div>
 
 여행 초대, 스탬프 적립, 친구 요청 등 주요 활동 내역을 실시간으로 확인할 수 있는 알림 페이지입니다.
