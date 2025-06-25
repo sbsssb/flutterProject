@@ -1,6 +1,9 @@
-# 🎲 랜덤어때 "어디든 좋아! 주사위가 정해주는 랜덤 여행"
-<img src="./assets/screenshots/logo-main-ver1.png" alt="랜덤어때 로고" style="width:50%;"/>
+# 🎲 랜덤어때  
+> **"어디든 좋아! 주사위가 정해주는 랜덤 여행"**
 
+<p align="center">
+  <img src="./assets/screenshots/logo-main-ver1.png" alt="랜덤어때 로고" width="300"/>
+</p>
 
 ![Flutter](https://img.shields.io/badge/flutter-3.22.0-blue)
 ![Firebase](https://img.shields.io/badge/firebase-auth-orange)
@@ -12,17 +15,17 @@
 
 | 이름 | 역할 | GitHub |
 |------|------|--------|
-| 수빈 | 팀장 / 랜덤 여행 UI 및 전체 플로우 총괄 | [@soobin-dev](https://github.com/soobin-dev) |
-| 새별 | 스탬프 및 앨범 기능 구현 | [@saebyeol-dev](https://github.com/saebyeol-dev) |
-| 지민 | 친구 초대 및 여행방 시스템 | [@jimin-codes](https://github.com/jimin-codes) |
-| 하늘 | 주사위 로직, 게임 애니메이션 처리 | [@skyhaneul](https://github.com/skyhaneul) |
-| 예린 | AI 일정 생성 및 축제 API 연동 | [@yerin-ai](https://github.com/yerin-ai) |
+| 윤수빈 | 팀장, AI 일정 생성 | 추가 |
+| 김성규 | 마이페이지, 알림기능 | 추가 |
+| 박새별 | 스탬프 및 앨범 기능, 메인화면 | [SaeByeol5285](https://github.com/SaeByeol5285) |
+| 유승호 | 로그인/회원가입, 축제 API 연동 | 추가 |
+| 홍영은 | 주사위 로직, 게임 애니메이션 처리 | 추가 |
 
 ---
 
 ## 📅 개발 기간
 
-**2025.06.09 ~ 2025.06.26**
+**2025.06.09 ~ 2025.06.26 (17일)**
 
 ---
 
@@ -89,20 +92,8 @@
 |----------|------|
 | 프론트엔드 | Flutter (iOS / Android) |
 | 백엔드/DB | Firebase (Auth, Firestore, Storage) |
-| 외부 API | - Tour API 4.0 (한국 관광정보)<br>- Google Place & Map API (위도/경도 보정)<br>- Gemini API (일정 생성) |
+| 외부 API | - Tour API 4.0 (한국 관광정보)<br>- Google Place Map API (위도/경도 보정)<br>- Gemini API (일정 생성) |
 | 위치 기반 | Geolocator (현재 위치, 거리 계산 등) |
-
----
-
-## 🧩 역할 분담
-
-| 이름 | 주요 구현 기능 |
-|------|----------------|
-| 수빈 | 전체 플로우 설계, 랜덤 여행 페이지 및 말판 UI |
-| 새별 | 스탬프 적립 기능, 공유 앨범, 사진 삭제/다운로드 |
-| 지민 | 친구 초대 기능, 여행방 관리 |
-| 하늘 | 주사위 애니메이션, 랜덤 지역 로직 |
-| 예린 | AI 일정 자동 생성(Gemini), 지역 축제 API 연동 |
 
 ---
 
@@ -110,25 +101,88 @@
 
 > 각 항목에 이미지 경로와 설명을 삽입해주세요. 아래는 템플릿입니다.
 
-### 🔘 메인 페이지
-![main](./assets/screenshots/main.png)  
+### 📄 페이지별 구현
+
+<details>
+<summary>🔐 로그인 / 회원가입 (담당: 승호)</summary>
+
+<img src="./assets/screenshots/login.png" alt="로그인 화면" width="300"/>
+
+사용자는 이메일/비밀번호로 로그인하거나 Firebase Auth 기반으로 회원가입할 수 있습니다.
+
+</details>
+
+<details>
+<summary>🔘 메인 페이지 (담당: 새별)</summary>
+
+<img src="./assets/screenshots/main.png" alt="메인 페이지" width="300"/>
+
 앱 진입 시 보여지는 메인 랜딩 화면으로, 지역 선택 및 여행 시작이 가능합니다.
 
-### 🎲 주사위 여행
-![dice](./assets/screenshots/dice.png)  
+</details>
+
+<details>
+<summary>🎲 주사위 여행 (담당: 영은)</summary>
+
+<img src="./assets/screenshots/dice.png" alt="주사위 여행" width="300"/>
+
 지역을 선택하고 주사위를 굴려 여행지를 랜덤 추천받는 화면입니다.
 
-### 🧾 일정 생성
-![schedule](./assets/screenshots/schedule.png)  
+</details>
+
+<details>
+<summary>🧾 일정 생성 (담당: 수빈)</summary>
+
+<img src="./assets/screenshots/schedule.png" alt="일정 생성" width="300"/>
+
 AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징할 수 있습니다.
 
-### 📍 스탬프 적립
-![stamp](./assets/screenshots/stamp.png)  
+</details>
+
+<details>
+<summary>🎉 축제 페이지 (담당: 승호)</summary>
+
+<img src="./assets/screenshots/festival.png" alt="축제 페이지" width="300"/>
+
+여행 지역에 해당하는 축제를 날짜별, 테마별로 확인할 수 있습니다. 공공 API 기반으로 실시간 정보 제공.
+
+</details>
+
+<details>
+<summary>📍 스탬프 적립 (담당: 새별)</summary>
+
+<img src="./assets/screenshots/stamp.png" alt="스탬프 적립" width="300"/>
+
 방문 시 위치 기반으로 자동 스탬프를 적립하며, 여행 중 수집의 재미를 제공합니다.
 
-### 🖼 공유 앨범
-![album](./assets/screenshots/album.png)  
+</details>
+
+<details>
+<summary>🖼 공유 앨범 (담당: 새별)</summary>
+
+<img src="./assets/screenshots/album.png" alt="공유 앨범" width="300"/>
+
 여행 중 촬영한 사진을 팀원들과 공유하고 다운로드할 수 있는 앨범 페이지입니다.
+
+</details>
+
+<details>
+<summary>👤 마이페이지 (담당: 성규)</summary>
+
+<img src="./assets/screenshots/mypage.png" alt="마이페이지" width="300"/>
+
+사용자는 자신이 참여한 여행방, 적립한 스탬프, 업로드한 사진 등을 마이페이지에서 확인할 수 있습니다.
+
+</details>
+
+<details>
+<summary>🔔 알림 페이지 (담당: 성규)</summary>
+
+<img src="./assets/screenshots/notification.png" alt="알림 페이지" width="300"/>
+
+여행 초대, 스탬프 적립, 친구 요청 등 주요 활동 내역을 실시간으로 확인할 수 있는 알림 페이지입니다.
+
+</details>
 
 ---
 
@@ -143,19 +197,5 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 
 | 항목 | 정보 |
 |------|------|
-| 이메일 | testuser@example.com |
-| 비밀번호 | random1234 |
-
-> Firebase Auth 기반 테스트용 계정입니다. 로그인 후 전체 기능을 체험할 수 있습니다.
-
----
-
-## 💰 수익 구조 (아이디어 단계)
-
-- **데이터 수익화**: 익명화된 사용자 이동 및 방문 데이터를 기업/지자체에 제공
-
----
-
-## 📎 라이선스
-
-본 프로젝트는 학습 및 포트폴리오용으로 제작되었으며, 상업적 이용은 제한될 수 있습니다.
+| 이메일 | test1@random.com |
+| 비밀번호 | test1234 |
