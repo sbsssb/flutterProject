@@ -169,9 +169,9 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <summary>🖼 공유 앨범 (담당: 새별)</summary>
 
 <div align="center">
-  <img src="./assets/screenshots/album2.png" width="30%"/>
-  <img src="./assets/screenshots/album3.png" width="30%"/>
-  <img src="./assets/screenshots/album4.png" width="30%"/>
+  <img src="./assets/screenshots/album2.png" width="20%"/>
+  <img src="./assets/screenshots/album3.png" width="20%"/>
+  <img src="./assets/screenshots/album4.png" width="20%"/>
 </div>
 
 <p align="center">
