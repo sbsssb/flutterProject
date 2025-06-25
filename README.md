@@ -106,7 +106,8 @@
 <details>
 <summary>🔐 로그인 / 회원가입 (담당: 승호)</summary>
 
-<img src="./assets/screenshots/login.png" alt="로그인 화면" width="20%"/>
+<img src="./assets/screenshots/login.png" alt="로그인 화면" width="300"/>
+<img src="./assets/screenshots/join.png" alt="회원가입 화면" width="300"/>
 
 사용자는 이메일/비밀번호로 로그인하거나 Firebase Auth 기반으로 회원가입할 수 있습니다.
 
@@ -152,9 +153,10 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>🎉 축제 페이지 (담당: 승호)</summary>
 
-<img src="./assets/screenshots/festival.png" alt="축제 페이지" width="20%"/>
+<img src="./assets/screenshots/festival_list.png" alt="축제 리스트" width="300"/>
+<img src="./assets/screenshots/festival_view.png" alt="축제 상세보기" width="300"/>
 
-여행 지역에 해당하는 축제를 날짜별, 테마별로 확인할 수 있습니다. 공공 API 기반으로 실시간 정보 제공.
+여행 지역에 해당하는 축제를 날짜별, 테마별로 확인할 수 있습니다. TourAPI 4.0 기반으로 실시간 정보 제공.
 
 </details>
 
