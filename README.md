@@ -151,10 +151,10 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>📍 스탬프 적립 (담당: 새별)</summary>
 <div align="center">
-  <img src="./assets/screenshots/stamp2.png" width="25%"/>
-  <img src="./assets/screenshots/stamp4.png" width="25%"/>
-  <img src="./assets/screenshots/stamp5.png" width="25%"/>
-  <img src="./assets/screenshots/stamp6.png" width="25%"/>
+  <img src="./assets/screenshots/stamp2.png" width="20%"/>
+  <img src="./assets/screenshots/stamp4.png" width="20%"/>
+  <img src="./assets/screenshots/stamp5.png" width="20%"/>
+  <img src="./assets/screenshots/stamp6.png" width="20%"/>
 </div>
 
 <p align="center">
