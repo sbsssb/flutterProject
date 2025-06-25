@@ -1,16 +1,161 @@
-# flutterteam4
+# 🎲 랜덤어때 - 주사위로 떠나는 랜덤 여행
 
-A new Flutter project.
+![Flutter](https://img.shields.io/badge/flutter-3.22.0-blue)
+![Firebase](https://img.shields.io/badge/firebase-auth-orange)
+![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios-green)
 
-## Getting Started
+> **"어디든 좋아. 주사위가 정해주는 랜덤 여행!"**
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 👨‍👩‍👧‍👦 팀 소개
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+| 이름 | 역할 | GitHub |
+|------|------|--------|
+| 수빈 | 팀장 / 랜덤 여행 UI 및 전체 플로우 총괄 | [@soobin-dev](https://github.com/soobin-dev) |
+| 새별 | 스탬프 및 앨범 기능 구현 | [@saebyeol-dev](https://github.com/saebyeol-dev) |
+| 지민 | 친구 초대 및 여행방 시스템 | [@jimin-codes](https://github.com/jimin-codes) |
+| 하늘 | 주사위 로직, 게임 애니메이션 처리 | [@skyhaneul](https://github.com/skyhaneul) |
+| 예린 | AI 일정 생성 및 축제 API 연동 | [@yerin-ai](https://github.com/yerin-ai) |
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 📅 개발 기간
+
+**2025.06.09 ~ 2025.06.26**
+
+---
+
+## 🧭 서비스 개요
+
+**랜덤어때**는 여행지를 직접 선택하지 않아도 주사위를 굴려 랜덤한 지역을 추천받고, AI가 즉석에서 일정을 생성해주는 **여행 가챠 앱**입니다. 즉흥성과 재미를 결합하여 새로운 여행 경험을 제공합니다.
+
+---
+
+## 🎯 기획 배경
+
+### 사용자 니즈와 해결방안
+
+| 사용자의 고민 | 랜덤어때의 해결 방식 |
+|---------------|-----------------------|
+| 어디 갈지 정하는 게 어렵다 | 주사위를 통해 지역 랜덤 추천 |
+| 일정을 짜기 번거롭다 | AI가 자동으로 일정 생성 |
+| 여행 정보를 찾기 귀찮다 | 추천된 지역 내 명소/맛집/축제를 자동 제공 |
+| 갑자기 훌쩍 떠나고 싶다 | 즉시 생성되는 랜덤 루트 제공 |
+| 여행이 지루하게 느껴진다 | 스탬프 적립, 캐릭터, 주사위 등 재미 요소 추가 |
+
+---
+
+## 🧑‍🤝‍🧑 타깃 사용자
+
+- 여행 기획이 부담스러운 사람
+- 친구들과 특별한 여행을 기록하고 싶은 사람
+- 게임적 재미를 여행에 접목하고 싶은 사람
+
+---
+
+## 🛠 주요 기능
+
+### 1. 🎲 랜덤 여행지 선정
+- 선택한 대지역 내 소지역들을 주사위에 배치
+- 주사위 애니메이션 → 결과값에 따라 지역 확정
+- 말판 UI로 이동 경로 시각화
+
+### 2. 🧠 AI 기반 일정 생성
+- Gemini API를 통해 명소/맛집/축제 기반 일정 자동 생성
+- 사용자가 일정 항목 직접 수정 가능 (추가/삭제/순서 변경)
+
+### 3. 🧑‍🤝‍🧑 여행방 & 친구 초대
+- 여행방 생성 후 친구 초대
+- 같은 방에서 주사위 굴리기 화면 공유
+
+### 4. 🧾 스탬프 적립 & 칭호
+- GPS 기반 방문 체크 → 스탬프 적립
+- 누적 수치에 따라 등급 상승 및 프로필 뱃지 자동 적용
+
+### 5. 🖼 공유 앨범
+- 여행방 멤버 간 사진 업로드 / 다운로드
+- 일정별 정렬, 확대보기, 선택삭제 기능 제공
+
+### 6. 🎉 지역 축제 정보 연계
+- 공공 데이터 기반 지역 축제 API 연동
+- 일정에 축제 포함 → 날짜 및 테마별 추천
+
+---
+
+## 🧪 기술 스택
+
+| 카테고리 | 기술 |
+|----------|------|
+| 프론트엔드 | Flutter (iOS / Android) |
+| 백엔드/DB | Firebase (Auth, Firestore, Storage) |
+| 외부 API | - Tour API 4.0 (한국 관광정보)<br>- Google Place & Map API (위도/경도 보정)<br>- Gemini API (일정 생성) |
+| 위치 기반 | Geolocator (현재 위치, 거리 계산 등) |
+
+---
+
+## 🧩 역할 분담
+
+| 이름 | 주요 구현 기능 |
+|------|----------------|
+| 수빈 | 전체 플로우 설계, 랜덤 여행 페이지 및 말판 UI |
+| 새별 | 스탬프 적립 기능, 공유 앨범, 사진 삭제/다운로드 |
+| 지민 | 친구 초대 기능, 여행방 관리 |
+| 하늘 | 주사위 애니메이션, 랜덤 지역 로직 |
+| 예린 | AI 일정 자동 생성(Gemini), 지역 축제 API 연동 |
+
+---
+
+## 🖼 페이지별 구현 이미지
+
+> 각 항목에 이미지 경로와 설명을 삽입해주세요. 아래는 템플릿입니다.
+
+### 🔘 메인 페이지
+![main](./assets/screenshots/main.png)  
+앱 진입 시 보여지는 메인 랜딩 화면으로, 지역 선택 및 여행 시작이 가능합니다.
+
+### 🎲 주사위 여행
+![dice](./assets/screenshots/dice.png)  
+지역을 선택하고 주사위를 굴려 여행지를 랜덤 추천받는 화면입니다.
+
+### 🧾 일정 생성
+![schedule](./assets/screenshots/schedule.png)  
+AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징할 수 있습니다.
+
+### 📍 스탬프 적립
+![stamp](./assets/screenshots/stamp.png)  
+방문 시 위치 기반으로 자동 스탬프를 적립하며, 여행 중 수집의 재미를 제공합니다.
+
+### 🖼 공유 앨범
+![album](./assets/screenshots/album.png)  
+여행 중 촬영한 사진을 팀원들과 공유하고 다운로드할 수 있는 앨범 페이지입니다.
+
+---
+
+## 📽 발표 및 시연 영상
+
+- 🎞️ [발표 PPT 보기](https://example.com/presentation)  
+- ▶️ [시연 영상 보기](https://example.com/demo-video)
+
+---
+
+## 👤 테스트 계정 안내
+
+| 항목 | 정보 |
+|------|------|
+| 이메일 | testuser@example.com |
+| 비밀번호 | random1234 |
+
+> Firebase Auth 기반 테스트용 계정입니다. 로그인 후 전체 기능을 체험할 수 있습니다.
+
+---
+
+## 💰 수익 구조 (아이디어 단계)
+
+- **데이터 수익화**: 익명화된 사용자 이동 및 방문 데이터를 기업/지자체에 제공
+
+---
+
+## 📎 라이선스
+
+본 프로젝트는 학습 및 포트폴리오용으로 제작되었으며, 상업적 이용은 제한될 수 있습니다.
