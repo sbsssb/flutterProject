@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../common/bottom_nav_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../dice/dice.dart';
@@ -58,6 +59,16 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  void _checkAndShowInvitationDialog(BuildContext context, String roomId) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final isRejected = prefs.getBool('rejected_$roomId') ?? false;
+
+    if (!isRejected) {
+      _showInvitationDialog(context, roomId); // 거절하지 않았을 때만 보여줌
+    }
+  }
+
   Future<void> _handleMemberDoc(DocumentSnapshot doc) async {
     final memberData = doc.data() as Map<String, dynamic>?;
     if (memberData == null) {
@@ -69,54 +80,35 @@ class _MainScreenState extends State<MainScreen> {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
     print("👤 참여자: ${memberData['nickname']} (${memberData['user_id']}), 방장 여부: $isOwner");
 
-    if (isOwner) {
-      print("⛔ 본인이 방장이므로 알림 제외");
-      return;
-    }
-    if (currentUid == null) {
-      print("❌ currentUid 없음 - 로그인 안됨");
+    if (isOwner || currentUid == null) {
+      print("⛔ 방장 혹은 로그인 안됨 → 알림 제외");
       return;
     }
 
     final parentRoomRef = doc.reference.parent.parent;
-    if (parentRoomRef == null) {
-      print("❌ parentRoomRef 없음 - 상위 room 문서 못 찾음");
-      return;
-    }
+    if (parentRoomRef == null) return;
 
     final roomDoc = await parentRoomRef.get();
     final roomData = roomDoc.data();
-    if (roomData == null) {
-      print("❌ roomData 없음 - 문서 비어 있음");
-      return;
-    }
+    if (roomData == null) return;
 
     final hostIsActive = roomData['host_is_active'] == true;
     final ownerId = roomData['owner_id'];
     final roomId = parentRoomRef.id;
 
-    print("📦 방 정보 - roomId: $roomId");
-    print("    host_is_active: $hostIsActive");
-    print("    owner_id: $ownerId");
-    print("    currentUid: $currentUid");
-    print("    이미 알림 보냈나?: ${_notifiedRooms.contains(roomId)}");
-
-    if (!hostIsActive) {
-      print("⛔ 방장이 접속 중 아님 → 알림 제외");
+    // ✅ SharedPreferences 체크: 거절 여부 확인
+    final prefs = await SharedPreferences.getInstance();
+    final isRejected = prefs.getBool('rejected_$roomId') ?? false;
+    if (isRejected) {
+      print("🚫 $roomId는 이전에 거절됨 → 다이얼로그 생략");
       return;
     }
 
-    if (currentUid == ownerId) {
-      print("⛔ 내가 방장 → 알림 제외");
+    if (!hostIsActive || currentUid == ownerId || _notifiedRooms.contains(roomId)) {
+      print("⛔ 조건 불충족 → 알림 제외");
       return;
     }
 
-    if (_notifiedRooms.contains(roomId)) {
-      print("⛔ 이미 알림 보냄 → 중복 방지");
-      return;
-    }
-
-    // ✅ 통과한 경우
     print('🎯 초대 알림 조건 만족 → roomId: $roomId');
     _notifiedRooms.add(roomId);
 
@@ -139,6 +131,7 @@ class _MainScreenState extends State<MainScreen> {
       }
     });
   }
+
 
 
 
@@ -211,8 +204,12 @@ class _MainScreenState extends State<MainScreen> {
                 fontSize: 16,
               ),
             ),
-            onPressed: () => Navigator.pop(context),
-            child: const Text("취소"),
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('rejected_$roomId', true); // ✅ 거절 기록 저장
+              Navigator.pop(context);
+            },
+            child: const Text("거절"),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(

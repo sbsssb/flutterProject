@@ -451,19 +451,20 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     super.initState();
     _roomId = widget.roomId;
 
-    // 1️⃣ host_is_active true로 표시
+    // host_is_active true로 설정
     FirebaseFirestore.instance.collection('travel_rooms').doc(widget.roomId).update({
       'host_is_active': true,
     });
 
-    // 2️⃣ 리스너 등록
     _setupSharedDiceAnimationListener();
     _listenToDiceResult();
 
-    // 3️⃣ 흔들기 감지
-    _shakeDetector = ShakeDetector.autoStart(onPhoneShake: (ShakeEvent event) {  });
+    // ✅ 흔들기 감지 연결
+    _shakeDetector = ShakeDetector.autoStart(
+      shakeThresholdGravity: 1.8,
+      onPhoneShake: onPhoneShake, // ⬅️ 이 함수 연결해줘야 작동함!
+    );
 
-    // 4️⃣ 사용자 및 방 초기화
     Future(() async {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
@@ -474,8 +475,8 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       final userId = currentUser.uid;
 
       print("🌍 지역 로딩 시작: ${widget.roomId}");
-      await fetchRegionAndLoadAreas(widget.roomId);     // ✅ board_areas 먼저 설정
-      await waitForRoomReady(widget.roomId);            // ✅ 이제 대기 시작
+      await fetchRegionAndLoadAreas(widget.roomId);
+      await waitForRoomReady(widget.roomId);
       await fetchParticipants(widget.roomId);
 
       final nickname = await fetchNickname(widget.roomId, userId);
@@ -489,14 +490,20 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
 
 
+
   bool _isRolling = false;
   bool _isOwner = false;
 
-  void onPhoneShake() async {
-
+  void onPhoneShake(ShakeEvent event) async {
+    print("📱 흔들기 감지됨");
     if (_isRolling) {
       print("🙅‍♂️ 중복 흔들기 무시");
       return;
+    }
+
+    // ✅ 진동
+    if (await Vibration.hasVibrator() ?? false) {
+      Vibration.vibrate(duration: 300); // 300ms 진동
     }
 
     _isRolling = true;
