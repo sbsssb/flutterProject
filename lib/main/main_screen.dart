@@ -49,12 +49,11 @@ class _MainScreenState extends State<MainScreen> {
           .get();
 
       if (snapshot.docs.isNotEmpty) {
-        print("✅ members 문서가 생성됨 → listener 붙이기 시작");
         _listenToInvitations(uid);
         break;
       }
 
-      print("⏳ members 문서 아직 없음 → 대기 중...");
+
       await Future.delayed(const Duration(seconds: 1));
     }
   }
@@ -72,16 +71,13 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _handleMemberDoc(DocumentSnapshot doc) async {
     final memberData = doc.data() as Map<String, dynamic>?;
     if (memberData == null) {
-      print("❌ memberData 없음 - 문서 비어 있음");
       return;
     }
 
     final isOwner = memberData['is_owner'] == true;
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
-    print("👤 참여자: ${memberData['nickname']} (${memberData['user_id']}), 방장 여부: $isOwner");
 
     if (isOwner || currentUid == null) {
-      print("⛔ 방장 혹은 로그인 안됨 → 알림 제외");
       return;
     }
 
@@ -100,16 +96,14 @@ class _MainScreenState extends State<MainScreen> {
     final prefs = await SharedPreferences.getInstance();
     final isRejected = prefs.getBool('rejected_$roomId') ?? false;
     if (isRejected) {
-      print("🚫 $roomId는 이전에 거절됨 → 다이얼로그 생략");
       return;
     }
 
     if (!hostIsActive || currentUid == ownerId || _notifiedRooms.contains(roomId)) {
-      print("⛔ 조건 불충족 → 알림 제외");
       return;
     }
 
-    print('🎯 초대 알림 조건 만족 → roomId: $roomId');
+
     _notifiedRooms.add(roomId);
 
     await FirebaseFirestore.instance
@@ -145,7 +139,6 @@ class _MainScreenState extends State<MainScreen> {
         .where('user_id', isEqualTo: uid)
         .snapshots()
         .listen((snapshot) async {
-      print("📡 실시간 초대 수신: ${snapshot.docs.length}");
 
       for (final doc in snapshot.docs) {
         await _handleMemberDoc(doc);
