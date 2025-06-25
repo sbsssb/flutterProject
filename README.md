@@ -150,15 +150,19 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 
 <details>
 <summary>📍 스탬프 적립 (담당: 새별)</summary>
+<div align="center">
+  <img src="./assets/screenshots/stamp2.png" width="25%"/>
+  <img src="./assets/screenshots/album4.png" width="25%"/>
+  <img src="./assets/screenshots/album5.png" width="25%"/>
+  <img src="./assets/screenshots/album6.png" width="25%"/>
+</div>
 
-<img src="./assets/screenshots/stamp1.png" alt="스탬프 적립" width="300"/>
-
-
-- 스탬프 적립 기능으로 일정 완료 여부를 확인하고 시각적으로 표시합니다.
-
-- 전체 일정 중 완료 현황을 수치로 보여주고, 여행 종료 처리를 할 수 있습니다.
-
-
+<p align="center">
+  🔔 사용자의 위치가 일정 반경에 도달하면 기기 알림 및 진동으로 스탬프 적립 가능 여부를 안내합니다.
+  🖐️ 버튼 클릭 시 발도장 애니메이션과 함께 스탬프를 적립합니다.
+  📊 전체 일정 중 완료된 스탬프 개수를 상단에 숫자로 표시합니다 (예: 3/5 완료됨).
+  🎉 사용자가 확인 후 여행 일정을 종료하고 완료 상태로 처리합니다. (스탬프 전체 적립 시 컨페티 효과)
+</p>
 </details>
 
 <details>
