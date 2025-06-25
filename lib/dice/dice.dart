@@ -74,7 +74,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
   final Set<int> _skippablePositions = {0, 4, 8, 12};
 
-  Offset _getTilePosition(int index) {
+  Offset _getTilePosition(int index) { //하위지역 글자 위치
     const tileSize = 85.0;
     const startX = 8.0;
     const startY = 20.0;
@@ -106,6 +106,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
   int _lastSharedSeed = -1;
 
+  // ✅ 리팩토링된 공유 주사위 애니메이션 리스너
   void _setupSharedDiceAnimationListener() {
     FirebaseFirestore.instance
         .collection('travel_rooms')
@@ -134,15 +135,19 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       final v1 = rand.nextInt(6) + 1;
       final v2 = rand.nextInt(6) + 1;
 
+      // ✅ 애니메이션 먼저 확실히 돌리고
       await Future.wait([
         _dice1Key.currentState?.playDiceWithValue(v1) ?? Future.value(),
         _dice2Key.currentState?.playDiceWithValue(v2) ?? Future.value(),
       ]);
 
+      // ✅ 잠시 대기 (시각적으로 더 자연스럽게)
       await Future.delayed(const Duration(milliseconds: 500));
 
+      // ✅ 그 다음 말 이동
       await _moveTokenAlongRoute(route);
 
+      // ✅ 도착 지역 텍스트 띄우기
       setState(() {
         _landedArea = landedArea ?? '';
         _showDiceResult = false;
@@ -153,7 +158,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
   }
 
 
-  bool _hasArrived = false;
+  bool _hasArrived = false; // ✅ 도착 플래그 추가
   bool _isMovingToken = false;
 
   Future<void> _moveTokenAlongRoute(List<int> route) async {
@@ -161,11 +166,13 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
     int? last = route.last;
 
+    // ✅ 말이 이동 중이면 중복 이동 방지
     if (_currentPosition == last) {
 
       return;
     }
 
+    // ✅ 시작 위치 강제 설정
     setState(() {
       _currentPosition = route.first;
     });
@@ -200,6 +207,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       return;
     }
 
+    // ✅ Firestore에 is_rolling = true 설정
     await roomDocRef.update({'is_rolling': true});
 
     try {
@@ -261,7 +269,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       );
 
       await roomDocRef.update({
-        'board_areas': selectedSubAreas,
+        'board_areas': selectedSubAreas, // 이걸 추가해야 참여자도 같은 리스트를 씀!
         'dice_result': stepsNeeded,
       });
       if (landed.isNotEmpty) {
@@ -270,6 +278,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     } catch (e) {
 
     } finally {
+      // 주사위 굴림 완료 후 상태 초기화
       await roomDocRef.update({'is_rolling': false});
     }
   }
@@ -311,7 +320,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
   String _getLandedAreaName(int position) {
     const boardTileOrder = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15];
-    int index = boardTileOrder.indexOf(position);
+    int index = boardTileOrder.indexOf(position); // 주사위 도착한 타일이 몇 번째 지역인지 찾기
     if (index != -1 && index < selectedSubAreas.length) {
       return selectedSubAreas[index];
     } else {
@@ -344,6 +353,26 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
   late StreamSubscription<DocumentSnapshot> _diceListener;
 
 
+  Future<void> _playRemoteAnimation(List<int> route) async {
+    int finalPos = _currentPosition;
+
+    for (int i = 0; i < route.length; i++) {
+      await Future.delayed(const Duration(milliseconds: 400));
+      setState(() {
+        _currentPosition = route[i];
+      });
+      finalPos = route[i];
+    }
+
+    await Future.delayed(const Duration(milliseconds: 100));
+    setState(() {
+      _landedArea = _getLandedAreaName(finalPos); // 🎯 정확한 지역 매칭
+    });
+
+
+  }
+
+
   void _listenToDiceResult() {
     FirebaseFirestore.instance
         .collection('travel_rooms')
@@ -356,15 +385,18 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       final diceResult = data['dice_result'] ?? 0;
 
 
+      // ✅ 0이면 무시!
       if (diceResult <= 0) {
 
         return;
       }
 
+      // ✅ 1 이상일 때만 결과 표시
       setState(() {
         _sharedDiceResult = diceResult;
         _showResultOverlay = true;
       });
+
     });
   }
 
@@ -383,8 +415,13 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
         break;
       }
+
+
       await Future.delayed(const Duration(milliseconds: 400));
     }
+
+
+
   }
 
 
@@ -396,6 +433,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     super.initState();
     _roomId = widget.roomId;
 
+    // host_is_active true로 설정
     FirebaseFirestore.instance.collection('travel_rooms').doc(widget.roomId).update({
       'host_is_active': true,
     });
@@ -403,9 +441,10 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     _setupSharedDiceAnimationListener();
     _listenToDiceResult();
 
+    // ✅ 흔들기 감지 연결
     _shakeDetector = ShakeDetector.autoStart(
       shakeThresholdGravity: 1.8,
-      onPhoneShake: onPhoneShake,
+      onPhoneShake: onPhoneShake, // ⬅️ 이 함수 연결해줘야 작동함!
     );
 
     Future(() async {
@@ -442,8 +481,9 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       return;
     }
 
+    // ✅ 진동
     if (await Vibration.hasVibrator() ?? false) {
-      Vibration.vibrate(duration: 300);
+      Vibration.vibrate(duration: 300); // 300ms 진동
     }
 
     _isRolling = true;
@@ -462,12 +502,18 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         return;
       }
 
+      // ✅ 주사위 굴리기
       await rollBothDice();
     } catch (e) {
     } finally {
       _isRolling = false;
     }
   }
+
+
+
+
+
 
   List<Map<String, dynamic>> _participants = [];
 
@@ -491,6 +537,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         });
       }
 
+      // 🔁 is_owner가 true인 사람을 맨 앞으로 정렬
       loaded.sort((a, b) {
         if (a['is_owner'] == true && b['is_owner'] != true) return -1;
         if (a['is_owner'] != true && b['is_owner'] == true) return 1;
@@ -501,6 +548,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         _participants = loaded;
       });
 
+      // ✅ 현재 유저가 방장인지 확인
       final currentUserId = FirebaseAuth.instance.currentUser?.uid;
       Map<String, dynamic>? owner;
       try {
@@ -518,6 +566,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
       }
 
+// ✅ 방장 프로필 이미지 가져오기
       try {
         final owner = loaded.firstWhere((p) => p['is_owner'] == true, orElse: () => {});
         final ownerUid = owner['user_id'];
@@ -529,11 +578,17 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
           setState(() {
             _ownerProfileImg = imgPath;
           });
+
+
         }
       } catch (e) {
+
       }
+
     } catch (e) {
+
     }
+
   }
 
 
@@ -554,8 +609,10 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
         return nickname as String?;
       } else {
+
       }
     } catch (e) {
+
     }
 
     return null;
@@ -590,6 +647,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
     final date = data['date'] as String?;
     final boardAreasRaw = data['board_areas'] as List<dynamic>?;
 
+    // ✅ board_areas 처리
     if (boardAreasRaw != null) {
       setState(() {
         selectedSubAreas = boardAreasRaw.map((e) => e.toString()).toList();
@@ -603,6 +661,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
         selectedSubAreas = newAreas;
       });
 
+      // 🔄 Firestore에도 저장
       await FirebaseFirestore.instance
           .collection("travel_rooms")
           .doc(roomId)
@@ -611,6 +670,7 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
     }
 
+    // ✅ 기타 필드 세팅
     setState(() {
       _region = region;
       _subRegion = subRegion;
@@ -621,6 +681,9 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
 
 
   }
+
+
+
 
 
   String convertRegionNameToId(String name) {
@@ -643,10 +706,10 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
       case "서울특별시": return "seoul";
       case "울산광역시": return "ulsan";
       default:
-        return name;
+        return name; // fallback - 혹시 매핑 안된 이름이면 그대로 전달
     }
   }
-    
+
 
   Future<List<String>> loadRandomSubAreas(String region, {int count = 12}) async {
     final doc = await FirebaseFirestore.instance.collection('region_sets').doc(region).get();
@@ -678,13 +741,21 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
             .update({'board_areas': selected});
 
       } else {
+
       }
 
     } catch (e) {
+
     }
 
     return selected;
   }
+
+
+
+
+
+
 
 
   @override
@@ -699,330 +770,340 @@ class _DoubleDiceOnBoardState extends State<DoubleDiceOnBoard> {
           automaticallyImplyLeading: false,
           title: const Text("🎲 주사위 게임판")),
       body: Center(
-    child: DefaultTextStyle(
-    style: const TextStyle(
-    fontFamily: 'AstaSans',
-    fontSize: 16,
-    color: Colors.black,
-    ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Image.asset(
-                'assets/dice_images/logo-main-ver1.png',
-                height: 70,
-              ),
-            ),
-
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Image.asset('assets/dice_images/dice-board.png', width: 400, height: 400, fit: BoxFit.contain),
-
-                Positioned(
-                  left: _getTilePosition(_currentPosition).dx + 10,
-                  top: _getTilePosition(_currentPosition).dy + 5,
-                  child: _ownerProfileImg != null
-                      ? ClipOval(
-                    child: Image.asset(
-                      _ownerProfileImg!,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                      : const SizedBox.shrink(),
+        child: DefaultTextStyle(
+          style: const TextStyle(
+            fontFamily: 'AstaSans', // 👉 여기서 전체 폰트 지정
+            fontSize: 16,
+            color: Colors.black,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Image.asset(
+                  'assets/dice_images/logo-main-ver1.png',
+                  height: 70,
                 ),
+              ),
 
-                ...[0, 4, 8, 12].map((i) => Positioned(
-                  left: _getTilePosition(i).dx,
-                  top: _getTilePosition(i).dy,
-                  child: i == 0
-                      ? const SizedBox(
-                    width: 60,
-                    child: Text(
-                      '🚩Start →',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'AstaSans',
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset('assets/dice_images/dice-board.png', width: 400, height: 400, fit: BoxFit.contain),
+
+                  Positioned(
+                    left: _getTilePosition(_currentPosition).dx + 10,
+                    top: _getTilePosition(_currentPosition).dy + 5,
+                    child: _ownerProfileImg != null
+                        ? ClipOval(
+                      child: Image.asset(
+                        _ownerProfileImg!,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
                       ),
-                    ),
-                  )
-                      : Image.asset('assets/dice_images/logo-main-ver1.png', width: 60),
-                )),
+                    )
+                        : const SizedBox.shrink(), // 로딩 중일 땐 비워둠
+                  ),
 
-                ...List.generate(boardTileOrder.length, (index) {
-                  final tileIndex = boardTileOrder[index];
-                  final pos = _getTilePosition(tileIndex);
-                  final areaName = (index < selectedSubAreas.length) ? selectedSubAreas[index] : '';
-
-                  return Positioned(
-                    left: pos.dx,
-                    top: pos.dy,
-                    child: SizedBox(
+                  ...[0, 4, 8, 12].map((i) => Positioned(
+                    left: _getTilePosition(i).dx,
+                    top: _getTilePosition(i).dy,
+                    child: i == 0
+                        ? const SizedBox(
                       width: 60,
                       child: Text(
-                        areaName,
+                        '🚩Start →',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold,fontFamily: 'AstaSans'),
+                        style: TextStyle(
+                          fontFamily: 'AstaSans',
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
-                  );
-                }),
+                    )
+                        : Image.asset('assets/dice_images/logo-main-ver1.png', width: 60),
+                  )),
 
-                Positioned(
-                  top: diceTop,
-                  left: diceLeft1,
-                  child: DiceCube(key: _dice1Key),
-                ),
-                Positioned(
-                  top: diceTop,
-                  left: diceLeft2,
-                  child: DiceCube(key: _dice2Key),
-                ),
+                  ...List.generate(boardTileOrder.length, (index) {
+                    final tileIndex = boardTileOrder[index];
+                    final pos = _getTilePosition(tileIndex);
+                    final areaName = (index < selectedSubAreas.length) ? selectedSubAreas[index] : '';
 
-
-                if (_showResultOverlay)
-                  Positioned(
-                    top: 160,
-                    child: Container(
-                      width: 170,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(14),
+                    return Positioned(
+                      left: pos.dx,
+                      top: pos.dy,
+                      child: SizedBox(
+                        width: 60,
+                        child: Text(
+                          areaName,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold,fontFamily: 'AstaSans'),
+                        ),
                       ),
-                      child: Text(
-                        '$_sharedDiceResult칸 이동!',
-                        style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-
-
-                if (_showLandedArea)
-                  Positioned(
-                    top: 160,
-                    child: Container(
-                      width: 170,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withOpacity(1),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Text(
-                        '📍 $_landedArea',
-                        style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 30),
-                    child: const Text(
-                      '참여자',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ..._participants.map((p) {
-                    final uid = p['user_id'];
-                    final nickname = p['nickname'] ?? '익명';
-                    final isOwner = p['is_owner'] == true;
-                    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-                    final isMe = uid == currentUserId;
-
-                    return FutureBuilder<int>(
-                      future: getSumStampCount(uid),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const SizedBox();
-                        }
-
-                        final stampCount = snapshot.data!;
-                        final profileImg = getProfileImagePath(stampCount);
-                        final titleWithNickname = getTitleWithNickname(stampCount, nickname);
-
-                        String displayName = titleWithNickname;
-
-                        if (isOwner) displayName += ' 👑';
-
-                        return _buildParticipantRow(displayName, '', profileImg);
-                      },
                     );
-                  }).toList(),
+                  }),
+
+                  // ❌ 조건부로 숨기지 말고
+                  // ✅ 항상 보여주고 내부에서 텍스트만 숨기게
+
+                  Positioned(
+                    top: diceTop,
+                    left: diceLeft1,
+                    child: DiceCube(key: _dice1Key),
+                  ),
+                  Positioned(
+                    top: diceTop,
+                    left: diceLeft2,
+                    child: DiceCube(key: _dice2Key),
+                  ),
+
+
+                  if (_showResultOverlay)
+                    Positioned(
+                      top: 160,
+                      child: Container(
+                        width: 170,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          '$_sharedDiceResult칸 이동!',
+                          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+
+
+                  if (_showLandedArea)
+                    Positioned(
+                      top: 160,
+                      child: Container(
+                        width: 170,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.orangeAccent.withOpacity(1),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          '📍 $_landedArea',
+                          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                 ],
               ),
-            ),
-
-            Text('지역: ${_region ?? '로딩 중...'}',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            (_isOwner)
-                ? ElevatedButton.icon(
-              onPressed: () async {
-
-                if ((_subRegion ?? '').trim().isEmpty) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('⚠ 일정 생성 불가'),
-                      content: const Text('먼저 주사위를 굴려 도착 지역을 정해주세요!'),
-                      actions: [
-                        TextButton(
-                          child: const Text('확인'),
-                          onPressed: () => Navigator.of(context).pop(),
-                        )
-                      ],
+              Align(
+                alignment: Alignment.centerLeft, // 리스트는 왼쪽 정렬 유지
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 30),
+                      child: const Text(
+                        '참여자',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  );
-                  return;
-                }
+                    const SizedBox(height: 8),
+                    ..._participants.map((p) {
+                      final uid = p['user_id'];
+                      final nickname = p['nickname'] ?? '익명';
+                      final isOwner = p['is_owner'] == true;
+                      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+                      final isMe = uid == currentUserId;
 
-                try {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    useRootNavigator: true,
-                    builder: (context) {
-                      return const AlertDialog(
-                        content: Row(
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(width: 20),
-                            Text("일정을 생성 중입니다..."),
-                          ],
-                        ),
+                      return FutureBuilder<int>(
+                        future: getSumStampCount(uid),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const SizedBox();
+                          }
+
+                          final stampCount = snapshot.data!;
+                          final profileImg = getProfileImagePath(stampCount);
+                          final titleWithNickname = getTitleWithNickname(stampCount, nickname);
+
+                          String displayName = titleWithNickname;
+
+                          // 👑 왕관은 방장에게만 붙임
+                          if (isOwner) displayName += ' 👑';
+
+
+
+                          return _buildParticipantRow(displayName, '', profileImg);
+                        },
                       );
-                    },
-                  );
+                    }).toList(),
+                  ],
+                ),
+              ),
 
-                  final prompt = buildTravelPrompt(
-                    region: _region ?? '',
-                    subRegion: _subRegion ?? '',
-                    themes: _themes,
-                    transport: _transport ?? '',
-                    date: _date ?? '',
-                  );
+              Text('지역: ${_region ?? '로딩 중...'}',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
 
-                  final scheduleList = await fetchScheduleFromPrompt(
-                    prompt: prompt,
-                    apiKey: dotenv.env['GEMINI_API_KEY']!,
-                  );
+              (_isOwner)
+                  ? ElevatedButton.icon(
+                onPressed: () async {
 
-                  if (context.mounted) {
-                    await FirebaseFirestore.instance
-                        .collection('travel_rooms')
-                        .doc(widget.roomId)
-                        .update({'host_is_active': false});
-
-                    Navigator.of(context, rootNavigator: true).pop();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ScheduleListPage(
-                          roomId: widget.roomId,
-                          initialSchedules: scheduleList,
-                          region: _region ?? '',
-                          subRegion: _subRegion ?? '',
-                          themes: _themes,
-                          transport: _transport ?? '',
-                          date: _date ?? '',
-                        ),
+                  if ((_subRegion ?? '').trim().isEmpty) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('⚠ 일정 생성 불가'),
+                        content: const Text('먼저 주사위를 굴려 도착 지역을 정해주세요!'),
+                        actions: [
+                          TextButton(
+                            child: const Text('확인'),
+                            onPressed: () => Navigator.of(context).pop(),
+                          )
+                        ],
                       ),
                     );
+                    return;
                   }
-                } catch (e) {
 
-                  if (context.mounted) {
-                    Navigator.of(context, rootNavigator: true).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("일정 생성 중 오류가 발생했어요 🥲")),
+                  try {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      useRootNavigator: true,
+                      builder: (context) {
+                        return const AlertDialog(
+                          content: Row(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(width: 20),
+                              Text("일정을 생성 중입니다..."),
+                            ],
+                          ),
+                        );
+                      },
                     );
+
+                    final prompt = buildTravelPrompt(
+                      region: _region ?? '',
+                      subRegion: _subRegion ?? '',
+                      themes: _themes,
+                      transport: _transport ?? '',
+                      date: _date ?? '',
+                    );
+
+                    final scheduleList = await fetchScheduleFromPrompt(
+                      prompt: prompt,
+                      apiKey: dotenv.env['GEMINI_API_KEY']!,
+                    );
+
+                    if (context.mounted) {
+                      await FirebaseFirestore.instance
+                          .collection('travel_rooms')
+                          .doc(widget.roomId)
+                          .update({'host_is_active': false});
+
+                      Navigator.of(context, rootNavigator: true).pop();
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScheduleListPage(
+                            roomId: widget.roomId,
+                            initialSchedules: scheduleList,
+                            region: _region ?? '',
+                            subRegion: _subRegion ?? '',
+                            themes: _themes,
+                            transport: _transport ?? '',
+                            date: _date ?? '',
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+
+                    if (context.mounted) {
+                      Navigator.of(context, rootNavigator: true).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("일정 생성 중 오류가 발생했어요 🥲")),
+                      );
+                    }
                   }
-                }
-              },
-              icon: const Icon(Icons.arrow_forward),
-              label: const Text('일정 생성으로 이동'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black,
-                backgroundColor: const Color(0xFFFACC15),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              ),
-            )
-                : StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('travel_rooms')
-                  .doc(widget.roomId)
-                  .collection('schedules')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                },
+                icon: const Icon(Icons.arrow_forward),
+                label: const Text('일정 생성으로 이동'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  backgroundColor: const Color(0xFFFACC15),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                ),
+              )
+                  : StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('travel_rooms') // ✅ travel_rooms 문서 내에
+                    .doc(widget.roomId)         // ✅ 해당 roomId 문서 선택 후
+                    .collection('schedules')    // ✅ schedules 하위 컬렉션 바로 감지
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
 
-                  final scheduleDoc = snapshot.data!.docs.first;
-                  return ElevatedButton.icon(
-                    onPressed: () {
-                      context.go('/stamp?roomId=${widget.roomId}');
-                    },
-                    icon: const Icon(Icons.calendar_today),
-                    label: const Text('📅 확정 일정 보기'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF1E6FD9),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    ),
-                  );
-                } else {
-                  return const SizedBox();
-                }
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            (_isOwner && !_isRolling && _diceValue == 0)
-                ? ElevatedButton(
-              onPressed: () async {
-                setState(() {
-                  _isRolling = true;
-                });
-                await rollBothDice();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E6FD9),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    final scheduleDoc = snapshot.data!.docs.first;
+                    return ElevatedButton.icon(
+                      onPressed: () {
+                        context.go('/stamp?roomId=${widget.roomId}');
+                      },
+                      icon: const Icon(Icons.calendar_today),
+                      label: const Text('📅 확정 일정 보기'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF1E6FD9),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      ),
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
+                },
               ),
-              child: const Text(
-                "🎲 두 개 굴리기!",
-                style: TextStyle(fontSize: 15),
-              ),
-            )
-                : const SizedBox.shrink(),
-            const SizedBox(height: 16),
-          ],
+
+              const SizedBox(height: 16),
+
+              (_isOwner && !_isRolling && _diceValue == 0)
+                  ? ElevatedButton(
+                onPressed: () async {
+                  setState(() {
+                    _isRolling = true;
+                  });
+                  await rollBothDice();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E6FD9),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                ),
+                child: const Text(
+                  "🎲 두 개 굴리기!",
+                  style: TextStyle(fontSize: 15),
+                ),
+              )
+                  : const SizedBox.shrink(),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
 }
+
+// 주사위 클래스
 
 class DiceCube extends StatefulWidget {
   const DiceCube({super.key});
@@ -1061,6 +1142,7 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
     final baseX = angleMap[value]![0];
     final baseY = angleMap[value]![1];
 
+    // 적당한 랜덤 회전값
     final extraX = 4 * 2 * pi;
     final extraY = 4 * 2 * pi;
 
@@ -1072,6 +1154,7 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
 
     _controller.forward(from: 0);
 
+    // ✅ Future로 반환
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _showResultText = false;
@@ -1085,13 +1168,13 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
     _controller = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
   }
-  bool _showResultText = false;
+  bool _showResultText = false; // 상태 변수 추가
   int _fakeResult = 1;
   void rollDice() {
 
     final random = Random();
     _diceValue = random.nextInt(6) + 1;
-    _fakeResult = _diceValue;
+    _fakeResult = _diceValue; // 결과 텍스트에 바로 반영
 
     final baseX = angleMap[_diceValue]![0];
     final baseY = angleMap[_diceValue]![1];
@@ -1102,11 +1185,12 @@ class _DiceCubeState extends State<DiceCube> with SingleTickerProviderStateMixin
     setState(() {
       _x = baseX + extraX;
       _y = baseY + extraY;
-      _showResultText = true;
+      _showResultText = true; // 🎯 텍스트 일찍 보이게 설정!
     });
 
     _controller.forward(from: 0);
 
+    // 원한다면 애니메이션 끝나고 텍스트 숨기기 (예: 2초 뒤)
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showResultText = false;
