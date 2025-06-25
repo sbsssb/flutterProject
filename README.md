@@ -106,7 +106,7 @@
 <details>
 <summary>🔐 로그인 / 회원가입 (담당: 승호)</summary>
 
-<img src="./assets/screenshots/login.png" alt="로그인 화면" width="300"/>
+<img src="./assets/screenshots/login.png" alt="로그인 화면" width="20%"/>
 
 사용자는 이메일/비밀번호로 로그인하거나 Firebase Auth 기반으로 회원가입할 수 있습니다.
 
@@ -114,8 +114,18 @@
 
 <details>
 <summary>🔘 메인 페이지 (담당: 새별)</summary>
+<div align="center">
+  <img src="./assets/screenshots/main1.png" alt="메인 페이지" width="20%"/>
+</div>
 
-<img src="./assets/screenshots/main.png" alt="메인 페이지" width="300"/>
+<p align="center">
+  🔔 사용자의 위치가 일정 반경에 도달하면 기기 알림 및 진동으로 스탬프 적립 가능 여부를 안내합니다. <br/>
+  🖐️ 버튼 클릭 시 발도장 애니메이션과 함께 스탬프를 적립합니다. <br/>
+  📊 전체 일정 중 완료된 스탬프 개수를 상단에 숫자로 표시합니다 (예: 3/5개). <br/>
+  🎉 사용자가 확인 후 여행 일정을 종료하고 완료 상태로 처리합니다. (스탬프 전체 적립 시 컨페티 효과) <br/>
+</p>
+
+
 
 앱 진입 시 보여지는 메인 랜딩 화면으로, 지역 선택 및 여행 시작이 가능합니다.
 
@@ -124,7 +134,7 @@
 <details>
 <summary>🎲 주사위 여행 (담당: 영은)</summary>
 
-<img src="./assets/screenshots/dice.png" alt="주사위 여행" width="300"/>
+<img src="./assets/screenshots/dice.png" alt="주사위 여행" width="20%"/>
 
 지역을 선택하고 주사위를 굴려 여행지를 랜덤 추천받는 화면입니다.
 
@@ -133,7 +143,7 @@
 <details>
 <summary>🧾 일정 생성 (담당: 수빈)</summary>
 
-<img src="./assets/screenshots/schedule.png" alt="일정 생성" width="300"/>
+<img src="./assets/screenshots/schedule.png" alt="일정 생성" width="20%"/>
 
 AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징할 수 있습니다.
 
@@ -142,7 +152,7 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>🎉 축제 페이지 (담당: 승호)</summary>
 
-<img src="./assets/screenshots/festival.png" alt="축제 페이지" width="300"/>
+<img src="./assets/screenshots/festival.png" alt="축제 페이지" width="20%"/>
 
 여행 지역에 해당하는 축제를 날짜별, 테마별로 확인할 수 있습니다. 공공 API 기반으로 실시간 정보 제공.
 
@@ -151,16 +161,16 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>📍 스탬프 적립 (담당: 새별)</summary>
 <div align="center">
-  <img src="./assets/screenshots/stamp2.png" width="20%"/>
-  <img src="./assets/screenshots/stamp4.png" width="20%"/>
-  <img src="./assets/screenshots/stamp5.png" width="20%"/>
-  <img src="./assets/screenshots/stamp6.png" width="20%"/>
+  <img src="./assets/screenshots/stamp2.png" alt="스탬프 적립" width="20%"/>
+  <img src="./assets/screenshots/stamp4.png" alt="스탬프 적립" width="20%"/>
+  <img src="./assets/screenshots/stamp5.png" alt="스탬프 적립" width="20%"/>
+  <img src="./assets/screenshots/stamp6.png" alt="스탬프 적립" width="20%"/>
 </div>
 
 <p align="center">
   🔔 사용자의 위치가 일정 반경에 도달하면 기기 알림 및 진동으로 스탬프 적립 가능 여부를 안내합니다. <br/>
   🖐️ 버튼 클릭 시 발도장 애니메이션과 함께 스탬프를 적립합니다. <br/>
-  📊 전체 일정 중 완료된 스탬프 개수를 상단에 숫자로 표시합니다 (예: 3/5 완료됨). <br/>
+  📊 전체 일정 중 완료된 스탬프 개수를 상단에 숫자로 표시합니다 (예: 3/5개). <br/>
   🎉 사용자가 확인 후 여행 일정을 종료하고 완료 상태로 처리합니다. (스탬프 전체 적립 시 컨페티 효과) <br/>
 </p>
 </details>
@@ -169,9 +179,9 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <summary>🖼 공유 앨범 (담당: 새별)</summary>
 
 <div align="center">
-  <img src="./assets/screenshots/album2.png" width="20%"/>
-  <img src="./assets/screenshots/album3.png" width="20%"/>
-  <img src="./assets/screenshots/album4.png" width="20%"/>
+  <img src="./assets/screenshots/album2.png" alt="공유 앨범" width="20%"/>
+  <img src="./assets/screenshots/album3.png" alt="공유 앨범" width="20%"/>
+  <img src="./assets/screenshots/album4.png" alt="공유 앨범" width="20%"/>
 </div>
 
 <p align="center">
@@ -185,7 +195,7 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>👤 마이페이지 (담당: 성규)</summary>
 
-<img src="./assets/screenshots/mypage.png" alt="마이페이지" width="300"/>
+<img src="./assets/screenshots/mypage.png" alt="마이페이지" width="20%"/>
 
 사용자는 자신이 참여한 여행방, 적립한 스탬프, 업로드한 사진 등을 마이페이지에서 확인할 수 있습니다.
 
@@ -194,7 +204,7 @@ AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징�
 <details>
 <summary>🔔 알림 페이지 (담당: 성규)</summary>
 
-<img src="./assets/screenshots/notification.png" alt="알림 페이지" width="300"/>
+<img src="./assets/screenshots/notification.png" alt="알림 페이지" width="20%"/>
 
 여행 초대, 스탬프 적립, 친구 요청 등 주요 활동 내역을 실시간으로 확인할 수 있는 알림 페이지입니다.
 
