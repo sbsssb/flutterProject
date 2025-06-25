@@ -53,7 +53,6 @@ class _MainScreenState extends State<MainScreen> {
         break;
       }
 
-
       await Future.delayed(const Duration(seconds: 1));
     }
   }
@@ -64,7 +63,7 @@ class _MainScreenState extends State<MainScreen> {
     final isRejected = prefs.getBool('rejected_$roomId') ?? false;
 
     if (!isRejected) {
-      _showInvitationDialog(context, roomId); // 거절하지 않았을 때만 보여줌
+      _showInvitationDialog(context, roomId);
     }
   }
 
@@ -92,7 +91,6 @@ class _MainScreenState extends State<MainScreen> {
     final ownerId = roomData['owner_id'];
     final roomId = parentRoomRef.id;
 
-    // ✅ SharedPreferences 체크: 거절 여부 확인
     final prefs = await SharedPreferences.getInstance();
     final isRejected = prefs.getBool('rejected_$roomId') ?? false;
     if (isRejected) {
@@ -103,8 +101,11 @@ class _MainScreenState extends State<MainScreen> {
       return;
     }
 
-
     _notifiedRooms.add(roomId);
+
+    final ownerProfile = await getUserProfile(ownerId);
+    final senderNickname = ownerProfile?['nickname'] ?? '이름 없음';
+    final senderStampCount = ownerProfile?['stampCount'] ?? 0;
 
     await FirebaseFirestore.instance
         .collection('users')
@@ -116,6 +117,9 @@ class _MainScreenState extends State<MainScreen> {
       'message': '방에 초대되었습니다!',
       'timestamp': FieldValue.serverTimestamp(),
       'is_read': false,
+      'sender_id': ownerId,
+      'sender_nickname': senderNickname,
+      'sender_stampCount': senderStampCount,
     });
 
     if (!mounted) return;
@@ -155,7 +159,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _showInvitationDialog(BuildContext context, String roomId) async {
-    // 🔥 Firestore에서 room_name 읽기
     final roomDoc = await FirebaseFirestore.instance
         .collection('travel_rooms')
         .doc(roomId)
@@ -163,7 +166,6 @@ class _MainScreenState extends State<MainScreen> {
 
     final roomName = roomDoc.data()?['room_name'] ?? '이름 없음';
 
-    // ✅ 다이얼로그 띄우기
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -179,7 +181,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
         content: Text(
-          "방에 초대되었습니다!\n\n방 이름: $roomName", // ✅ room_name 표시
+          "방에 초대되었습니다!\n\n방 이름: $roomName",
           style: const TextStyle(
             fontFamily: 'Jalnan',
             fontSize: 16,
@@ -199,7 +201,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('rejected_$roomId', true); // ✅ 거절 기록 저장
+              await prefs.setBool('rejected_$roomId', true);
               Navigator.pop(context);
             },
             child: const Text("거절"),
@@ -217,7 +219,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             onPressed: () {
-              Navigator.pop(context); // 다이얼로그 닫기
+              Navigator.pop(context);
               context.push('/dice/$roomId');
             },
             child: const Text("입장하기"),
@@ -232,7 +234,7 @@ class _MainScreenState extends State<MainScreen> {
 
 
 
-  // 🔹 Firestore에서 최근 여행 3건 조회
+
   Future<List<Map<String, dynamic>>> getRecentJoinRooms(String userId) async {
     final snapshot =
         await FirebaseFirestore.instance
@@ -248,7 +250,7 @@ class _MainScreenState extends State<MainScreen> {
     }).toList();
   }
 
-  //유저 정보
+
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     final doc =
         await FirebaseFirestore.instance.collection('users').doc(userId).get();
@@ -276,7 +278,7 @@ class _MainScreenState extends State<MainScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // 🔵 상단 로고/텍스트
+
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -294,7 +296,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
 
-            // ⚪ 콘텐츠 박스
+
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -367,7 +369,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // 유저정보
+
                       _buildProfileSection(),
 
                       const SizedBox(height: 12),
@@ -403,7 +405,7 @@ class _MainScreenState extends State<MainScreen> {
                         future: _recentRooms,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator(); // 🔄 로딩 중
+                            return const CircularProgressIndicator();
                           }
 
                           if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -423,7 +425,7 @@ class _MainScreenState extends State<MainScreen> {
                             );
                           }
 
-                          // ✅ 여행 리스트 표시
+
                           final rooms = snapshot.data!;
                           return Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -489,7 +491,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // 🔹 지역 아이템 위젯
+
   Widget _regionItem(BuildContext context, String region, String roomId) {
     return GestureDetector(
       onTap: () {

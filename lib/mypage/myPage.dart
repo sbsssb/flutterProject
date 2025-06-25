@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ Riverpod 연동용
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:flutterteam4/user/user_provider.dart'; // ✅ 로그인 사용자 정보를 가져오기 위한 Provider
+import 'package:flutterteam4/user/user_provider.dart';
 import 'currentRoom.dart';
 import 'profileEdit.dart';
 import 'friends.dart';
 import 'prevRoom.dart';
-import 'appbar.dart'; // ✅ 기존 앱바 연동
+import 'appbar.dart';
 import 'profile_avatar.dart';
 import '../common/bottom_nav_bar.dart';
-import '../utils/app_theme.dart'; // ✅ 테마 파일 추가
+import '../utils/app_theme.dart';
 
 
 class myPageApp extends StatelessWidget {
@@ -20,13 +20,13 @@ class myPageApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.mainTheme, // ✅ 여기에서 테마 적용!
+      theme: AppTheme.mainTheme,
       home: myPageMainApp(),
     );
   }
 }
 
-// ✅ Firestore에서 유저 데이터를 불러오는 함수
+
 Future<Map<String, dynamic>?> fetchUserData(String userId) async {
   try {
     final doc =
@@ -36,21 +36,21 @@ Future<Map<String, dynamic>?> fetchUserData(String userId) async {
     }
     return null;
   } catch (e) {
-    print('Firestore error: $e');
+
     return null;
   }
 }
 
-// ✅ Firestore에서 "친구 수"를 세는 함수
+
 Future<int> fetchAcceptedFriendCount(String userId) async {
   final snapshot = await FirebaseFirestore.instance
       .collection('users')
       .doc(userId)
       .collection('friends')
-      .where('status', isEqualTo: 'accepted') // 🔹 친구로 수락된 경우만
+      .where('status', isEqualTo: 'accepted')
       .get();
 
-  return snapshot.docs.length; // 🔹 문서 개수 = 친구 수
+  return snapshot.docs.length;
 }
 
 class myPageMainApp extends ConsumerStatefulWidget {
@@ -110,7 +110,7 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
 
 
 
-            // 🔹 친구 수 먼저 불러오기 → 그 안에서 스탬프 수 FutureBuilder 중첩
+
             return StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
@@ -147,11 +147,11 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
                               style: TextStyle(
                                 fontFamily: 'Jalnan',
                                 fontSize: 33,
-                                color:  Theme.of(context).colorScheme.primary, // 또는 Theme.of(context).colorScheme.secondary
+                                color:  Theme.of(context).colorScheme.primary,
                               ),
                             ),
                             const SizedBox(height: 16),
-                            _buildLicenseCard(userData, stampCount, friendsCount), // ✅ 친구 수 넘기기
+                            _buildLicenseCard(userData, stampCount, friendsCount),
                             const SizedBox(height: 20),
                             Center(
                               child: Stack(
@@ -283,9 +283,8 @@ String _formatTimestamp(dynamic timestamp) {
 
 
 Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int friendsCount) {
-  // int stampCount = userData['travel_success_count'] ?? 0;
   String nickname = userData['nickname'] ?? '여행자';
-  String title = getTitleWithNickname(stampCount, nickname); // ✅ 여기에 추가
+  String title = getTitleWithNickname(stampCount, nickname);
 
   return Card(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -361,7 +360,6 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
                       ),
                       child: Row(
                         children: [
-                          // ✅ 좌측 Column (Expanded)
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -387,14 +385,14 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
                             ),
                           ),
 
-                          // ✅ 구분선
+
                           Container(
                             height: 40,
                             width: 1,
                             color: Colors.grey,
                           ),
 
-                          // ✅ 우측 Column (Expanded)
+
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,

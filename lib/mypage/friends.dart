@@ -8,7 +8,7 @@ import '../common/bottom_nav_bar.dart';
 
 class FriendsPage extends StatefulWidget {
   final Map<String, dynamic> userData;
-  final int initialTabIndex; // ✅ 이 줄 추가
+  final int initialTabIndex;
   const FriendsPage({
     super.key,
     required this.userData,
@@ -31,7 +31,7 @@ class _FriendsPageState extends State<FriendsPage> {
   @override
   void initState() {
     super.initState();
-    selectedTab = widget.initialTabIndex; // ✅ 여기에 반영
+    selectedTab = widget.initialTabIndex;
     initFriendData();
   }
 
@@ -67,11 +67,11 @@ class _FriendsPageState extends State<FriendsPage> {
             'user_id': friendUserId,
             'nickname': userData['nickname'] ?? '',
             'avatar_id': userData['avatar_id'] ?? '',
-            'stampCount': userData['stampCount'] ?? 0, // ✅ 이 줄 추가!
+            'stampCount': userData['stampCount'] ?? 0,
           });
         }
       } catch (e) {
-        debugPrint('친구 정보 불러오기 실패: $e');
+
       }
     }
 
@@ -99,7 +99,7 @@ class _FriendsPageState extends State<FriendsPage> {
         'user_id': userId,
         'nickname': nickname,
         'avatar_id': data['avatar_id'] ?? '',
-        'stampCount': data['stampCount'] ?? 0, // ✅ 이 줄 추가!
+        'stampCount': data['stampCount'] ?? 0,
       });
     }
 
@@ -123,7 +123,7 @@ class _FriendsPageState extends State<FriendsPage> {
       final data = doc.data();
       final friendUserId = doc.id;
 
-      // 🔎 상대방 유저 정보 조회
+
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(friendUserId)
@@ -135,7 +135,7 @@ class _FriendsPageState extends State<FriendsPage> {
         ...data,
         'friend_user_id': friendUserId,
         'is_incoming': data['status'] == 'incoming',
-        'stampCount': userData['stampCount'] ?? 0, // ✅ 여기!
+        'stampCount': userData['stampCount'] ?? 0,
       });
     }
 
@@ -149,7 +149,7 @@ class _FriendsPageState extends State<FriendsPage> {
     final timestamp = Timestamp.now();
 
     try {
-      // 🔹 Firestore에서 내 정보 가져오기 (닉네임, 아바타)
+
       final currentUserDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUserId)
@@ -160,7 +160,7 @@ class _FriendsPageState extends State<FriendsPage> {
       final avatarId = data.containsKey('avatar_id') ? data['avatar_id'] : 'default_avatar';
       final stampCount = data['stampCount'] ?? 0;
 
-      // 🔹 상대방에게 친구 요청 정보 저장 (incoming)
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(targetUserId)
@@ -175,7 +175,7 @@ class _FriendsPageState extends State<FriendsPage> {
         'cdatetime': timestamp,
       });
 
-      // 🔹 내 쪽에도 보낸 요청 정보 저장 (sending)
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUserId)
@@ -190,7 +190,7 @@ class _FriendsPageState extends State<FriendsPage> {
         'cdatetime': timestamp,
       });
 
-      // 🔹 알림 전송
+
       await sendNotification(
         targetUserId: targetUserId,
         type: 'friend_request',
@@ -201,12 +201,12 @@ class _FriendsPageState extends State<FriendsPage> {
         senderStampCount: stampCount,
       );
 
-      // 🔄 상태 새로고침
+
       await fetchPendingRequests();
       await fetchAllUsers();
       setState(() {});
     } catch (e) {
-      print('친구 요청 실패: $e');
+
     }
   }
 
@@ -215,7 +215,7 @@ class _FriendsPageState extends State<FriendsPage> {
     final now = Timestamp.now();
 
     try {
-      // 🔹 상태 업데이트 (내 친구 목록)
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(myUserId)
@@ -226,7 +226,7 @@ class _FriendsPageState extends State<FriendsPage> {
         'accepted_at': now,
       });
 
-      // 🔹 내 정보 Firestore에서 다시 가져오기 (nickname, avatar)
+
       final myUserDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(myUserId)
@@ -237,7 +237,7 @@ class _FriendsPageState extends State<FriendsPage> {
       final myAvatarId = data.containsKey('avatar_id') ? data['avatar_id'] : 'default_avatar';
       final stampCount = data['stampCount'] ?? 0;
 
-      // 🔹 상대방 친구 목록에도 accepted 추가
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(fromUserId)
@@ -253,7 +253,7 @@ class _FriendsPageState extends State<FriendsPage> {
         'accepted_at': now,
       });
 
-      // 🔹 알림 전송
+
       await sendNotification(
         targetUserId: fromUserId,
         type: 'friend_accept',
@@ -264,13 +264,13 @@ class _FriendsPageState extends State<FriendsPage> {
         senderStampCount: stampCount,
       );
 
-      // 🔹 친구 목록/요청 목록 새로고침
+
       await fetchFriends();
       await fetchPendingRequests();
       await fetchAllUsers();
       setState(() {});
     } catch (e) {
-      print('친구 수락 오류: $e');
+
     }
   }
 
@@ -288,7 +288,7 @@ class _FriendsPageState extends State<FriendsPage> {
       await fetchPendingRequests();
       setState(() {});
     } catch (e) {
-      print('친구 거절 오류: $e');
+
     }
   }
 
@@ -313,7 +313,7 @@ class _FriendsPageState extends State<FriendsPage> {
       await fetchAllUsers();
       setState(() {});
     } catch (e) {
-      print('친구 요청 취소 실패: $e');
+
     }
   }
 
@@ -339,7 +339,7 @@ class _FriendsPageState extends State<FriendsPage> {
       await fetchAllUsers();
       setState(() {});
     } catch (e) {
-      print('친구 삭제 실패: $e');
+
     }
   }
 
@@ -365,7 +365,7 @@ class _FriendsPageState extends State<FriendsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String userId = widget.userData['user_id']; // ✅ 추가
+    final String userId = widget.userData['user_id'];
     List<Map<String, dynamic>> baseList;
     if (selectedTab == 2) {
       baseList = pendingRequests.where((r) => r['is_incoming'] == true).toList();
@@ -374,10 +374,10 @@ class _FriendsPageState extends State<FriendsPage> {
     } else {
       baseList = friendList;
     }
-    // ✅ 검색어가 비어 있지 않으면 필터링, 아니면 전체 보여줌
+
     final displayList = baseList.where((user) {
       final name = (user['nickname'] ?? '').toString().toLowerCase();
-      return name.contains(searchQuery); // 실시간 필터링
+      return name.contains(searchQuery);
     }).toList();
 
     return Scaffold(
@@ -400,7 +400,7 @@ class _FriendsPageState extends State<FriendsPage> {
               TextField(
                 onChanged: (value) {
                   setState(() {
-                    searchQuery = value.toLowerCase(); // 검색어 업데이트
+                    searchQuery = value.toLowerCase();
                   });
                 },
                 decoration: InputDecoration(
@@ -428,8 +428,7 @@ class _FriendsPageState extends State<FriendsPage> {
                   final user = displayList[index];
                   final userId = user['user_id'];
                   final name = user['nickname'];
-                  final stampCount = user['stampCount'] ?? 0; // ✅ 이 줄 추가
-                  print('✅ 유저 $name 의 스탬프 수: $stampCount');
+                  final stampCount = user['stampCount'] ?? 0;
                   final isMyRequest = pendingRequests.any(
                         (f) => f['user_id'] == userId && f['status'] == 'sending',
                   );
@@ -542,7 +541,7 @@ class _FriendsPageState extends State<FriendsPage> {
               ],
             ),
           ),
-          const BottomNavBar(currentIndex: 2), // 👈 여기까지 포함
+          const BottomNavBar(currentIndex: 2),
         ],
       ),
     );

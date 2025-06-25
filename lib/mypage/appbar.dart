@@ -15,22 +15,18 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
     try {
       if (user != null) {
-        // ✅ 구글 로그인인 경우 Google 로그아웃도 수행
         for (var info in user.providerData) {
           if (info.providerId == 'google.com') {
-            // Google 로그아웃
             await GoogleSignIn().signOut();
             break;
           }
         }
 
-        // ✅ Firebase 로그아웃
         await FirebaseAuth.instance.signOut();
       }
 
-      // ✅ 로그인 페이지로 이동
       if (context.mounted) {
-        context.go('/login'); // 또는 context.go('/login');
+        context.go('/login');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -41,11 +37,9 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: Firestore에서 실제 읽지 않은 알림 수 가져오기
 
     return AppBar(
       centerTitle: true,
-      // ✅ 제목은 항상 중앙
       backgroundColor: Colors.white,
       elevation: 0,
       leading:
@@ -57,7 +51,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
               : null,
 
       title: Row(
-        mainAxisSize: MainAxisSize.min, // ✅ 로고 너비만큼만 차지
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [Image.asset('assets/mypage_images/logo.png', height: 60)],
       ),

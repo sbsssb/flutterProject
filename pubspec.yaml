@@ -47,10 +47,7 @@ dependencies:
   google_generative_ai: ^0.4.7
   flutter_dotenv:
   flutter_markdown:
-  kakao_flutter_sdk: ^1.2.2
-  kakao_flutter_sdk_auth: ^1.2.2
   flutter_riverpod: ^2.5.1
-  kakao_flutter_sdk_user:
   dio: ^5.4.0
   permission_handler: ^11.3.0
   shake: ^3.0.0
