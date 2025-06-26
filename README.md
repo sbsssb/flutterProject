@@ -15,7 +15,7 @@
 
 | 이름 | 역할 | GitHub |
 |------|------|--------|
-| 윤수빈 | 팀장, AI 일정 생성 | 추가 |
+| 윤수빈 | 팀장, 방 생성, AI 일정 생성 | [sbsssb](https://github.com/sbsssb) |
 | 김성규 | 마이페이지, 알림기능 | [glodstone1](https://github.com/glodstone1) |
 | 박새별 | 스탬프 및 앨범 기능, 메인화면 | [SaeByeol5285](https://github.com/SaeByeol5285) |
 | 유승호 | 로그인/회원가입, 축제 API 연동 | 추가 |
