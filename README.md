@@ -92,7 +92,7 @@
 |----------|------|
 | 프론트엔드 | Flutter (iOS / Android) |
 | 백엔드/DB | Firebase (Auth, Firestore, Storage) |
-| 외부 API | - Tour API 4.0 (한국 관광정보)<br>- Google Place Map API (위도/경도 보정)<br>- Gemini API (일정 생성) |
+| 외부 API | - Tour API 4.0 (한국 관광정보)<br>- Google Maps Places API (위도/경도 보정)<br>- Google Gemini Pro API (일정 생성) |
 | 위치 기반 | Geolocator (현재 위치, 거리 계산 등) |
 
 ---
