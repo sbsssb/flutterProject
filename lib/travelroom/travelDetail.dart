@@ -38,7 +38,7 @@ class TravelRoomDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: const BottomNavBar(),
-      backgroundColor: Colors.blue[700],
+      backgroundColor: Color(0xFF1E6FD9),
       body: FutureBuilder(
         future: Future.wait([fetchRoomData(roomId), fetchRoomMembers(roomId)]),
         builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {

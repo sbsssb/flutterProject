@@ -107,7 +107,10 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
 
     final allFriends = friendSnapshot.docs;
     if (allFriends.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('친구가 없습니다.')));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('친구가 없습니다.')),
+      );
       return;
     }
 
