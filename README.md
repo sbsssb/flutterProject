@@ -169,9 +169,9 @@
 <summary>🧾 일정 생성 (담당: 수빈)</summary>
 
 <div align="center">
-  <img src="./assets/screenshots/trvellist1.png" alt="일정 생성" width="20%"/>
-  <img src="./assets/screenshots/trvellist2.png" alt="일정 생성" width="20%"/>
-  <img src="./assets/screenshots/trvellist3.png" alt="일정 변경" width="20%"/>
+  <img src="./assets/screenshots/travellist1.png" alt="일정 생성" width="20%"/>
+  <img src="./assets/screenshots/travellist2.png" alt="일정 생성" width="20%"/>
+  <img src="./assets/screenshots/travellist3.png" alt="일정 변경" width="20%"/>
   <img src="./assets/screenshots/roomdetail.png" alt="여행방 상세 페이지" width="20%"/>
 </div>
 
