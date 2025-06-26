@@ -131,6 +131,20 @@
 </details>
 
 <details>
+<summary>🏕️ 방 생성 페이지 (담당: 수빈)</summary>
+<div align="center">
+  <img src="./assets/screenshots/main1.PNG" alt="방 생성" width="20%"/>
+</div>
+
+<p align="center">
+  🎲 주사위 버튼으로 랜덤 여행을 생성할 수 있습니다.<br/>
+  🗺️ 최근 참여한 여행 및 축제 정보를 확인할 수 있습니다.<br/>
+  📱 하단바를 통해 홈, 여행, 마이페이지, 알림 등 주요 페이지로 이동할 수 있습니다.<br/>
+  🔒 로그인 상태에 따라 접근 제어가 적용됩니다.<br/>
+</p>
+</details>
+
+<details>
 <summary>🎲 주사위 굴리기 (담당: 영은)</summary>
 
 <p align="center">
