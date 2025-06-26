@@ -268,7 +268,7 @@
 ## 📽 발표 및 시연 영상
 
 - 🎞️ [발표 PPT 보기](https://example.com/presentation)  
-- ▶️ [시연 영상 보기](./assets/screenshots/random.mp4)
+- ▶️ [시연 영상 보기](https://github.com/sbsssb/flutterProject/raw/main/assets/screenshots/random.mp4)
 
 ---
 
