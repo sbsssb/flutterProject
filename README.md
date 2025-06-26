@@ -133,7 +133,10 @@
 <details>
 <summary>🏕️ 방 생성 페이지 (담당: 수빈)</summary>
 <div align="center">
-  <img src="./assets/screenshots/main1.PNG" alt="방 생성" width="20%"/>
+  <img src="./assets/screenshots/room1-1.png" alt="축제 리스트" width="20%"/>
+  <img src="./assets/screenshots/room2.png" alt="축제 리스트" width="20%"/>
+  <img src="./assets/screenshots/room3.png" alt="축제 리스트" width="20%"/>
+  <img src="./assets/screenshots/room5.png" alt="축제 상세보기" width="20%"/>
 </div>
 
 <p align="center">
