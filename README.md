@@ -168,9 +168,19 @@
 <details>
 <summary>🧾 일정 생성 (담당: 수빈)</summary>
 
-<img src="./assets/screenshots/schedule.png" alt="일정 생성" width="20%"/>
+<div align="center">
+  <img src="./assets/screenshots/trvellist1.png" alt="일정 생성" width="20%"/>
+  <img src="./assets/screenshots/trvellist2.png" alt="일정 생성" width="20%"/>
+  <img src="./assets/screenshots/trvellist3.png" alt="일정 변경" width="20%"/>
+  <img src="./assets/screenshots/roomdetail.png" alt="여행방 상세 페이지" width="20%"/>
+</div>
 
-AI(Gemini)를 통해 생성된 여행 일정을 확인하고 커스터마이징할 수 있습니다.
+<p align="center">
+  🤖 선택한 지역/테마/교통수단을 기반으로 AI 일정 생성을 요청합니다.<br/>
+  🧹 생성된 일정을 삭제할 수 있고, 3번까지 일정 추가 재요청이 가능합니다.<br/>
+  🗓 Drag & Drop으로 일정 순서를 바꿀 수 있습니다.<br/>
+  📌 여행방 상세 페이지에서 참여 멤버, 지역 정보 확인, 앨범 이동, 일정 확인 기능을 사용할 수 있습니다.<br/>
+</p>
 
 </details>
 
