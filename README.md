@@ -137,12 +137,9 @@
   <img src="./assets/screenshots/dice3.png" width="200"/>
   <img src="./assets/screenshots/dice2.png" width="200"/>
   <img src="./assets/screenshots/dice1.png" width="200"/>
+  <img src="./assets/screenshots/dice4.png" width="200"/>
 </p>
 
-<p align="center">
-  <img src="./assets/screenshots/dice4.png" width="200"/>
-  <img src="./assets/screenshots/dice5.png" width="200"/>
-</p>
 
 <p align="center">
   🗺️ 사용자가 지역을 선택한 뒤 주사위 게임 방에 입장하면, 선택한 지역 내의 12개 장소가 무작위로 주사위 판에 배치되어 표시됩니다.<br/>
