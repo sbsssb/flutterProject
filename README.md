@@ -264,7 +264,7 @@
 ## 📽 발표 및 시연 영상
 
 - 🎞️ [발표 PPT 보기](https://docs.google.com/presentation/d/1q0_LwaLwRUo7wtGK6tp651yc9sHneplR0U6SDDDHS_k/edit?usp=sharing)  
-- ▶️ [시연 영상 보기](https://github.com/sbsssb/flutterProject/raw/master/assets/screenshots/random.mp4)
+- ▶️ [시연 영상 보기](https://drive.google.com/file/d/18Db0YNX7r2riA5NT4i2DMOEMwFqPS2MN/view?usp=sharing)
 
 ---
 
