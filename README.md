@@ -18,7 +18,7 @@
 | 윤수빈 | 팀장, 방 생성, AI 일정 생성 | [sbsssb](https://github.com/sbsssb) |
 | 김성규 | 마이페이지, 알림기능 | [glodstone1](https://github.com/glodstone1) |
 | 박새별 | 스탬프 및 앨범 기능, 메인화면 | [SaeByeol5285](https://github.com/SaeByeol5285) |
-| 유승호 | 로그인/회원가입, 축제 API 연동 | 추가 |
+| 유승호 | 로그인/회원가입, 축제 API 연동 | [minamRyu](https://github.com/minamRyu/project-react) |
 | 홍영은 | 주사위 로직, 게임 애니메이션 처리 | [HongYeongEun](https://github.com/HongYeongEun) |
 
 ---
@@ -91,17 +91,17 @@
 | 카테고리 | 기술 |
 |----------|------|
 | 프론트엔드 | Flutter (iOS / Android) |
-| 백엔드/DB | Firebase (Auth, Firestore, Storage) |
+| 백엔드/DB | Firebase (Authentication, Cloud Firestore, Storage) |
 | 외부 API | - Tour API 4.0 (한국 관광정보)<br>- Google Maps Places API (위도/경도 보정)<br>- Google Gemini Pro API (일정 생성) |
-| 위치 기반 | Geolocator (현재 위치, 거리 계산 등) |
+| 기타 | - Geolocator (현재 위치, 거리 계산)<br>
+- table_calendar (축제 달력)<br>
+- shake (디바이스 흔들기 감지)<br>
+- flutter_local_notifications + vibration (알림 및 진동)<br>
+- image_picker + image_gallery_saver_plus + dio (앨범) |
 
 ---
 
-## 🖼 페이지별 구현 이미지
-
-> 각 항목에 이미지 경로와 설명을 삽입해주세요. 아래는 템플릿입니다.
-
-### 📄 페이지별 구현
+## 🖼 화면 소개
 
 <details>
 <summary>🔐 로그인 / 회원가입 (담당: 승호)</summary>
@@ -267,7 +267,7 @@
 
 ## 📽 발표 및 시연 영상
 
-- 🎞️ [발표 PPT 보기](https://example.com/presentation)  
+- 🎞️ [발표 PPT 보기](https://docs.google.com/presentation/d/1q0_LwaLwRUo7wtGK6tp651yc9sHneplR0U6SDDDHS_k/edit?usp=sharing)  
 - ▶️ [시연 영상 보기](https://github.com/sbsssb/flutterProject/raw/master/assets/screenshots/random.mp4)
 
 ---
