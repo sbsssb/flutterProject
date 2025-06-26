@@ -134,9 +134,9 @@
 <summary>🎲 주사위 굴리기 (담당: 영은)</summary>
 
 <p align="center">
-  <img src="./assets/screenshots/dice3.png" width="200"/>
-  <img src="./assets/screenshots/dice2.png" width="200"/>
   <img src="./assets/screenshots/dice1.png" width="200"/>
+  <img src="./assets/screenshots/dice2.png" width="200"/>
+  <img src="./assets/screenshots/dice3.png" width="200"/>
   <img src="./assets/screenshots/dice4.png" width="200"/>
 </p>
 
@@ -145,8 +145,7 @@
   🗺️ 사용자가 지역을 선택한 뒤 주사위 게임 방에 입장하면, 선택한 지역 내의 12개 장소가 무작위로 주사위 판에 배치되어 표시됩니다.<br/>
   🎲 ‘두 개 굴리기’ 버튼을 누르면 주사위가 굴러가고, 이동할 칸이 표시되면서 말이 자동으로 이동합니다.<br/>
   🧳 주사위 말이 해당 칸에 도착하면, 도착한 지역명이 화면에 표시됩니다.<br/>
-  💬 방장이 친구를 초대하고 방을 생성하면, 해당 사용자에게 실시간으로 초대장이 발송됩니다.<br/>
-  👪 초대 수락 시, 방에 입장하여 방장과 동일한 화면을 함께 보게 됩니다.
+  💬 초대 수락 후, 방장과 동일한 화면을 실시간으로 공유하며 주사위 게임을 함께 즐길 수 있습니다.<br/>
 </details>
 
 <details>
