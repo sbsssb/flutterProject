@@ -41,7 +41,7 @@ final GoRouter router = GoRouter(
   redirect: (context, state) {
     final user = FirebaseAuth.instance.currentUser;
     final goingTo = state.matchedLocation;
-    
+
     // 로그인했는데 login 접근 시 메인으로
     if (user != null && goingTo == '/login') return '/main';
 
@@ -99,12 +99,19 @@ final GoRouter router = GoRouter(
         return TravelRoomDetailPage(roomId: roomId);
       },
     ),
-    GoRoute(path: '/mypage', builder: (context, state) => const myPageApp()),
+    GoRoute(path: '/mypage', builder: (context, state) => const myPageMainApp()),
     GoRoute(
       path: '/currentRoom/:userId',
       builder: (context, state) {
         final userId = state.pathParameters['userId']!;
         return CurrentRoomApp(userId: userId);
+      },
+    ),
+    GoRoute(
+      path: '/prevRoom/:userId',
+      builder: (context, state) {
+        final userId = state.pathParameters['userId']!;
+        return PrevRoomApp(userId: userId);
       },
     ),
     GoRoute(

@@ -131,7 +131,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 55),
-            Text('면허 갱신하기',
+            Text('프로필 수정하기',
               style: TextStyle(
                 fontFamily: 'Jalnan',
                 color: Color(0xFF1E6FD9),
@@ -188,7 +188,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                           getTitleWithNickname(widget.stampCount, widget.userData['nickname']),
                           style: TextStyle(
                             fontSize: 14,
-                              fontFamily: 'AstaSans',
+                            fontFamily: 'AstaSans',
                             color: Color(0xFF1E6FD9),
                           ),
                         ),
@@ -232,8 +232,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               onPressed: () => _showPasswordChangeDialog(context),
               icon: const Icon(Icons.lock_outline),
               label: const Text('비밀번호 변경', style: TextStyle(
-                  fontSize: 30,
-                  fontFamily: 'AstaSans',
+                fontSize: 30,
+                fontFamily: 'AstaSans',
               )),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF1E6FD9),
@@ -245,44 +245,44 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      final userId = widget.userData['user_id'];
-                      final newNickname = nicknameController.text.trim();
-                      final newPhone = phoneController.text.trim();
+                onPressed: () async {
+                  try {
+                    final userId = widget.userData['user_id'];
+                    final newNickname = nicknameController.text.trim();
+                    final newPhone = phoneController.text.trim();
 
 
-                      final query = await FirebaseFirestore.instance
-                          .collection('users')
-                          .where('nickname', isEqualTo: newNickname)
-                          .get();
+                    final query = await FirebaseFirestore.instance
+                        .collection('users')
+                        .where('nickname', isEqualTo: newNickname)
+                        .get();
 
-                      final isDuplicate = query.docs.any((doc) => doc.id != userId);
+                    final isDuplicate = query.docs.any((doc) => doc.id != userId);
 
-                      if (isDuplicate) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('이미 사용 중인 닉네임입니다.')),
-                        );
-                        return;
-                      }
-
-
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userId)
-                          .update({
-                        'nickname': newNickname,
-                        'phone': newPhone,
-                      });
-
-
-                      Navigator.pop(context, true);
-                    } catch (e) {
+                    if (isDuplicate) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('저장 중 오류가 발생했습니다.')),
+                        const SnackBar(content: Text('이미 사용 중인 닉네임입니다.')),
                       );
+                      return;
                     }
-                  },
+
+
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .update({
+                      'nickname': newNickname,
+                      'phone': newPhone,
+                    });
+
+
+                    Navigator.pop(context, true);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('저장 중 오류가 발생했습니다.')),
+                    );
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E6FD9),
                   padding: EdgeInsets.zero,

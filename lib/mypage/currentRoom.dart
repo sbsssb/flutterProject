@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../common/bottom_nav_bar.dart';
 import '../travelroom/travelDetail.dart';
-import 'prevRoom_detail.dart';
 import 'appbar.dart';
 
 class CurrentRoomApp extends StatelessWidget {
@@ -11,9 +10,7 @@ class CurrentRoomApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: CurrentRoomIn(userId: userId),
-    );
+    return CurrentRoomIn(userId: userId);
   }
 }
 
@@ -152,6 +149,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: CustomAppBar(userId: widget.userId),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -248,7 +246,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
                                     backgroundColor: Colors.red,
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                   ),
-                                  child: const Text('삭제'),
+                                  child: const Text('삭제', style: TextStyle(color: Colors.white),),
                                 )
                               else
                                 const SizedBox(),
@@ -286,7 +284,7 @@ class _CurrentRoomInState extends State<CurrentRoomIn> {
                                   backgroundColor: Colors.amber,
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 ),
-                                child: const Text('이동'),
+                                child: const Text('이동', style: TextStyle(color: Colors.white),),
                               ),
                             ],
                           ),
