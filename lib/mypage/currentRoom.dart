@@ -4,26 +4,26 @@ import '../common/bottom_nav_bar.dart';
 import '../travelroom/travelDetail.dart';
 import 'appbar.dart';
 
-class PrevRoomApp extends StatelessWidget {
+class CurrentRoomApp extends StatelessWidget {
   final String userId;
-  const PrevRoomApp({super.key, required this.userId});
+  const CurrentRoomApp({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
-    return PrevRoomIn(userId: userId);
+    return CurrentRoomIn(userId: userId);
   }
 }
 
-class PrevRoomIn extends StatefulWidget {
+class CurrentRoomIn extends StatefulWidget {
   final String userId;
 
-  const PrevRoomIn({super.key, required this.userId});
+  const CurrentRoomIn({super.key, required this.userId});
 
   @override
-  State<PrevRoomIn> createState() => _PrevRoomInState();
+  State<CurrentRoomIn> createState() => _CurrentRoomInState();
 }
 
-class _PrevRoomInState extends State<PrevRoomIn> {
+class _CurrentRoomInState extends State<CurrentRoomIn> {
   List<Map<String, dynamic>> travelRooms = [];
   DocumentSnapshot? lastDocument;
   int currentPage = 1;
@@ -79,11 +79,12 @@ class _PrevRoomInState extends State<PrevRoomIn> {
       if (travelRoomData == null) continue;
 
       final isDone = travelRoomData['is_done'] ?? false;
-      if (isDone == true) {
+      if (isDone == false) {
 
       }
 
-      if (isDone == true) {
+
+      if (isDone == false) {
 
         final membersSnapshot = await FirebaseFirestore.instance
             .collection('travel_rooms')
@@ -148,6 +149,7 @@ class _PrevRoomInState extends State<PrevRoomIn> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: CustomAppBar(userId: widget.userId),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -158,7 +160,7 @@ class _PrevRoomInState extends State<PrevRoomIn> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '이전 여행',
+              '진행 중인 여행',
               style: TextStyle(
                 fontSize: 26,
                 fontFamily: 'Jalnan',
@@ -205,88 +207,86 @@ class _PrevRoomInState extends State<PrevRoomIn> {
                           const SizedBox(height: 4),
                           Text('참여인원 : ${room['members']}명'),
                           const Spacer(),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
 
-                                if (room['is_owner'] == true)
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      final roomId = room['room_id'];
-
-                                      final shouldDelete = await showDialog<bool>(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text('방 삭제'),
-                                          content: const Text('정말로 이 여행방을 삭제하시겠습니까? 모든 데이터가 사라집니다.'),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.of(ctx).pop(false),
-                                              child: const Text('취소'),
-                                            ),
-                                            ElevatedButton(
-                                              onPressed: () => Navigator.of(ctx).pop(true),
-                                              child: const Text('삭제'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-
-                                      if (shouldDelete == true) {
-                                        await deleteTravelRoom(roomId);
-                                        await fetchTravelRooms(page: currentPage);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('여행방이 삭제되었습니다.')),
-                                        );
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    ),
-                                    child: const Text('삭제'),
-                                  )
-                                else
-                                  const SizedBox(),
-
-
+                              if (room['is_owner'] == true)
                                 ElevatedButton(
                                   onPressed: () async {
                                     final roomId = room['room_id'];
 
-                                    try {
-                                      final query = await FirebaseFirestore.instance
-                                          .collection('travel_rooms')
-                                          .where('room_id', isEqualTo: roomId)
-                                          .limit(1)
-                                          .get();
-
-                                      if (query.docs.isNotEmpty) {
-                                        final doc = query.docs.first;
-                                        final docId = doc.id;
-
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => TravelRoomDetailPage(roomId: docId),
+                                    final shouldDelete = await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Text('방 삭제'),
+                                        content: const Text('정말로 이 여행방을 삭제하시겠습니까? 모든 데이터가 사라집니다.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(ctx).pop(false),
+                                            child: const Text('취소'),
                                           ),
-                                        );
-                                      } else {
-                                      }
-                                    } catch (e) {
+                                          ElevatedButton(
+                                            onPressed: () => Navigator.of(ctx).pop(true),
+                                            child: const Text('삭제'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
 
+                                    if (shouldDelete == true) {
+                                      await deleteTravelRoom(roomId);
+                                      await fetchTravelRooms(page: currentPage);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('여행방이 삭제되었습니다.')),
+                                      );
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber,
+                                    backgroundColor: Colors.red,
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                   ),
-                                  child: const Text('이동'),
+                                  child: const Text('삭제', style: TextStyle(color: Colors.white),),
+                                )
+                              else
+                                const SizedBox(),
+
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final roomId = room['room_id'];
+
+
+                                  try {
+                                    final query = await FirebaseFirestore.instance
+                                        .collection('travel_rooms')
+                                        .where('room_id', isEqualTo: roomId)
+                                        .limit(1)
+                                        .get();
+
+                                    if (query.docs.isNotEmpty) {
+                                      final doc = query.docs.first;
+                                      final docId = doc.id;
+
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TravelRoomDetailPage(roomId: docId),
+                                        ),
+                                      );
+                                    } else {
+
+                                    }
+                                  } catch (e) {
+
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.amber,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 ),
-                              ],
-                            ),
+                                child: const Text('이동', style: TextStyle(color: Colors.white),),
+                              ),
+                            ],
                           ),
                         ],
                       ),

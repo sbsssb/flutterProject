@@ -4,19 +4,23 @@ import 'album_service.dart';
 import 'album_grid.dart';
 import '../user/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../common/bottom_nav_bar.dart';
 
 class AlbumPage extends ConsumerStatefulWidget {
+  final String roomId;
+  final String uploaderId;
+
   const AlbumPage({
     super.key,
-  }); //, required this.roomId, required this.uploaderId Todo:추후 파라미터로 받아오기
+    required this.roomId,
+    required this.uploaderId
+  });
 
   @override
   ConsumerState<AlbumPage> createState() => _AlbumPageState();
 }
 
 class _AlbumPageState extends ConsumerState<AlbumPage> {
-  final String roomId = 'album_test';
-
   //업로드 후 그리드 새로고침
   final GlobalKey<AlbumGridState> _gridKey = GlobalKey();
 
@@ -30,7 +34,8 @@ class _AlbumPageState extends ConsumerState<AlbumPage> {
     final uploaderId = user?.uid;
 
     return Scaffold(
-      body: AlbumGrid(key: _gridKey, roomId: roomId),
+      bottomNavigationBar: const BottomNavBar(),
+      body: AlbumGrid(key: _gridKey, roomId: widget.roomId),
       floatingActionButton:
           uploaderId == null
               ? null
@@ -39,12 +44,16 @@ class _AlbumPageState extends ConsumerState<AlbumPage> {
                 child: Icon(Icons.add, color: Colors.white),
                 onPressed: () async {
                   //사진 업로드
-                  await AlbumService.uploadAlbumPhoto(roomId, uploaderId);
-                  //리스트 새로고침
-                  _refreshPhotos();
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('사진 업로드 완료!')));
+                  final success = await AlbumService.uploadAlbumPhoto(widget.roomId, uploaderId);
+                  if (success) {
+                    //리스트 새로고침
+                    _refreshPhotos();
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('사진 업로드 완료!')));
+                  } else {
+                    print('사진 업로드 안 됨');
+                  }
                 },
               ),
     );

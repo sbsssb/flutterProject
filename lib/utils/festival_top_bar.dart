@@ -17,7 +17,7 @@ class FestivalTopBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () => context.go('/festivalList'),
+              onTap: () => context.go('/festival'),
               child: Text(
                 '축제 목록',
                 style: TextStyle(

@@ -1,8 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../common/bottom_nav_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../dice/dice.dart';
+
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,58 +19,291 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  late String userId;
   late Future<List<Map<String, dynamic>>> _recentRooms;
 
   @override
   void initState() {
     super.initState();
-    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    _recentRooms = getRecentJoinRooms(userId);
+    userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    _waitForLoginAndListenToInvitations();
+
+    if (userId.isNotEmpty) {
+      _recentRooms = getRecentJoinRooms(userId);
+    } else {
+      _recentRooms = Future.value([]);
+    }
   }
 
-  // 🔹 Firestore에서 최근 여행 3건 조회
-  Future<List<Map<String, dynamic>>> getRecentJoinRooms(String userId) async {
-    final snapshot = await FirebaseFirestore.instance
+  StreamSubscription? _invitedRoomListener;
+  Set<String> _notifiedRooms = {};
+
+  void _waitForLoginAndListenToInvitations() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    while (true) {
+      final snapshot = await FirebaseFirestore.instance
+          .collectionGroup('members')
+          .where('user_id', isEqualTo: uid)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        _listenToInvitations(uid);
+        break;
+      }
+
+      await Future.delayed(const Duration(seconds: 1));
+    }
+  }
+
+  void _checkAndShowInvitationDialog(BuildContext context, String roomId) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final isRejected = prefs.getBool('rejected_$roomId') ?? false;
+
+    if (!isRejected) {
+      _showInvitationDialog(context, roomId);
+    }
+  }
+
+  Future<void> _handleMemberDoc(DocumentSnapshot doc) async {
+    final memberData = doc.data() as Map<String, dynamic>?;
+    if (memberData == null) {
+      return;
+    }
+
+    final isOwner = memberData['is_owner'] == true;
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (isOwner || currentUid == null) {
+      return;
+    }
+
+    final parentRoomRef = doc.reference.parent.parent;
+    if (parentRoomRef == null) return;
+
+    final roomDoc = await parentRoomRef.get();
+    final roomData = roomDoc.data();
+    if (roomData == null) return;
+
+    final hostIsActive = roomData['host_is_active'] == true;
+    final ownerId = roomData['owner_id'];
+    final roomId = parentRoomRef.id;
+
+    final prefs = await SharedPreferences.getInstance();
+    final isRejected = prefs.getBool('rejected_$roomId') ?? false;
+    if (isRejected) {
+      return;
+    }
+
+    if (!hostIsActive || currentUid == ownerId || _notifiedRooms.contains(roomId)) {
+      return;
+    }
+
+    _notifiedRooms.add(roomId);
+
+    final ownerProfile = await getUserProfile(ownerId);
+    final senderNickname = ownerProfile?['nickname'] ?? '이름 없음';
+    final senderStampCount = ownerProfile?['stampCount'] ?? 0;
+
+    await FirebaseFirestore.instance
         .collection('users')
-        .doc(userId)
-        .collection('join_rooms')
-        .orderBy('cdatetime', descending: true)
-        .limit(3)
+        .doc(currentUid)
+        .collection('notifications')
+        .add({
+      'type': 'invitation',
+      'room_id': roomId,
+      'message': '방에 초대되었습니다!',
+      'timestamp': FieldValue.serverTimestamp(),
+      'is_read': false,
+      'sender_id': ownerId,
+      'sender_nickname': senderNickname,
+      'sender_stampCount': senderStampCount,
+    });
+
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _showInvitationDialog(context, roomId);
+      }
+    });
+  }
+
+
+
+
+
+
+  void _listenToInvitations(String uid) {
+    _invitedRoomListener?.cancel();
+
+    _invitedRoomListener = FirebaseFirestore.instance
+        .collectionGroup('members')
+        .where('user_id', isEqualTo: uid)
+        .snapshots()
+        .listen((snapshot) async {
+
+      for (final doc in snapshot.docs) {
+        await _handleMemberDoc(doc);
+      }
+    });
+  }
+
+
+
+  @override
+  void dispose() {
+    _invitedRoomListener?.cancel();
+    super.dispose();
+  }
+
+  void _showInvitationDialog(BuildContext context, String roomId) async {
+    final roomDoc = await FirebaseFirestore.instance
+        .collection('travel_rooms')
+        .doc(roomId)
         .get();
 
+    final roomName = roomDoc.data()?['room_name'] ?? '이름 없음';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFFAF3E0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "🎉 방 초대",
+          style: TextStyle(
+            fontFamily: 'Jalnan',
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color: Color(0xFF333333),
+          ),
+        ),
+        content: Text(
+          "방에 초대되었습니다!\n\n방 이름: $roomName",
+          style: const TextStyle(
+            fontFamily: 'Jalnan',
+            fontSize: 16,
+            color: Color(0xFF555555),
+          ),
+        ),
+        actionsPadding: const EdgeInsets.only(right: 16, bottom: 12),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+              textStyle: const TextStyle(
+                fontFamily: 'Jalnan',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('rejected_$roomId', true);
+              Navigator.pop(context);
+            },
+            child: const Text("거절"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFACC15),
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              textStyle: const TextStyle(
+                fontFamily: 'YGTZan',
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              context.push('/dice/$roomId');
+            },
+            child: const Text("입장하기"),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+
+
+
+
+  Future<List<Map<String, dynamic>>> getRecentJoinRooms(String userId) async {
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('join_rooms')
+            .orderBy('cdatetime', descending: true)
+            .limit(3)
+            .get();
+
     return snapshot.docs.map((doc) {
-      return {
-        'room_id': doc['room_id'],
-        'region': doc['region'],
-      };
+      return {'room_id': doc['room_id'], 'region': doc['region']};
     }).toList();
+  }
+
+
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    return doc.data();
+  }
+
+  String getProfileImagePath(int count) {
+    if (count >= 11) return 'assets/mypage_images/profile_gold.png';
+    if (count >= 6) return 'assets/mypage_images/profile_silver.png';
+    return 'assets/mypage_images/profile_bronze.png';
+  }
+
+  String getTitleWithNickname(int count, String nickname) {
+    if (count >= 11) return '인간 네비게이션\n$nickname';
+    if (count >= 6) return '차 멀미에 익숙한\n$nickname';
+    return '집 밖을 나선\n$nickname';
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: const Color(0xFF1E6FD9),
       bottomNavigationBar: const BottomNavBar(currentIndex: 0),
       body: SafeArea(
         child: Column(
           children: [
-            // 🔵 상단 로고/텍스트
+
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 children: [
-                  const Text('어디든 좋아!', style: TextStyle(color: Colors.white, fontSize: 18)),
-                  Image.asset('assets/common_images/logo-main-ver2.png', height: 150),
+                  const Text(
+                    '어디든 좋아!',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Image.asset(
+                    'assets/common_images/logo-main-ver2.png',
+                    height: 150,
+                  ),
                 ],
               ),
             ),
 
-            // ⚪ 콘텐츠 박스
+
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 32,
+                  horizontal: 24,
+                ),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -76,60 +316,136 @@ class _MainScreenState extends State<MainScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
+                          if (userId == '') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('로그인 후 이용 가능합니다.')),
+                            );
+                            context.go('/login');
+                            return;
+                          }
                           context.push('/addRoom');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1E6FD9),
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('주사위 굴리기',
-                                style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text(
+                              '주사위 굴리기',
+                              style: TextStyle(
+                                fontFamily: 'Jalnan',
+                                fontSize: 32,
+                                color: Colors.white,
+                              ),
+                            ),
                             const SizedBox(width: 2),
-                            Image.asset('assets/main_images/icon-dice1.png', height: 70),
+                            Image.asset(
+                              'assets/main_images/icon-dice1.png',
+                              height: 50,
+                            ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(height: 40),
-
+                      const SizedBox(height: 30),
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('최근 여행',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E6FD9))),
+                        child: Text(
+                          '나의 여행 등급',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E6FD9),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 12),
 
-                      FutureBuilder<List<Map<String, dynamic>>>(
+
+                      _buildProfileSection(),
+
+                      const SizedBox(height: 12),
+
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '최근 여행',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E6FD9),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      userId == ''
+                          ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Text(
+                            '로그인하고 여행 기록을 확인해보세요!',
+                            style: TextStyle(fontSize: 18, color: Colors.black54),
+                          ),
+                        ),
+                      )
+                          : FutureBuilder<List<Map<String, dynamic>>>(
                         future: _recentRooms,
                         builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
                             return const CircularProgressIndicator();
                           }
 
-                          final rooms = snapshot.data!;
-                          if (rooms.isEmpty) {
-                            return const Text('참여한 여행이 없습니다.');
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 32),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: const Text(
+                                  '최근 여행 기록이 없습니다.',
+                                  style: TextStyle(fontSize: 18, color: Colors.black54),
+                                ),
+                              ),
+                            );
                           }
 
+
+                          final rooms = snapshot.data!;
                           return Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: List.generate(3, (index) {
                               if (index < rooms.length) {
                                 final room = rooms[index];
-                                return _regionItem(context, room['region'], room['room_id']);
+                                return _regionItem(
+                                  context,
+                                  room['region'],
+                                  room['room_id'],
+                                );
                               } else {
-                                return _emptyRegionSlot(index); // 빈 슬롯
+                                return _emptyRegionSlot(index);
                               }
                             }),
                           );
                         },
                       ),
 
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 30),
 
                       ElevatedButton(
                         onPressed: () {
@@ -137,16 +453,30 @@ class _MainScreenState extends State<MainScreen> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1E6FD9),
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text("축제 구경가기",
-                                style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold)),
+                            const Text(
+                              "축제 구경가기",
+                              style: TextStyle(
+                                fontFamily: 'Jalnan',
+                                fontSize: 32,
+                                color: Colors.white,
+                              ),
+                            ),
                             const SizedBox(width: 12),
-                            Image.asset('assets/main_images/icon-festival.png', height: 70),
+                            Image.asset(
+                              'assets/main_images/icon-festival.png',
+                              height: 50,
+                            ),
                           ],
                         ),
                       ),
@@ -161,12 +491,11 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // 🔹 지역 아이템 위젯
+
   Widget _regionItem(BuildContext context, String region, String roomId) {
     return GestureDetector(
       onTap: () {
-        // TODO: RoomDetail 머지되면 아래 주석 해제
-        // context.push('/roomDetail/$roomId');
+        context.push('/detail/$roomId');
       },
       child: Container(
         width: 100,
@@ -185,7 +514,12 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Column(
           children: [
-            Text(region, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            Text(
+              region,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
             const SizedBox(height: 6),
             Image.asset('assets/main_images/icon-dice2.png', height: 50),
           ],
@@ -213,5 +547,77 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildProfileSection() {
+    if (userId == '') {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: const Text(
+            '로그인하고 여행 등급을 확인해보세요!',
+            style: TextStyle(fontSize: 18, color: Colors.black54),
+          ),
+        ),
+      );
+    } else {
+      return FutureBuilder<Map<String, dynamic>?>(
+        future: getUserProfile(userId),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return SizedBox();
+
+          final data = snapshot.data!;
+          final stampCount = data['stampCount'] ?? 0;
+          final nickname = data['nickname'] ?? '여행자';
+          final imagePath = getProfileImagePath(stampCount);
+          final titleText = getTitleWithNickname(stampCount, nickname);
+
+          return Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: 350),
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Color(0xFFFFF9C4),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(imagePath, height: 80),
+                  const SizedBox(width: 12),
+                  RichText(
+                    textAlign: TextAlign.left,
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${titleText.split('\n').first}\n',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: titleText.split('\n').last,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
   }
 }

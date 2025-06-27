@@ -10,19 +10,16 @@ import '../firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutterteam4/user/user_provider.dart';
 
+import '../mypage/profile_avatar.dart';
+import '../common/bottom_nav_bar.dart';
+import '../common/logo_header.dart';
+
 class RoomCreate extends StatelessWidget {
   const RoomCreate({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        primaryColor: Colors.white,
-        scaffoldBackgroundColor: Colors.white,
-      ),
-
-      home: RoomCreatePage(),
-    );
+    return RoomCreatePage();
   }
 }
 
@@ -52,13 +49,16 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundImage: AssetImage('assets/avatars/${friend['avatar_id']}.png'),  // 경로는 프로젝트에 맞게
+                  backgroundImage: AssetImage(getProfileImagePath(friend['stampCount'] ?? 0)), // 경로는 프로젝트에 맞게
                   backgroundColor: Colors.grey[300],
                 ),
                 SizedBox(height: 4),
                 Text(
                   friend['nickname'],
-                  style: TextStyle(fontSize: 12),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontFamily: 'AstaSans',
+                    fontSize: 17,
+                  ),
                 )
               ],
             ),
@@ -72,13 +72,19 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
                     padding: const EdgeInsets.all(16),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Color(0xFF1E6FD9),
                     foregroundColor: Colors.white,
                   ),
                   child: const Icon(Icons.add, size: 20),
                 ),
                 SizedBox(height: 4),
-                Text("추가", style: TextStyle(fontSize: 12)),
+                Text(
+                  "추가",
+                  style: TextStyle(
+                    fontFamily: 'Jalnan',
+                    fontSize: 16,
+                  ),
+                ),
               ],
             ),
           ),
@@ -101,7 +107,10 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
 
     final allFriends = friendSnapshot.docs;
     if (allFriends.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('친구가 없습니다.')));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('친구가 없습니다.')),
+      );
       return;
     }
 
@@ -114,137 +123,153 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
       builder: (context) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              List<QueryDocumentSnapshot<Map<String, dynamic>>> filteredFriends = allFriends;
+          child: Theme(
+            data: Theme.of(context),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                List<QueryDocumentSnapshot<Map<String, dynamic>>> filteredFriends = allFriends;
 
-              if (searchQuery.isNotEmpty) {
-                filteredFriends = allFriends.where((doc) {
-                  final nickname = doc.data()['nickname'] ?? '';
-                  return nickname.contains(searchQuery);
-                }).toList();
-              }
+                if (searchQuery.isNotEmpty) {
+                  filteredFriends = allFriends.where((doc) {
+                    final nickname = doc.data()['nickname'] ?? '';
+                    return nickname.contains(searchQuery);
+                  }).toList();
+                }
 
-              return SizedBox(
-                width: 320,
-                height: 520,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const Text('친구 초대하기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
-                      TextField(
-                        decoration: InputDecoration(
-                          hintText: "닉네임 검색",
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                return SizedBox(
+                  width: 320,
+                  height: 520,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Text(
+                          '친구 초대하기',
+                          style: TextStyle(
+                            fontFamily: 'Jalnan',
+                            fontSize: 20,
+                          ),
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            searchQuery = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      if (tempSelected.isNotEmpty)
-                        SizedBox(
-                          height: 80,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: tempSelected.map((friend) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
-                                child: Column(
-                                  children: [
-                                    Stack(
-                                      alignment: Alignment.topRight,
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 24,
-                                          backgroundImage: AssetImage('assets/avatars/${friend['avatar_id']}.png'),
-                                          backgroundColor: Colors.grey[300],
-                                        ),
-                                        GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              tempSelected.removeWhere((f) => f['user_id'] == friend['user_id']);
-                                            });
-                                          },
-                                          child: CircleAvatar(
-                                            radius: 10,
-                                            backgroundColor: Colors.red,
-                                            child: Icon(Icons.close, size: 12, color: Colors.white),
+                        const SizedBox(height: 12),
+                        TextField(
+                          decoration: InputDecoration(
+                            hintText: "닉네임 검색",
+                            prefixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              searchQuery = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        if (tempSelected.isNotEmpty)
+                          SizedBox(
+                            height: 80,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: tempSelected.map((friend) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: Column(
+                                    children: [
+                                      Stack(
+                                        alignment: Alignment.topRight,
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 24,
+                                            backgroundImage: AssetImage(getProfileImagePath(friend['stampCount'] ?? 0)),
+                                            backgroundColor: Colors.grey[300],
                                           ),
-                                        ),
-                                      ],
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                tempSelected.removeWhere((f) => f['user_id'] == friend['user_id']);
+                                              });
+                                            },
+                                            child: CircleAvatar(
+                                              radius: 10,
+                                              backgroundColor: Colors.red,
+                                              child: Icon(Icons.close, size: 12, color: Colors.white),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(friend['nickname'], style: const TextStyle(fontSize: 12)),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: ListView(
+                            children: filteredFriends.map((doc) {
+                              final data = doc.data();
+                              final userId = doc.id;
+                              final nickname = data['nickname'] ?? '';
+                              final stampCount = data['stampCount'] ?? 0;
+                              final titles = data['titles'] ?? '';
+                              final isInvited = tempSelected.any((f) => f['user_id'] == userId);
+
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: AssetImage(getProfileImagePath(stampCount)),
+                                  backgroundColor: Colors.grey[300],
+                                ),
+                                title: Text(nickname),
+                                trailing: ElevatedButton(
+                                  onPressed: isInvited
+                                      ? null
+                                      : ()  {
+                                    setState(() {
+                                      tempSelected.add({
+                                        'user_id': userId,
+                                        'nickname': nickname,
+                                        'stampCount': stampCount,
+                                        'titles': titles,
+                                      });
+                                    });
+                                  },
+                                  child: Text(
+                                    isInvited ? '초대됨' : '초대',
+                                    style: TextStyle(
+                                      fontFamily: 'Jalnan',
+                                      fontSize: 14,
+                                      color: Colors.white, // 포인트 색상 사용
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(friend['nickname'], style: const TextStyle(fontSize: 12)),
-                                  ],
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isInvited ? Colors.grey : Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  ),
                                 ),
                               );
                             }).toList(),
                           ),
                         ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: ListView(
-                          children: filteredFriends.map((doc) {
-                            final data = doc.data();
-                            final userId = doc.id;
-                            final nickname = data['nickname'] ?? '';
-                            final avatarId = data['avatar_id'] ?? '';
-                            final titles = data['titles'] ?? '';
-                            final isInvited = tempSelected.any((f) => f['user_id'] == userId);
-
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundImage: AssetImage('assets/avatars/$avatarId.png'),
-                                backgroundColor: Colors.grey[300],
-                              ),
-                              title: Text(nickname),
-                              trailing: ElevatedButton(
-                                onPressed: isInvited
-                                    ? null
-                                    : () {
-                                  setState(() {
-                                    tempSelected.add({
-                                      'user_id': userId,
-                                      'nickname': nickname,
-                                      'avatar_id': avatarId,
-                                      'titles': titles,
-                                    });
-                                  });
-                                },
-                                child: Text(isInvited ? '초대됨' : '초대'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: isInvited ? Colors.grey : Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(onPressed: () => Navigator.pop(context), child: const Text('닫기')),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context, tempSelected);
+                              },
+                              child: const Text('확인'),
+                            ),
+                          ],
                         ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('닫기')),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context, tempSelected);
-                            },
-                            child: const Text('확인'),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         );
       },
@@ -362,23 +387,57 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
 
   void _createRoom() async {
     final user = ref.watch(authStateProvider).value;
+    final userDoc = await fs.collection('users').doc(user?.uid).get();
+    final userData = userDoc.data();
+
+    final roomsSnapshot = await fs.collection('travel_rooms').get();
+
+    for (final roomDoc in roomsSnapshot.docs) {
+      final roomRef = roomDoc.reference;
+
+      // schedules 서브컬렉션 확인
+      final schedulesSnapshot = await roomRef.collection('schedules').limit(1).get();
+
+      if (schedulesSnapshot.docs.isEmpty) {
+        // schedules가 없으면 members 삭제
+        final membersSnapshot = await roomRef.collection('members').get();
+
+        for (final memberDoc in membersSnapshot.docs) {
+          await memberDoc.reference.delete();
+        }
+        await roomRef.delete();
+        print('members 삭제 완료: ${roomRef.id}');
+      } else {
+        print('schedules 존재: ${roomRef.id} - members 삭제 안함');
+      }
+    }
+
+    if (_nameController.text.trim().isEmpty ||
+        selectedRegion.isEmpty ||
+        selectedTransport.isEmpty ||
+        selectedThemes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("모든 항목을 선택해 주세요.")),
+      );
+      return;
+    }
 
     final roomId = fs.collection('travel_rooms').doc().id;
 
     await fs.collection('travel_rooms')
         .doc(roomId)
         .set({
-            "room_id": roomId,
-            "room_name" : _nameController.text,
-            //"owner_id": user.uid,
-            "owner_id": user?.uid,
-            "region": selectedRegion,
-            "sub_region": null,
-            "theme": selectedThemes,
-            "transport": selectedTransport,
-            "cdatetime": FieldValue.serverTimestamp(),
-            "is_done" : false
-          });
+      "room_id": roomId,
+      "room_name" : _nameController.text,
+      //"owner_id": user.uid,
+      "owner_id": user?.uid,
+      "region": selectedRegion,
+      "sub_region": null,
+      "theme": selectedThemes,
+      "transport": selectedTransport,
+      "cdatetime": FieldValue.serverTimestamp(),
+      "is_done" : false
+    });
 
     // members 서브컬렉션에 방장 추가
     await fs.collection('travel_rooms')
@@ -388,9 +447,9 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
         .set({
       "user_id": user?.uid,
       "is_owner": true,
-      "nickname": "test1111",
+      "nickname": userData?['nickname'] ?? '익명',
       "avatar_id": null,
-      "titles": "칭호",  // 또는 유저가 가진 타이
+      "titles": userData?['titles'] ?? '',  // 또는 유저가 가진 타이
     });
 
     // users 컬렉션에 하위 컬렉션 join_rooms 추가
@@ -437,9 +496,11 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
     }
 
     // 성공적으로 저장 후 알림 또는 페이지 이동
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("여행방이 생성되었습니다!")),
-    );
+    // if (mounted) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text("여행방이 생성되었습니다!")),
+    //   );
+    // }
 
     //초기화
     setState(() {
@@ -458,42 +519,43 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
     );
   }
 
-  final ButtonStyle commonButtonStyle = ElevatedButton.styleFrom(
-    backgroundColor: Colors.yellow,
-    foregroundColor: Colors.black,
-    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-    textStyle: const TextStyle(fontSize: 16),
-  );
-
-
   @override
   Widget build(BuildContext context) {
+
+    final ButtonStyle commonButtonStyle = ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFFFACC15),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      textStyle: TextStyle(
+        fontFamily: 'Jalnan',
+        fontSize: 19,
+        color: Colors.white
+      ),
+    );
+
     return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false, // 기본 뒤로가기 제거
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              GoRouter.of(context).go('/mainPage');
-            },
-          ),
-          elevation: 0,
-          backgroundColor: Colors.white, // 필요에 따라 배경색 지정
-        ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
-              Center(
-                child: Image.asset(
-                  'assets/common_images/logo-main-ver1.png',
-                  height: 80,
-                ),
-              ),
+              const LogoHeader(),
               TextField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: "여행방 이름"),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontFamily: 'AstaSans',
+                  fontSize: 20,
+                ),
+                decoration: InputDecoration(
+                  labelText: "여행방 이름",
+                  labelStyle: TextStyle( // 라벨 텍스트 스타일
+                    fontFamily: 'Jalnan',
+                    fontSize: 16,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
               SizedBox(height: 40),
               _buildFriendInviteRow(),
@@ -519,13 +581,16 @@ class _RoomCreatePageState extends ConsumerState<RoomCreatePage> {
               ElevatedButton(
                 onPressed: _createRoom,
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,         // 배경색
+                    backgroundColor: Color(0xFF1E6FD9),         // 배경색
                     foregroundColor: Colors.white, // 글자색
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 16,
                     ),
-                  textStyle: TextStyle(fontSize: 16)
+                    textStyle: TextStyle(
+                      fontFamily: 'Jalnan',
+                      fontSize: 19,
+                    ),
                 ),
                 child: Text("방 만들기"),
               ),

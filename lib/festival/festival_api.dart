@@ -31,9 +31,6 @@ Future<List<Festival>> fetchFestivals({
 
   final response = await http.get(uri);
 
-  print(uri.toString());
-  print('응답 바디: ${response.body}');
-
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     final body = data['response']['body'];
