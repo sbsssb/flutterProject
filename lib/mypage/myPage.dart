@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:flutterteam4/user/user_provider.dart';
 import 'currentRoom.dart';
@@ -13,24 +14,11 @@ import '../common/bottom_nav_bar.dart';
 import '../utils/app_theme.dart';
 
 
-class myPageApp extends StatelessWidget {
-  const myPageApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.mainTheme,
-      home: myPageMainApp(),
-    );
-  }
-}
-
 
 Future<Map<String, dynamic>?> fetchUserData(String userId) async {
   try {
     final doc =
-        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    await FirebaseFirestore.instance.collection('users').doc(userId).get();
     if (doc.exists) {
       return doc.data();
     }
@@ -200,32 +188,28 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 SizedBox(
-                                  width: 180,
-                                  height: 180,
+                                  width: 175,
+                                  height: 175,
                                   child: _buildFunctionCard(
-                                    image: 'assets/mypage_images/prev_travel.png',
-                                    label: '이전 여행',
-                                    imageSize: 100,
-                                    fontSize: 24,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => PrevRoomIn(userId: userData['user_id']),
-                                        ),
-                                      );
-                                    },
+                                      image: 'assets/mypage_images/prev_travel.png',
+                                      label: '이전 여행',
+                                      imageSize: 100,
+                                      fontSize: 22,
+                                      onTap: () {
+                                        final userId = userData['user_id'];
+                                        context.go('/prevRoom/$userId');
+                                      }
                                   ),
                                 ),
                                 const SizedBox(width: 20),
                                 SizedBox(
-                                  width: 180,
-                                  height: 180,
+                                  width: 175,
+                                  height: 175,
                                   child: _buildFunctionCard(
                                     image: 'assets/mypage_images/friends.png',
                                     label: '사귄 친구',
                                     imageSize: 100,
-                                    fontSize: 24,
+                                    fontSize: 22,
                                     onTap: () async {
                                       final result = await Navigator.push(
                                         context,
@@ -243,19 +227,15 @@ class _myPageMainAppState extends ConsumerState<myPageMainApp> {
                               image: 'assets/mypage_images/current_travel.png',
                               label: '진행 중인 여행',
                               description: '아직 진행 중인 여행 그룹이 있어요.',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CurrentRoomIn(userId: userData['user_id']),
-                                    ),
-                                  );
-                                },
+                              onTap: () {
+                                final userId = userData['user_id'];
+                                context.go('/currentRoom/$userId');  // ✅ GoRouter 사용
+                              },
                             ),
                           ],
                         ),
                       ),
-                        bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+                      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
                     );
                   },
                 );
@@ -376,9 +356,9 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
                                 Text(
                                   '$stampCount회',
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      fontFamily: 'AstaSans',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    fontFamily: 'AstaSans',
                                   ),
                                 ),
                               ],
@@ -409,9 +389,9 @@ Widget _buildLicenseCard(Map<String, dynamic> userData, int stampCount, int frie
                                 Text(
                                   '$friendsCount명',
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      fontFamily: 'AstaSans',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    fontFamily: 'AstaSans',
                                   ),
                                 ),
                               ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../common/bottom_nav_bar.dart';
-import 'prevRoom_detail.dart';
+import '../travelroom/travelDetail.dart';
 import 'appbar.dart';
 
 class PrevRoomApp extends StatelessWidget {
@@ -10,9 +10,7 @@ class PrevRoomApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: PrevRoomIn(userId: userId),
-    );
+    return PrevRoomIn(userId: userId);
   }
 }
 
@@ -154,183 +152,183 @@ class _PrevRoomInState extends State<PrevRoomIn> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child:
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '이전 여행',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontFamily: 'Jalnan',
-                        color: Color(0xFF1E6FD9),
-                      ),
+        isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '이전 여행',
+              style: TextStyle(
+                fontSize: 26,
+                fontFamily: 'Jalnan',
+                color: Color(0xFF1E6FD9),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: travelRooms.isEmpty
+                  ? const Center(
+                child: Text(
+                  '여행 방이 없습니다',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+              )
+                  : GridView.builder(
+                itemCount: travelRooms.length,
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.0,
+                ),
+                itemBuilder: (context, index) {
+                  final room = travelRooms[index];
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: Color(0xFF1E6FD9)),
                     ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: travelRooms.isEmpty
-                            ? const Center(
-                          child: Text(
-                            '여행 방이 없습니다',
-                            style: TextStyle(fontSize: 18, color: Colors.grey),
-                          ),
-                        )
-                          : GridView.builder(
-                        itemCount: travelRooms.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 1.0,
-                            ),
-                        itemBuilder: (context, index) {
-                          final room = travelRooms[index];
-                          return Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: const BorderSide(color: Color(0xFF1E6FD9)),
-                            ),
-                            elevation: 4,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    room['title'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text('참여인원 : ${room['members']}명'),
-                                  const Spacer(),
-                                  Align(
-                                    alignment: Alignment.bottomRight,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-
-                                        if (room['is_owner'] == true)
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              final roomId = room['room_id'];
-
-                                              final shouldDelete = await showDialog<bool>(
-                                                context: context,
-                                                builder: (ctx) => AlertDialog(
-                                                  title: const Text('방 삭제'),
-                                                  content: const Text('정말로 이 여행방을 삭제하시겠습니까? 모든 데이터가 사라집니다.'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () => Navigator.of(ctx).pop(false),
-                                                      child: const Text('취소'),
-                                                    ),
-                                                    ElevatedButton(
-                                                      onPressed: () => Navigator.of(ctx).pop(true),
-                                                      child: const Text('삭제'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-
-                                              if (shouldDelete == true) {
-                                                await deleteTravelRoom(roomId);
-                                                await fetchTravelRooms(page: currentPage);
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(content: Text('여행방이 삭제되었습니다.')),
-                                                );
-                                              }
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.red,
-                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                            ),
-                                            child: const Text('삭제'),
-                                          )
-                                        else
-                                          const SizedBox(),
-
-
-                                        ElevatedButton(
-                                          onPressed: () async {
-                                            final roomId = room['room_id'];
-
-                                            try {
-                                              final query = await FirebaseFirestore.instance
-                                                  .collection('travel_rooms')
-                                                  .where('room_id', isEqualTo: roomId)
-                                                  .limit(1)
-                                                  .get();
-
-                                              if (query.docs.isNotEmpty) {
-                                                final doc = query.docs.first;
-                                                final docId = doc.id;
-
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => PrevRoomDetailPage(roomId: docId),
-                                                  ),
-                                                );
-                                              } else {
-                                              }
-                                            } catch (e) {
-
-                                            }
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.amber,
-                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                          ),
-                                          child: const Text('이동'),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
-                          IconButton(
-                            onPressed: currentPage > 1 ? () {
-                              fetchTravelRooms(page: currentPage - 1);
-                            } : null,
-                            icon: const Icon(Icons.chevron_left),
-                          ),
-
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: OutlinedButton(
-                              onPressed: () {},
-                              child: Text('$currentPage',style: TextStyle(fontFamily: 'AstaSans', fontSize: 18, color: Color(0xFF1E6FD9)),),
+                          Text(
+                            room['title'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          const SizedBox(height: 4),
+                          Text('참여인원 : ${room['members']}명'),
+                          const Spacer(),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+
+                                if (room['is_owner'] == true)
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      final roomId = room['room_id'];
+
+                                      final shouldDelete = await showDialog<bool>(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('방 삭제'),
+                                          content: const Text('정말로 이 여행방을 삭제하시겠습니까? 모든 데이터가 사라집니다.'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.of(ctx).pop(false),
+                                              child: const Text('취소'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () => Navigator.of(ctx).pop(true),
+                                              child: const Text('삭제'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+
+                                      if (shouldDelete == true) {
+                                        await deleteTravelRoom(roomId);
+                                        await fetchTravelRooms(page: currentPage);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('여행방이 삭제되었습니다.')),
+                                        );
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    ),
+                                    child: const Text('삭제'),
+                                  )
+                                else
+                                  const SizedBox(),
 
 
-                          IconButton(
-                            onPressed: hasMore ? () {
-                              fetchTravelRooms(page: currentPage + 1);
-                            } : null,
-                            icon: const Icon(Icons.chevron_right),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final roomId = room['room_id'];
+
+                                    try {
+                                      final query = await FirebaseFirestore.instance
+                                          .collection('travel_rooms')
+                                          .where('room_id', isEqualTo: roomId)
+                                          .limit(1)
+                                          .get();
+
+                                      if (query.docs.isNotEmpty) {
+                                        final doc = query.docs.first;
+                                        final docId = doc.id;
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => TravelRoomDetailPage(roomId: docId),
+                                          ),
+                                        );
+                                      } else {
+                                      }
+                                    } catch (e) {
+
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  ),
+                                  child: const Text('이동'),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+
+                  IconButton(
+                    onPressed: currentPage > 1 ? () {
+                      fetchTravelRooms(page: currentPage - 1);
+                    } : null,
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: OutlinedButton(
+                      onPressed: () {},
+                      child: Text('$currentPage',style: TextStyle(fontFamily: 'AstaSans', fontSize: 18, color: Color(0xFF1E6FD9)),),
+                    ),
+                  ),
+
+
+                  IconButton(
+                    onPressed: hasMore ? () {
+                      fetchTravelRooms(page: currentPage + 1);
+                    } : null,
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
